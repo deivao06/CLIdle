@@ -30,6 +30,8 @@ func (m Model) View() string {
 		body = m.viewHelp(bodyH)
 	case m.tab == tabDungeon:
 		body = m.viewDungeon(bodyH)
+	case m.tab == tabHero:
+		body = m.heroPanel(min(40, m.w-4))
 	default:
 		body = sMuted.Render("Em breve.")
 	}
@@ -88,11 +90,22 @@ func (m Model) viewDungeon(h int) string {
 	} else {
 		left = m.renderMap(mapW, mapH)
 	}
+	if !side && logH >= 3 {
+		left = lipgloss.JoinVertical(lipgloss.Left, left, m.statsLine(mapW))
+		logH--
+	}
 	left = lipgloss.JoinVertical(lipgloss.Left, left, m.renderLog(mapW, logH))
 	if !side {
 		return left
 	}
-	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(m.w-mapW-1).Height(h).Render(m.viewSide()))
+	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(m.w-mapW-1).Height(h).Render(m.heroPanel(sideW-3)))
+}
+
+func (m Model) statsLine(w int) string {
+	h := m.g.Hero
+	s := fmt.Sprintf("Atq %d · Def %d · Vel %d (%.1f/s) · XP %d/%d",
+		h.Atk(), h.Def(), h.Spd(), game.StepsPerSec(h.Spd()), h.XP, game.XPToNext(h.Level))
+	return sSection.Render(truncate(s, w))
 }
 
 func (m Model) renderMap(w, h int) string {
@@ -163,10 +176,9 @@ func (m Model) renderLog(w, h int) string {
 	return strings.Join(lines, "\n")
 }
 
-func (m Model) viewSide() string {
+func (m Model) heroPanel(w int) string {
 	g := m.g
 	h := g.Hero
-	w := sideW - 3
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s nível %d\n", sSection.Render("Herói"), h.Level)
 	fmt.Fprintf(&b, "HP  %s\n", bar(h.HP, h.MaxHP(), w-4, hpStyle(h.HP, h.MaxHP())))
