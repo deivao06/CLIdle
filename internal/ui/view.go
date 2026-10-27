@@ -169,7 +169,7 @@ func (m Model) viewTown() string {
 		next = sMuted.Render(fmt.Sprintf("Próxima expedição em %ds", max(0, secs)))
 	}
 	return lipgloss.JoinVertical(lipgloss.Center, art, "", sTitle.Render("Cidade"),
-		"O herói descansa e se prepara.", next, sMuted.Render("2 para a Preparação"))
+		"O herói descansa e se prepara.", next, sMuted.Render("Aperte 2 para a Preparação"))
 }
 
 func (m Model) statsLine(w int) string {
