@@ -11,6 +11,7 @@ const (
 	HeroBaseSpd     = 4
 
 	MissChance    = 0.1
+	CombatRoundMs = 1000
 	MonsterWindow = 4
 
 	TownWaitMs = 5000

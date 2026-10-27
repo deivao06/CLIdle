@@ -154,7 +154,11 @@ func (m Model) renderLog(w, h int) string {
 	start := max(0, len(entries)-h)
 	var lines []string
 	for _, e := range entries[start:] {
-		lines = append(lines, logStyles[e.Kind].Render(truncate(e.Text, w)))
+		text := e.Text
+		if e.Count > 1 {
+			text += fmt.Sprintf(" ×%d", e.Count)
+		}
+		lines = append(lines, logStyles[e.Kind].Render(truncate(text, w)))
 	}
 	return strings.Join(lines, "\n")
 }
