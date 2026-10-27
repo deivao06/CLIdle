@@ -31,7 +31,7 @@ func (m Model) View() string {
 	case m.tab == tabDungeon:
 		body = m.viewDungeon(bodyH)
 	case m.tab == tabHero:
-		body = m.heroPanel(min(40, m.w-4))
+		body = m.heroPanel(min(48, m.w-4), bodyH)
 	default:
 		body = sMuted.Render("Em breve.")
 	}
@@ -98,7 +98,7 @@ func (m Model) viewDungeon(h int) string {
 	if !side {
 		return left
 	}
-	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(m.w-mapW-1).Height(h).Render(m.heroPanel(sideW-3)))
+	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(m.w-mapW-1).Height(h).Render(m.heroPanel(min(48, m.w-mapW-3), h)))
 }
 
 func (m Model) statsLine(w int) string {
@@ -187,7 +187,7 @@ func (m Model) renderLog(w, h int) string {
 	return strings.Join(lines, "\n")
 }
 
-func (m Model) heroPanel(w int) string {
+func (m Model) heroPanel(w, maxH int) string {
 	g := m.g
 	h := g.Hero
 	var b strings.Builder
@@ -212,8 +212,22 @@ func (m Model) heroPanel(w int) string {
 			b.WriteString(sWarn.Render("Retirando-se") + "\n")
 		}
 	}
-	fmt.Fprintf(&b, "\n%s\nAndar máx. %d\nVoltas %d · Mortes %d\n", sSection.Render("Recordes"), g.MaxDepth, g.Returns, g.Deaths)
-	return b.String()
+	bottom := fmt.Sprintf("\n%s\nAndar máx. %d\nVoltas %d · Mortes %d\n", sSection.Render("Recordes"), g.MaxDepth, g.Returns, g.Deaths)
+	if e := g.Exp; e != nil {
+		avail := maxH - strings.Count(b.String(), "\n") - strings.Count(bottom, "\n")
+		bag := e.Bag
+		if len(bag) > avail {
+			bag = bag[:max(0, avail-1)]
+		}
+		for _, it := range bag {
+			line := fmt.Sprintf("%c %s (%s) · %d ouro", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.Value())
+			b.WriteString(rarityStyle(it.Rarity).Render(truncate(line, w)) + "\n")
+		}
+		if rest := len(e.Bag) - len(bag); rest > 0 {
+			b.WriteString(sMuted.Render(fmt.Sprintf("+%d itens", rest)) + "\n")
+		}
+	}
+	return b.String() + bottom
 }
 
 func (m Model) viewHelp(h int) string {
