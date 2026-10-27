@@ -87,6 +87,9 @@ func (m Model) viewFooter() string {
 	if m.g.InTown() {
 		keys = "1-3 telas · e partir · a auto · ? legenda · q sair"
 	}
+	if m.confirmDo != nil {
+		return truncate(sTabOn.Render(" "+m.confirmText+" ")+sTitle.Render(" (S/n)"), m.w)
+	}
 	if m.saveErr != nil {
 		return truncate(sWarn.Render("erro ao salvar: "+m.saveErr.Error()), m.w)
 	}

@@ -16,6 +16,7 @@ type prepRow struct {
 	style   lipgloss.Style
 	adjust  func(delta int)
 	enter   func()
+	confirm string
 }
 
 func onOff(b bool) string {
@@ -32,7 +33,8 @@ func (m Model) prepRows() []prepRow {
 	c := &g.Config
 	var rows []prepRow
 	if g.InTown() {
-		rows = append(rows, prepRow{section: "Próxima expedição", text: "▶ Partir agora", style: sTitle, enter: g.Depart})
+		rows = append(rows, prepRow{section: "Próxima expedição", text: "▶ Partir agora", style: sTitle, enter: g.Depart,
+			confirm: "Partir para a expedição?"})
 	}
 	cfg := func(label, value string, adjust func(int)) {
 		rows = append(rows, prepRow{

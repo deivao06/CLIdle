@@ -43,6 +43,13 @@ type Model struct {
 	summary    *game.Summary
 	lastDeaths int
 	lastBosses int
+
+	confirmText string
+	confirmDo   func()
+}
+
+func (m *Model) ask(text string, do func()) {
+	m.confirmText, m.confirmDo = text, do
 }
 
 func New(g *game.Game) Model {
@@ -126,6 +133,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.summary = nil
 			return m, nil
 		}
+		if m.confirmDo != nil {
+			switch msg.String() {
+			case "s", "S", "y", "Y", "enter":
+				m.confirmDo()
+				m.confirmDo = nil
+			case "n", "N", "esc":
+				m.confirmDo = nil
+			}
+			return m, nil
+		}
 		switch msg.String() {
 		case "q", "ctrl+c":
 			m.save(time.Now())
@@ -137,11 +154,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "3":
 			m.tab, m.help = tabHero, false
 		case "r":
-			m.g.Retreat()
+			if e := m.g.Exp; e != nil && !e.Retreating {
+				m.ask("Retirar o herói da dungeon?", m.g.Retreat)
+			}
 		case "a":
 			m.g.ToggleAuto()
 		case "e":
-			m.g.Depart()
+			if m.g.InTown() {
+				m.ask("Partir para a expedição?", m.g.Depart)
+			}
 		case "?":
 			m.help = !m.help
 		default:
@@ -179,7 +200,10 @@ func (m *Model) prepKey(key string) {
 			r.adjust(1)
 		}
 	case "enter", " ":
-		if r.enter != nil {
+		switch {
+		case r.confirm != "":
+			m.ask(r.confirm, r.enter)
+		case r.enter != nil:
 			r.enter()
 		}
 	}
