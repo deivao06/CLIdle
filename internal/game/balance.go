@@ -81,3 +81,20 @@ var ItemNames = [NumSlots][]itemName{
 	Armor:  {{1, "Gibão de Couro"}, {5, "Couro Batido"}, {10, "Cota de Malha"}, {16, "Brunea"}, {24, "Armadura de Placas"}},
 	Boots:  {{1, "Botas de Couro"}, {6, "Botas Reforçadas"}, {14, "Botas Ligeiras"}, {22, "Botas Élficas"}},
 }
+
+const (
+	ShopSize    = 3
+	ShopMarkup  = 3
+	PotionPrice = 10
+	TrainHP     = 5
+)
+
+func UpgradeCost(it *Item, level int) int {
+	return int(float64(it.Value()+10) * math.Pow(1.6, float64(level)))
+}
+
+var trainBase = [NumTraits]float64{30, 40, 40, 120}
+
+func TrainCost(t Trait, level int) int {
+	return int(trainBase[t] * math.Pow(1.5, float64(level)))
+}

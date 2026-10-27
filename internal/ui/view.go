@@ -30,6 +30,8 @@ func (m Model) View() string {
 		body = m.viewHelp(bodyH)
 	case m.tab == tabDungeon:
 		body = m.viewDungeon(bodyH)
+	case m.tab == tabPrep:
+		body = m.viewPrep(bodyH)
 	case m.tab == tabHero:
 		body = m.heroPanel(min(48, m.w-4), bodyH)
 	default:
@@ -70,7 +72,14 @@ func (m Model) statusLine() string {
 }
 
 func (m Model) viewFooter() string {
-	return truncate(sMuted.Render("1-3 telas · r retirar · ? legenda · q sair"), m.w)
+	keys := "1-3 telas · r retirar · a auto · ? legenda · q sair"
+	if m.g.InTown() {
+		keys = "1-3 telas · e partir · a auto · ? legenda · q sair"
+	}
+	if m.saveErr != nil {
+		return truncate(sWarn.Render("erro ao salvar: "+m.saveErr.Error()), m.w)
+	}
+	return truncate(sMuted.Render(keys), m.w)
 }
 
 func (m Model) viewDungeon(h int) string {
@@ -86,7 +95,7 @@ func (m Model) viewDungeon(h int) string {
 	}
 	var left string
 	if g.Exp == nil {
-		left = lipgloss.Place(mapW, mapH, lipgloss.Center, lipgloss.Center, sMuted.Render("O herói descansa na cidade..."))
+		left = lipgloss.Place(mapW, mapH, lipgloss.Center, lipgloss.Center, m.viewTown())
 	} else {
 		left = m.renderMap(mapW, mapH)
 	}
@@ -99,6 +108,23 @@ func (m Model) viewDungeon(h int) string {
 		return left
 	}
 	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(m.w-mapW-1).Height(h).Render(m.heroPanel(min(48, m.w-mapW-3), h)))
+}
+
+func (m Model) viewTown() string {
+	g := m.g
+	art := sWall.Render(strings.Join([]string{
+		`   |>          |>   `,
+		`  /_\  ____   /_\  `,
+		`  |.| |.__.| |.|   `,
+		`__|_|_|_||_|_|_|__ `,
+	}, "\n"))
+	next := sMuted.Render("Auto-expedição desligada · e para partir")
+	if g.Auto {
+		secs := (game.TownWaitMs - g.AccMs + 999) / 1000
+		next = sMuted.Render(fmt.Sprintf("Próxima expedição em %ds", max(0, secs)))
+	}
+	return lipgloss.JoinVertical(lipgloss.Center, art, "", sTitle.Render("Cidade"),
+		"O herói descansa e se prepara.", next, sMuted.Render("2 para a Preparação"))
 }
 
 func (m Model) statsLine(w int) string {

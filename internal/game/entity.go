@@ -53,12 +53,13 @@ func spawnMonster(rng *RNG, depth int) *Monster {
 func scaled(v int, s float64) int { return int(float64(v)*s + 0.5) }
 
 type Hero struct {
-	Pos     Pos
-	HP      int
-	Level   int
-	XP      int
-	Potions int
-	Equip   [NumSlots]*Item
+	Pos      Pos
+	HP       int
+	Level    int
+	XP       int
+	Potions  int
+	Equip    [NumSlots]*Item
+	Training [NumTraits]int
 }
 
 func NewHero() *Hero {
@@ -67,10 +68,16 @@ func NewHero() *Hero {
 	return h
 }
 
-func (h *Hero) MaxHP() int { return HeroBaseHP + (h.Level-1)*HeroHPPerLevel }
-func (h *Hero) Atk() int   { return HeroBaseAtk + (h.Level-1)*HeroAtkPerLevel/2 + h.bonus(Weapon) }
-func (h *Hero) Def() int   { return HeroBaseDef + (h.Level-1)/2 + h.bonus(Armor) }
-func (h *Hero) Spd() int   { return HeroBaseSpd + h.bonus(Boots) }
+func (h *Hero) MaxHP() int {
+	return HeroBaseHP + (h.Level-1)*HeroHPPerLevel + h.Training[Vigor]*TrainHP
+}
+func (h *Hero) Atk() int {
+	return HeroBaseAtk + (h.Level-1)*HeroAtkPerLevel/2 + h.bonus(Weapon) + h.Training[Strength]
+}
+func (h *Hero) Def() int {
+	return HeroBaseDef + (h.Level-1)/2 + h.bonus(Armor) + h.Training[Toughness]
+}
+func (h *Hero) Spd() int { return HeroBaseSpd + h.bonus(Boots) + h.Training[Agility] }
 
 func (h *Hero) bonus(s Slot) int {
 	if h.Equip[s] == nil {

@@ -15,6 +15,7 @@ type Expedition struct {
 	Bag        []*Item
 	StartEquip [NumSlots]*Item
 	Retreating bool
+	Config     Config
 }
 
 type ExploreMode int
@@ -30,10 +31,11 @@ type Config struct {
 	RetreatHPPct   int
 	RetreatBagFull bool
 	LastFloor      int
+	PotionsToBring int
 }
 
 func DefaultConfig() Config {
-	return Config{Mode: ExploreAll, PotionAtPct: 40, RetreatHPPct: 30, RetreatBagFull: true}
+	return Config{Mode: ExploreAll, PotionAtPct: 40, RetreatHPPct: 30, RetreatBagFull: true, PotionsToBring: 3}
 }
 
 type Game struct {
@@ -48,6 +50,10 @@ type Game struct {
 	MaxDepth int
 	Deaths   int
 	Returns  int
+	Auto     bool
+	Shop     []*Item
+	Pending  []*Item
+	Upgrades [NumSlots]int
 }
 
 func New(seed uint64) *Game {
@@ -55,7 +61,9 @@ func New(seed uint64) *Game {
 		RNG:    NewRNG(seed),
 		Hero:   NewHero(),
 		Config: DefaultConfig(),
+		Auto:   true,
 	}
+	g.refreshShop()
 	g.StartExpedition()
 	return g
 }
@@ -73,6 +81,10 @@ func (g *Game) Advance(ms int64) {
 	g.AccMs += ms
 	for {
 		if g.Exp == nil {
+			if !g.Auto {
+				g.AccMs = 0
+				return
+			}
 			if g.AccMs < TownWaitMs {
 				return
 			}
@@ -92,8 +104,9 @@ func (g *Game) Advance(ms int64) {
 func (g *Game) StartExpedition() {
 	g.ExpNum++
 	seed := g.RNG.Uint64()
-	g.Exp = &Expedition{Num: g.ExpNum, Seed: seed, RNG: NewRNG(seed), StartEquip: g.Hero.Equip}
+	g.Exp = &Expedition{Num: g.ExpNum, Seed: seed, RNG: NewRNG(seed), StartEquip: g.Hero.Equip, Config: g.Config}
 	g.Hero.HP = g.Hero.MaxHP()
+	g.buyPotions()
 	g.logf(LogInfo, "Expedição #%d parte rumo à dungeon.", g.ExpNum)
 	g.enterLevel(1)
 }
@@ -148,7 +161,7 @@ func (g *Game) step() {
 	case g.Exp.Retreating && h.Pos == l.Up:
 		g.returnToTown()
 	case !g.Exp.Retreating && h.Pos == l.Down && g.readyToDescend():
-		if c := g.Config.LastFloor; c > 0 && l.Depth >= c {
+		if c := g.Exp.Config.LastFloor; c > 0 && l.Depth >= c {
 			g.startRetreat(fmt.Sprintf("andar %d concluído", l.Depth))
 			return
 		}
@@ -158,7 +171,7 @@ func (g *Game) step() {
 
 func (g *Game) needsPotion() bool {
 	h := g.Hero
-	return h.Potions > 0 && h.HP*100 < h.MaxHP()*g.Config.PotionAtPct
+	return h.Potions > 0 && h.HP*100 < h.MaxHP()*g.Exp.Config.PotionAtPct
 }
 
 func (g *Game) checkRetreat() {
@@ -166,9 +179,9 @@ func (g *Game) checkRetreat() {
 	h := g.Hero
 	switch {
 	case e.Retreating:
-	case g.Config.RetreatBagFull && len(e.Bag) >= BagSize:
+	case g.Exp.Config.RetreatBagFull && len(e.Bag) >= BagSize:
 		g.startRetreat("mochila cheia")
-	case h.Potions == 0 && h.HP*100 < h.MaxHP()*g.Config.RetreatHPPct:
+	case h.Potions == 0 && h.HP*100 < h.MaxHP()*g.Exp.Config.RetreatHPPct:
 		g.startRetreat("HP baixo e sem poções")
 	}
 }
@@ -200,6 +213,7 @@ func (g *Game) returnToTown() {
 			e.Num, e.Gold+sold, e.Gold, len(e.Bag), sold)
 	}
 	g.Exp = nil
+	g.arriveInTown()
 }
 
 func (g *Game) wants(f *FloorItem) bool {
@@ -221,7 +235,7 @@ func (g *Game) wantedItem(p Pos) bool {
 }
 
 func (g *Game) readyToDescend() bool {
-	if g.Config.Mode == DescendFast {
+	if g.Exp.Config.Mode == DescendFast {
 		return true
 	}
 	if _, ok := g.Exp.Level.pathStep(g.Hero.Pos, g.passable, g.wantedItem); ok {
@@ -450,7 +464,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 func (g *Game) foundEquipped() int {
 	n := 0
 	for s, it := range g.Hero.Equip {
-		if it != g.Exp.StartEquip[s] {
+		if start := g.Exp.StartEquip[s]; it != nil && (start == nil || it.ID != start.ID) {
 			n++
 		}
 	}
@@ -461,7 +475,7 @@ func (g *Game) die() {
 	g.Hero.Equip = g.Exp.StartEquip
 	g.Exp = nil
 	g.Deaths++
-	g.Hero.HP = g.Hero.MaxHP()
+	g.arriveInTown()
 }
 
 func (g *Game) known(p Pos) bool {
@@ -510,7 +524,7 @@ func (g *Game) chooseStep() (Pos, bool) {
 	if next, ok := l.pathStep(h.Pos, g.passable, g.wantedItem); ok {
 		return next, true
 	}
-	if g.Config.Mode == DescendFast && l.IsSeen(l.Down) {
+	if g.Exp.Config.Mode == DescendFast && l.IsSeen(l.Down) {
 		if next, ok := l.pathStep(h.Pos, g.passable, to(l.Down)); ok {
 			return next, true
 		}

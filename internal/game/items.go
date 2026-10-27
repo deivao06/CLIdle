@@ -28,6 +28,7 @@ func (r Rarity) LogKind() LogKind {
 }
 
 type Item struct {
+	ID      uint64
 	Slot    Slot
 	Rarity  Rarity
 	Name    string
@@ -87,7 +88,7 @@ func newItem(rng *RNG, depth int) *Item {
 			name = n.name
 		}
 	}
-	return &Item{Slot: slot, Rarity: rarity, Name: name, Base: max(1, int(base+0.5))}
+	return &Item{ID: rng.Uint64(), Slot: slot, Rarity: rarity, Name: name, Base: max(1, int(base+0.5))}
 }
 
 func (l *Level) placeLoot(rng *RNG, startRoom int) {
