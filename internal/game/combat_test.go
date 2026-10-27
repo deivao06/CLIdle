@@ -23,7 +23,7 @@ func TestLevelUpRaisesStats(t *testing.T) {
 }
 
 func TestDeathReturnsToTownAndRestarts(t *testing.T) {
-	g := New(3)
+	g := departed(3)
 	g.Hero.HP = 1
 	m := &Monster{Kind: 0, HP: 99, MaxHP: 99, Atk: 100, Spd: 4, Awake: true}
 	g.Exp.Level.Mons = []*Monster{m}
@@ -49,7 +49,7 @@ func TestHeroKillsMonsters(t *testing.T) {
 }
 
 func TestRoundIsOneLogLine(t *testing.T) {
-	g := New(5)
+	g := departed(5)
 	g.Hero.HP = 1000
 	bat := &Monster{Kind: 1, HP: 99, MaxHP: 99, Atk: 2, Spd: 8, Awake: true}
 	bat.Pos = g.Hero.Pos.Add(Pos{1, 0})
@@ -75,4 +75,10 @@ func TestRepeatedLinesAreCounted(t *testing.T) {
 	if len(g.Log) != before+1 || g.Log[len(g.Log)-1].Count != 2 {
 		t.Fatalf("got %+v", g.Log[before:])
 	}
+}
+
+func departed(seed uint64) *Game {
+	g := New(seed)
+	g.Depart()
+	return g
 }

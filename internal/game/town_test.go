@@ -4,7 +4,6 @@ import "testing"
 
 func townGame() *Game {
 	g := New(9)
-	g.Exp = nil
 	g.Gold = 100000
 	return g
 }
@@ -22,7 +21,7 @@ func TestBuyInTownEquipsAndSellsOld(t *testing.T) {
 }
 
 func TestBuyAwayIsAppliedOnReturn(t *testing.T) {
-	g := New(9)
+	g := departed(9)
 	g.Gold = 100000
 	g.Shop = []*Item{{Slot: Armor, Base: 10}}
 	g.BuyShop(0)
@@ -37,7 +36,7 @@ func TestBuyAwayIsAppliedOnReturn(t *testing.T) {
 }
 
 func TestPurchaseSurvivesDeath(t *testing.T) {
-	g := New(9)
+	g := departed(9)
 	g.Gold = 100000
 	g.Shop = []*Item{{Slot: Boots, Base: 3}}
 	g.BuyShop(0)
@@ -86,5 +85,16 @@ func TestPotionsBoughtBeforeExpedition(t *testing.T) {
 	g.StartExpedition()
 	if g.Hero.Potions != 4 || g.Gold != 100000-4*PotionPrice {
 		t.Fatalf("potions %d gold %d", g.Hero.Potions, g.Gold)
+	}
+}
+
+func TestNewGameStartsInTown(t *testing.T) {
+	g := New(1)
+	if !g.InTown() {
+		t.Fatal("new game should start in town")
+	}
+	g.Advance(TownWaitMs)
+	if g.InTown() {
+		t.Fatal("auto-expedition should depart after the town wait")
 	}
 }

@@ -64,7 +64,7 @@ func New(seed uint64) *Game {
 		Auto:   true,
 	}
 	g.refreshShop()
-	g.StartExpedition()
+	g.logf(LogInfo, "Bem-vindo à cidade. Prepare a primeira expedição na aba 2.")
 	return g
 }
 

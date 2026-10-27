@@ -3,7 +3,7 @@ package game
 import "testing"
 
 func TestReturnDepositsGoldAndSellsBag(t *testing.T) {
-	g := New(1)
+	g := departed(1)
 	it := &Item{Slot: Weapon, Base: 5}
 	g.Exp.Gold = 10
 	g.Exp.Bag = []*Item{it}
@@ -14,7 +14,7 @@ func TestReturnDepositsGoldAndSellsBag(t *testing.T) {
 }
 
 func TestDeathLosesFoundLootButKeepsStartEquip(t *testing.T) {
-	g := New(1)
+	g := departed(1)
 	start := &Item{Slot: Weapon, Base: 3}
 	g.Hero.Equip[Weapon] = start
 	g.Exp.StartEquip = g.Hero.Equip
@@ -29,7 +29,7 @@ func TestDeathLosesFoundLootButKeepsStartEquip(t *testing.T) {
 }
 
 func TestBagFullTriggersRetreatAndHeroLeaves(t *testing.T) {
-	g := New(2)
+	g := departed(2)
 	for range BagSize {
 		g.Exp.Bag = append(g.Exp.Bag, &Item{Base: 1})
 	}
@@ -46,7 +46,7 @@ func TestBagFullTriggersRetreatAndHeroLeaves(t *testing.T) {
 }
 
 func TestPotionHealsWhenLow(t *testing.T) {
-	g := New(3)
+	g := departed(3)
 	g.Exp.Level.Mons = nil
 	g.Hero.Potions = 1
 	g.Hero.HP = 1
@@ -57,7 +57,7 @@ func TestPotionHealsWhenLow(t *testing.T) {
 }
 
 func TestBetterItemIsEquipped(t *testing.T) {
-	g := New(4)
+	g := departed(4)
 	l := g.Exp.Level
 	l.Mons = nil
 	it := &Item{Slot: Armor, Base: 7}
