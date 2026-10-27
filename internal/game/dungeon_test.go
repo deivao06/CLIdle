@@ -23,8 +23,8 @@ func TestLevelFullyConnected(t *testing.T) {
 func TestHeroExploresAndDescends(t *testing.T) {
 	g := New(42)
 	g.Advance(10 * 60 * 1000)
-	if g.Exp.Level.Depth < 3 {
-		t.Fatalf("hero stuck on depth %d", g.Exp.Level.Depth)
+	if g.MaxDepth < 3 {
+		t.Fatalf("hero stuck, max depth %d", g.MaxDepth)
 	}
 }
 
@@ -34,7 +34,7 @@ func TestAdvanceChunkingIsDeterministic(t *testing.T) {
 	for range 2400 {
 		b.Advance(50)
 	}
-	if a.Hero.Pos != b.Hero.Pos || a.Exp.Level.Depth != b.Exp.Level.Depth {
-		t.Fatalf("diverged: %v/%d vs %v/%d", a.Hero.Pos, a.Exp.Level.Depth, b.Hero.Pos, b.Exp.Level.Depth)
+	if a.Hero.Pos != b.Hero.Pos || a.Hero.XP != b.Hero.XP || a.ExpNum != b.ExpNum || len(a.Log) != len(b.Log) {
+		t.Fatalf("diverged: %+v vs %+v", a.Hero, b.Hero)
 	}
 }

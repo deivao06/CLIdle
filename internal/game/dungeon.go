@@ -73,14 +73,14 @@ func (r Room) Inside(p Pos) bool {
 }
 
 type Level struct {
-	Depth  int
-	Tiles  []byte
-	Seen   []byte
-	Rooms  []Room
-	Up     Pos
-	Down   Pos
-	Items  []*FloorItem
-	Mons   []*Monster
+	Depth int
+	Tiles []byte
+	Seen  []byte
+	Rooms []Room
+	Up    Pos
+	Down  Pos
+	Items []*FloorItem
+	Mons  []*Monster
 }
 
 func (l *Level) In(p Pos) bool { return p.X >= 0 && p.Y >= 0 && p.X < MapW && p.Y < MapH }

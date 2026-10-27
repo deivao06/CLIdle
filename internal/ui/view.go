@@ -38,30 +38,33 @@ func (m Model) View() string {
 }
 
 func (m Model) viewHeader() string {
-	tabs := []string{"1 Dungeon", "2 Cidade", "3 Herói"}
-	var parts []string
-	for i, t := range tabs {
-		if i == m.tab && !m.help {
-			parts = append(parts, sTabOn.Render(" "+t+" "))
-		} else {
-			parts = append(parts, sTabOff.Render(" "+t+" "))
+	right := m.statusLine()
+	for _, tabs := range [][]string{{"1 Principal", "2 Preparação", "3 Herói"}, {"1", "2", "3"}} {
+		var parts []string
+		for i, t := range tabs {
+			if i == m.tab && !m.help {
+				parts = append(parts, sTabOn.Render(" "+t+" "))
+			} else {
+				parts = append(parts, sTabOff.Render(" "+t+" "))
+			}
+		}
+		left := strings.Join(parts, "")
+		if gap := m.w - lipgloss.Width(left) - lipgloss.Width(right); gap >= 1 {
+			return left + strings.Repeat(" ", gap) + right
 		}
 	}
-	left := sTitle.Render("clidle ") + strings.Join(parts, "")
-	right := m.statusLine()
-	gap := m.w - lipgloss.Width(left) - lipgloss.Width(right)
-	if gap < 1 {
-		return truncate(left, m.w)
-	}
-	return left + strings.Repeat(" ", gap) + right
+	return truncate(right, m.w)
 }
 
 func (m Model) statusLine() string {
 	g := m.g
-	if g.Exp == nil {
-		return sMuted.Render("na cidade ")
+	h := g.Hero
+	hp := hpStyle(h.HP, h.MaxHP()).Render(fmt.Sprintf("HP %d/%d", h.HP, h.MaxHP()))
+	where := "cidade"
+	if g.Exp != nil {
+		where = fmt.Sprintf("andar %d", g.Exp.Level.Depth)
 	}
-	return sMuted.Render(fmt.Sprintf("andar %d ", g.Exp.Level.Depth))
+	return hp + sMuted.Render(fmt.Sprintf(" · nv %d · %s ", h.Level, where))
 }
 
 func (m Model) viewFooter() string {
@@ -135,6 +138,10 @@ func (m Model) cell(l *game.Level, p game.Pos) (rune, *lipgloss.Style) {
 	if !l.IsSeen(p) {
 		return ' ', &sPlain
 	}
+	if mon := l.MonsterAt(p); mon != nil && l.Visible(g.Hero.Pos, p) {
+		k := mon.Info()
+		return k.Glyph, monsterStyle(k)
+	}
 	t := l.At(p)
 	if !l.Visible(g.Hero.Pos, p) {
 		return t.Glyph(), &sDim
@@ -154,12 +161,18 @@ func (m Model) renderLog(w, h int) string {
 
 func (m Model) viewSide() string {
 	g := m.g
+	h := g.Hero
+	w := sideW - 3
 	var b strings.Builder
-	b.WriteString(sSection.Render("Herói") + "\n")
-	fmt.Fprintf(&b, "Velocidade %d (%.1f/s)\n", g.Hero.Spd, game.StepsPerSec(g.Hero.Spd))
+	fmt.Fprintf(&b, "%s nível %d\n", sSection.Render("Herói"), h.Level)
+	fmt.Fprintf(&b, "HP  %s\n", bar(h.HP, h.MaxHP(), w-4, hpStyle(h.HP, h.MaxHP())))
+	fmt.Fprintf(&b, "XP  %s\n", bar(h.XP, game.XPToNext(h.Level), w-4, sXP))
+	fmt.Fprintf(&b, "Ataque %d · Defesa %d\n", h.Atk(), h.Def())
+	fmt.Fprintf(&b, "Velocidade %d (%.1f/s)\n", h.Spd(), game.StepsPerSec(h.Spd()))
 	if g.Exp != nil {
-		fmt.Fprintf(&b, "\n%s\nExpedição #%d\nAndar %d\n", sSection.Render("Expedição"), g.Exp.Num, g.Exp.Level.Depth)
+		fmt.Fprintf(&b, "\n%s #%d\nAndar %d\n", sSection.Render("Expedição"), g.Exp.Num, g.Exp.Level.Depth)
 	}
+	fmt.Fprintf(&b, "\n%s\nAndar máx. %d\nMortes %d\n", sSection.Render("Recordes"), g.MaxDepth, g.Deaths)
 	return b.String()
 }
 
@@ -175,11 +188,27 @@ func (m Model) viewHelp(h int) string {
 		{sStairs.Render(">"), "escada para baixo"},
 		{sStairs.Render("<"), "escada para cima (saída)"},
 	}
+	for _, k := range game.MonsterKinds {
+		if k.MinDepth > m.g.MaxDepth {
+			rows = append(rows, [2]string{sMuted.Render("?"), sMuted.Render("ainda não encontrado")})
+			break
+		}
+		rows = append(rows, [2]string{monsterStyle(k).Render(string(k.Glyph)), k.Name})
+	}
 	for _, r := range rows {
-		fmt.Fprintf(&b, "  %-3s %s\n", r[0], r[1])
+		b.WriteString("  " + r[0] + strings.Repeat(" ", max(1, 4-lipgloss.Width(r[0]))) + r[1] + "\n")
 	}
 	b.WriteString("\n" + sMuted.Render("? fecha"))
 	return b.String()
+}
+
+func bar(v, maxV, w int, st lipgloss.Style) string {
+	w = max(w, 4)
+	filled := 0
+	if maxV > 0 {
+		filled = clamp(v*w/maxV, 0, w)
+	}
+	return st.Render(strings.Repeat("█", filled)) + sDim.Render(strings.Repeat("░", w-filled))
 }
 
 func clamp(v, lo, hi int) int {

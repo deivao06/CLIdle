@@ -22,7 +22,32 @@ var (
 	sWarn    = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true)
 	sPanel   = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, false, true).BorderForeground(lipgloss.Color("238")).PaddingLeft(1)
 	sSection = lipgloss.NewStyle().Foreground(lipgloss.Color("214"))
+	sXP      = lipgloss.NewStyle().Foreground(lipgloss.Color("141"))
+	sHPGood  = lipgloss.NewStyle().Foreground(lipgloss.Color("114"))
+	sHPMid   = lipgloss.NewStyle().Foreground(lipgloss.Color("220"))
+	sHPLow   = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true)
 )
+
+var monsterStyles = map[rune]*lipgloss.Style{}
+
+func monsterStyle(k game.MonsterKind) *lipgloss.Style {
+	if st, ok := monsterStyles[k.Glyph]; ok {
+		return st
+	}
+	st := lipgloss.NewStyle().Foreground(lipgloss.Color(k.Color)).Bold(true)
+	monsterStyles[k.Glyph] = &st
+	return &st
+}
+
+func hpStyle(hp, maxHP int) lipgloss.Style {
+	switch {
+	case hp*3 > maxHP*2:
+		return sHPGood
+	case hp*3 > maxHP:
+		return sHPMid
+	}
+	return sHPLow
+}
 
 var logStyles = map[game.LogKind]lipgloss.Style{
 	game.LogInfo: lipgloss.NewStyle().Foreground(lipgloss.Color("250")),
