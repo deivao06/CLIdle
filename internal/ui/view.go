@@ -33,6 +33,9 @@ func (m Model) View() string {
 	}
 	var body string
 	switch {
+	case m.confirmDo != nil:
+		box := sBox.Render(sTitle.Render(m.confirmText) + "\n\n" + sMuted.Render("(S/n)"))
+		body = lipgloss.Place(m.w, bodyH, lipgloss.Center, lipgloss.Center, box)
 	case m.summary != nil:
 		block := m.viewSummary()
 		block = lipgloss.NewStyle().Width(lipgloss.Width(block)).Render(block)
@@ -88,7 +91,7 @@ func (m Model) viewFooter() string {
 		keys = "1-3 telas · e partir · a auto · ? legenda · q sair"
 	}
 	if m.confirmDo != nil {
-		return truncate(sTabOn.Render(" "+m.confirmText+" ")+sTitle.Render(" (S/n)"), m.w)
+		return truncate(sMuted.Render("s/enter confirmar · n/esc cancelar"), m.w)
 	}
 	if m.saveErr != nil {
 		return truncate(sWarn.Render("erro ao salvar: "+m.saveErr.Error()), m.w)

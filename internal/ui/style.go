@@ -28,6 +28,7 @@ var (
 	sHPLow   = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true)
 	sGold    = lipgloss.NewStyle().Foreground(lipgloss.Color("220"))
 	sPotion  = lipgloss.NewStyle().Foreground(lipgloss.Color("207")).Bold(true)
+	sBox     = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("214")).Padding(1, 4).Align(lipgloss.Center)
 )
 
 var rarityStyles = [...]lipgloss.Style{
