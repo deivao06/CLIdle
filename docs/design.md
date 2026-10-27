@@ -1,0 +1,84 @@
+# clidle — Design
+
+Idle game de terminal, fantasia medieval, dungeon explorer estilo roguelike clássico (NetHack/Rogue).
+A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatória.
+
+## Base
+
+- **Objetivo:** uso pessoal, código limpo o bastante para publicar depois.
+- **Stack:** Go + Bubble Tea.
+- **Interação:** idle + decisões. Roda sozinho; o jogador entra a cada 10–30 min para decidir.
+- **Offline:** ao reabrir, roda a simulação real (mesma lógica, sem desenhar) pelo tempo fora, teto de 12h, e mostra um resumo.
+- **Save:** `~/.local/share/clidle/save.json`, a cada 30s e ao sair.
+
+## Layout
+
+- Adaptável ao tamanho do terminal, com breakpoints:
+  - **Pequeno:** mapa + essencial (HP, andar, ouro, último evento).
+  - **Médio:** + log.
+  - **Grande:** + stats/inventário e legenda em painel lateral.
+- Abaixo de **40×10**: aviso "janela muito pequena".
+- Telas: `1` Dungeon (mapa + log) · `2` Cidade · `3` Herói · `?` legenda/ajuda · `q` sair.
+
+## Visual
+
+- Mapa ASCII estilo Rogue; o jogador vê o `@` explorando sozinho.
+- Andar de tamanho fixo (~80×21); a câmera segue o `@` em terminais menores.
+- Névoa de guerra.
+- Legenda explicando cada caractere de entidade.
+- Monstros por letra (`r`, `g`, `o`...); chefes em letra maiúscula com cor própria. ~8–10 tipos na v1.
+- Raridade de itens por cor: Comum (branco), Raro (azul), Épico (roxo).
+
+## Expedições
+
+- O herói entra na dungeon, sai quando quiser e guarda o loot.
+- **Morte:** perde ouro e itens achados na expedição; mantém nível/XP e o equipamento que saiu da cidade. Volta para a cidade.
+- **Retirada automática:** 2–3 regras simples configuráveis (ex: HP < X% sem poções, mochila cheia, chegou ao andar X).
+- **Auto-expedição:** liga/desliga. Ao terminar, inicia outra com a mesma configuração, comprando as poções configuradas antes (se tiver ouro).
+- **Poções:** bebidas automaticamente abaixo de um limite de HP configurável.
+
+## Dungeon
+
+- Andares infinitos, cada vez mais fundos. Chefe a cada 10 andares.
+- Geração estilo Rogue: salas retangulares + corredores, escada `>`.
+- Matar um chefe desbloqueia atalho (começar no andar 10, 20...).
+- Comportamento por andar configurável: explorar tudo (padrão) ou descer direto ao achar `>`.
+- Combate roguelike: esbarra no monstro e ataca, por turnos, automático, registrado no log.
+- Itens: equipa sozinho se for melhor; mochila com limite.
+
+## Herói
+
+- Um herói na v1.
+- Atributos: HP, Ataque, Defesa, Velocidade (passos por segundo + iniciativa).
+- Velocidade de exploração vem de atributo/equipamento.
+- Fontes de poder: nível/XP, equipamento (achado ou comprado), melhorias permanentes na cidade.
+
+## Cidade (v1)
+
+- Loja: poções e equipamento básico.
+- Ferreiro: melhora equipamento.
+- Moeda única: ouro.
+
+## Técnico
+
+- Números de balanceamento em tabelas Go num lugar só (`balance.go`). Ritmo definido jogando.
+- RNG com seed por expedição (testes e reprodução de bugs).
+- Testes automatizados na lógica (geração, combate, simulação); sem testar a UI.
+- Bip do terminal (morte/chefe) desligado por padrão, com opção para ligar.
+
+## Marcos
+
+1. `@` explorando um andar gerado, névoa, câmera, layout adaptável.
+2. Monstros + combate + log + morte.
+3. Andares, escada, loot, mochila, retirada automática.
+4. Cidade (loja, ferreiro), auto-expedição, save.
+5. Offline, chefes, atalhos, legenda.
+
+## Para depois
+
+- Grupo (vários `@` com cores diferentes).
+- Prestígio (reset com bônus permanente).
+- Itens lendários (únicos).
+- Cavernas e outras variações de andar.
+- Mais atributos (crítico, sorte...), materiais, outros prédios.
+- Herói autônomo o bastante para explorar sem preocupação (regras de retirada mais elaboradas).
