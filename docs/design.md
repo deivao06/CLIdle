@@ -34,18 +34,24 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 ## Expedições
 
 - O herói entra na dungeon, sai quando quiser e guarda o loot.
-- **Morte:** perde ouro e itens achados na expedição; mantém nível/XP e o equipamento que saiu da cidade. Volta para a cidade.
+- **Morte:** perde ouro e itens achados na expedição; mantém nível/XP, poções e o equipamento que saiu da cidade. Volta para a cidade.
+- **Volta:** o herói sai pela escada `<` do andar atual; o ouro é guardado e a mochila é vendida automaticamente.
 - **Retirada automática:** 2–3 regras simples configuráveis (ex: HP < X% sem poções, mochila cheia, chegou ao andar X).
-- **Auto-expedição:** liga/desliga. Ao terminar, inicia outra com a mesma configuração, comprando as poções configuradas antes (se tiver ouro).
+- **Início:** o jogo começa na cidade; a expedição parte com `e` ou "Partir agora" na Preparação.
+- **Auto-expedição:** liga/desliga (desligada por padrão). Ao terminar, inicia outra com a mesma configuração.
+- Antes de partir, o herói compra poções até completar o número configurado (se tiver ouro).
 - **Poções:** bebidas automaticamente abaixo de um limite de HP configurável.
 
 ## Dungeon
 
 - Andares infinitos, cada vez mais fundos. Chefe a cada 10 andares.
 - Geração estilo Rogue: salas retangulares + corredores, escada `>`.
-- Matar um chefe desbloqueia atalho (começar no andar 10, 20...).
+- O chefe fica na sala da escada `>`; só dá para descer depois de derrotá-lo. Ele deixa cair um item épico.
+- Matar um chefe desbloqueia atalho para o andar seguinte (começar no andar 11, 21...).
 - Comportamento por andar configurável: explorar tudo (padrão) ou descer direto ao achar `>`.
-- Combate roguelike: esbarra no monstro e ataca, por turnos, automático, registrado no log.
+- Combate roguelike: esbarra no monstro e ataca, por turnos, automático.
+- Combate em ritmo fixo (1 rodada/s); a Velocidade decide quem ataca primeiro e dá ataques extras.
+- Log com uma linha por rodada; linhas iguais seguidas viram `×N`.
 - Itens: equipa sozinho se for melhor; mochila com limite.
 
 ## Herói
