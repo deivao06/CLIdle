@@ -23,9 +23,15 @@ type Monster struct {
 	XP     int
 	Awake  bool
 	Energy float64
+	Boss   bool
 }
 
-func (m *Monster) Info() MonsterKind { return MonsterKinds[m.Kind] }
+func (m *Monster) Info() MonsterKind {
+	if m.Boss {
+		return BossKinds[m.Kind]
+	}
+	return MonsterKinds[m.Kind]
+}
 
 func spawnMonster(rng *RNG, depth int) *Monster {
 	var eligible []int
@@ -47,6 +53,27 @@ func spawnMonster(rng *RNG, depth int) *Monster {
 		Def:   scaled(k.Def, s),
 		Spd:   k.Spd,
 		XP:    scaled(k.XP, s),
+	}
+}
+
+// spawnBoss builds a boss from the strongest monster of the depth.
+func spawnBoss(rng *RNG, depth int) *Monster {
+	var base *Monster
+	for range 20 {
+		if m := spawnMonster(rng, depth); base == nil || m.MaxHP > base.MaxHP {
+			base = m
+		}
+	}
+	hp := int(float64(base.MaxHP) * BossHPMult)
+	return &Monster{
+		Kind:  (depth/BossEvery - 1) % len(BossKinds),
+		Boss:  true,
+		HP:    hp,
+		MaxHP: hp,
+		Atk:   int(float64(base.Atk) * BossAtkMult),
+		Def:   int(float64(base.Def) * BossDefMult),
+		Spd:   max(base.Spd, BossMinSpd),
+		XP:    base.XP * BossXPMult,
 	}
 }
 

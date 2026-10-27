@@ -72,7 +72,6 @@ func (f *FloorItem) Glyph() rune {
 }
 
 func newItem(rng *RNG, depth int) *Item {
-	slot := Slot(rng.Intn(int(NumSlots)))
 	rarity := Common
 	switch roll := rng.Float(); {
 	case roll < EpicChance:
@@ -80,6 +79,11 @@ func newItem(rng *RNG, depth int) *Item {
 	case roll < EpicChance+RareChance:
 		rarity = Rare
 	}
+	return newItemOf(rng, depth, rarity)
+}
+
+func newItemOf(rng *RNG, depth int, rarity Rarity) *Item {
+	slot := Slot(rng.Intn(int(NumSlots)))
 	base := ItemBase(slot, depth, rarity) * (0.8 + 0.4*rng.Float())
 	names := ItemNames[slot]
 	name := names[0].name

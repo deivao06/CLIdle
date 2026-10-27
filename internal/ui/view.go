@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"clidle/internal/game"
 
@@ -24,8 +25,18 @@ func (m Model) View() string {
 		return lipgloss.Place(m.w, m.h, lipgloss.Center, lipgloss.Center, msg)
 	}
 	bodyH := m.h - 2
+	if m.catching {
+		f := float64(m.progress.Load()) / 1000
+		msg := sTitle.Render("Simulando o tempo fora...") + "\n\n" +
+			bar(int(f*100), 100, min(40, m.w-4), sXP) + "\n" + sMuted.Render(fmt.Sprintf("%.0f%%", f*100))
+		return lipgloss.Place(m.w, m.h, lipgloss.Center, lipgloss.Center, msg)
+	}
 	var body string
 	switch {
+	case m.summary != nil:
+		block := m.viewSummary()
+		block = lipgloss.NewStyle().Width(lipgloss.Width(block)).Render(block)
+		body = lipgloss.Place(m.w, bodyH, lipgloss.Center, lipgloss.Center, block)
 	case m.help:
 		body = m.viewHelp(bodyH)
 	case m.tab == tabDungeon:
@@ -108,6 +119,34 @@ func (m Model) viewDungeon(h int) string {
 		return left
 	}
 	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(m.w-mapW-1).Height(h).Render(m.heroPanel(min(48, m.w-mapW-3), h)))
+}
+
+func (m Model) viewSummary() string {
+	s := m.summary
+	title := fmt.Sprintf("Enquanto você esteve fora (%s)", fmtDuration(s.Away))
+	var b strings.Builder
+	b.WriteString(sTitle.Render(title) + "\n\n")
+	fmt.Fprintf(&b, "Expedições   %d  (%d voltas, %d mortes)\n", s.Expeditions, s.Returns, s.Deaths)
+	fmt.Fprintf(&b, "Monstros     %d mortos\n", s.Kills)
+	if s.BossKills > 0 {
+		b.WriteString(logStyles[game.LogEpic].Render(fmt.Sprintf("Chefes       %d derrotados", s.BossKills)) + "\n")
+	}
+	b.WriteString(sGold.Render(fmt.Sprintf("Ouro         %+d", s.Gold)) + "\n")
+	fmt.Fprintf(&b, "Nível        %d → %d\n", s.LevelFrom, s.LevelTo)
+	fmt.Fprintf(&b, "Andar máx.   %d → %d\n", s.DepthFrom, s.DepthTo)
+	if s.Capped {
+		b.WriteString("\n" + sMuted.Render(fmt.Sprintf("Só as primeiras %s contam.", fmtDuration(game.OfflineCap))) + "\n")
+	}
+	b.WriteString("\n" + sMuted.Render("aperte qualquer tecla"))
+	return b.String()
+}
+
+func fmtDuration(d time.Duration) string {
+	h, mins := int(d.Hours()), int(d.Minutes())%60
+	if h == 0 {
+		return fmt.Sprintf("%dmin", mins)
+	}
+	return fmt.Sprintf("%dh%02d", h, mins)
 }
 
 func (m Model) viewTown() string {
@@ -238,7 +277,8 @@ func (m Model) heroPanel(w, maxH int) string {
 			b.WriteString(sWarn.Render("Retirando-se") + "\n")
 		}
 	}
-	bottom := fmt.Sprintf("\n%s\nAndar máx. %d\nVoltas %d · Mortes %d\n", sSection.Render("Recordes"), g.MaxDepth, g.Returns, g.Deaths)
+	bottom := fmt.Sprintf("\n%s\nAndar máx. %d · Chefes %d\nVoltas %d · Mortes %d\n",
+		sSection.Render("Recordes"), g.MaxDepth, g.BossKills, g.Returns, g.Deaths)
 	if e := g.Exp; e != nil {
 		avail := maxH - strings.Count(b.String(), "\n") - strings.Count(bottom, "\n")
 		bag := e.Bag
@@ -279,6 +319,13 @@ func (m Model) viewHelp(h int) string {
 			break
 		}
 		rows = append(rows, [2]string{monsterStyle(k).Render(string(k.Glyph)), k.Name})
+	}
+	for i, k := range game.BossKinds {
+		if (i+1)*game.BossEvery > m.g.MaxDepth {
+			rows = append(rows, [2]string{sMuted.Render("?"), sMuted.Render("chefe (a cada 10 andares)")})
+			break
+		}
+		rows = append(rows, [2]string{monsterStyle(k).Render(string(k.Glyph)), k.Name + " (chefe)"})
 	}
 	perCol := max(1, h-4)
 	var cols []string

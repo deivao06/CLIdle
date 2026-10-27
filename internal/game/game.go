@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -32,6 +33,7 @@ type Config struct {
 	RetreatBagFull bool
 	LastFloor      int
 	PotionsToBring int
+	StartFloor     int
 }
 
 func DefaultConfig() Config {
@@ -39,21 +41,25 @@ func DefaultConfig() Config {
 }
 
 type Game struct {
-	RNG      *RNG
-	Hero     *Hero
-	Exp      *Expedition
-	Config   Config
-	Log      []LogEntry
-	Gold     int
-	ExpNum   int
-	AccMs    int64
-	MaxDepth int
-	Deaths   int
-	Returns  int
-	Auto     bool
-	Shop     []*Item
-	Pending  []*Item
-	Upgrades [NumSlots]int
+	RNG       *RNG
+	Hero      *Hero
+	Exp       *Expedition
+	Config    Config
+	Log       []LogEntry
+	Gold      int
+	ExpNum    int
+	AccMs     int64
+	MaxDepth  int
+	Deaths    int
+	Returns   int
+	Auto      bool
+	Shop      []*Item
+	Pending   []*Item
+	Upgrades  [NumSlots]int
+	Shortcuts []int
+	Kills     int
+	BossKills int
+	Bell      bool
 }
 
 func New(seed uint64) *Game {
@@ -107,7 +113,7 @@ func (g *Game) StartExpedition() {
 	g.Hero.HP = g.Hero.MaxHP()
 	g.buyPotions()
 	g.logf(LogInfo, "Expedição #%d parte rumo à dungeon.", g.ExpNum)
-	g.enterLevel(1)
+	g.enterLevel(g.startFloor())
 }
 
 func (g *Game) enterLevel(depth int) {
@@ -125,10 +131,18 @@ func (g *Game) enterLevel(depth int) {
 		l.Mons = append(l.Mons, m)
 	}
 	l.placeLoot(e.RNG, startRoom)
+	if depth%BossEvery == 0 {
+		b := spawnBoss(e.RNG, depth)
+		b.Pos = l.RandomFloor(e.RNG, l.RoomAt(l.Down))
+		l.Mons = append(l.Mons, b)
+	}
 	g.MaxDepth = max(g.MaxDepth, depth)
 	g.Hero.Pos = l.Up
 	l.Reveal(g.Hero.Pos)
 	g.logf(LogInfo, "Você chega ao andar %d.", depth)
+	if b := l.boss(); b != nil {
+		g.logf(LogBad, "Uma presença terrível guarda a escada: %s.", b.Info().Name)
+	}
 }
 
 func (g *Game) step() {
@@ -233,7 +247,19 @@ func (g *Game) wantedItem(p Pos) bool {
 	return i >= 0 && l.IsSeen(p) && g.wants(l.Items[i])
 }
 
+func (l *Level) boss() *Monster {
+	for _, m := range l.Mons {
+		if m.Boss {
+			return m
+		}
+	}
+	return nil
+}
+
 func (g *Game) readyToDescend() bool {
+	if g.Exp.Level.boss() != nil {
+		return false
+	}
 	if g.Exp.Config.Mode == DescendFast {
 		return true
 	}
@@ -373,11 +399,44 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	}
 	gold := GoldPerKill(m.XP)
 	e.Gold += gold
+	g.Kills++
 	r.after = append(r.after, LogEntry{Text: fmt.Sprintf("Você mata o %s! +%d XP, +%d ouro", name, m.XP, gold), Kind: LogGood})
+	if m.Boss {
+		g.killBoss(m, r)
+	}
 	e.Level.removeMonster(m)
 	if h.gainXP(m.XP) {
 		r.after = append(r.after, LogEntry{Text: fmt.Sprintf("Você sobe para o nível %d!", h.Level), Kind: LogGood})
 	}
+}
+
+func (g *Game) killBoss(m *Monster, r *round) {
+	e := g.Exp
+	g.BossKills++
+	depth := e.Level.Depth
+	drop := newItemOf(e.RNG, depth, Epic)
+	e.Level.Items = append(e.Level.Items, &FloorItem{Pos: m.Pos, Item: drop})
+	text := fmt.Sprintf("%s foi derrotado! Deixou cair %s.", m.Info().Name, drop.Title())
+	if !slices.Contains(g.ShortcutList(), depth+1) {
+		g.Shortcuts = append(g.ShortcutList(), depth+1)
+		text += fmt.Sprintf(" Atalho para o andar %d liberado.", depth+1)
+	}
+	r.after = append(r.after, LogEntry{Text: text, Kind: LogEpic})
+}
+
+// ShortcutList is the set of floors an expedition can start from.
+func (g *Game) ShortcutList() []int {
+	if len(g.Shortcuts) == 0 {
+		return []int{1}
+	}
+	return g.Shortcuts
+}
+
+func (g *Game) startFloor() int {
+	if slices.Contains(g.ShortcutList(), g.Config.StartFloor) {
+		return g.Config.StartFloor
+	}
+	return 1
 }
 
 func (l *Level) removeMonster(m *Monster) {
@@ -517,19 +576,14 @@ func (g *Game) chooseStep() (Pos, bool) {
 		m := l.MonsterAt(p)
 		return m != nil && l.Visible(h.Pos, p)
 	}
-	if next, ok := l.pathStep(h.Pos, g.passable, seenMonster); ok {
-		return next, true
+	boss := l.boss()
+	rush := func(p Pos) bool {
+		return g.Exp.Config.Mode == DescendFast && boss == nil && l.IsSeen(l.Down) && p == l.Down
 	}
-	if next, ok := l.pathStep(h.Pos, g.passable, g.wantedItem); ok {
-		return next, true
+	last := to(l.Down)
+	if boss != nil {
+		last = to(boss.Pos)
 	}
-	if g.Exp.Config.Mode == DescendFast && l.IsSeen(l.Down) {
-		if next, ok := l.pathStep(h.Pos, g.passable, to(l.Down)); ok {
-			return next, true
-		}
-	}
-	if next, ok := l.pathStep(h.Pos, g.passable, g.frontier); ok {
-		return next, true
-	}
-	return l.pathStep(h.Pos, g.passable, to(l.Down))
+	next, i := l.search(h.Pos, g.passable, seenMonster, g.wantedItem, rush, g.frontier, last)
+	return next, i >= 0
 }

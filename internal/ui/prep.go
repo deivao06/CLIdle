@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"clidle/internal/game"
@@ -66,6 +67,12 @@ func (m Model) prepRows() []prepRow {
 		last = fmt.Sprintf("andar %d", c.LastFloor)
 	}
 	cfg("Último andar", last, func(d int) { step(&c.LastFloor, d, 1, 0, 999) })
+	floors := g.ShortcutList()
+	at := max(0, slices.Index(floors, c.StartFloor))
+	cfg("Começar no andar", fmt.Sprintf("%d (%d atalhos)", floors[at], len(floors)-1), func(d int) {
+		c.StartFloor = floors[(at+d+len(floors))%len(floors)]
+	})
+	cfg("Bip em morte/chefe", onOff(g.Bell), func(int) { g.Bell = !g.Bell })
 
 	for i, it := range g.Shop {
 		price := game.ShopPrice(it)

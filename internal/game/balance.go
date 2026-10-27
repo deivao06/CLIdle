@@ -1,6 +1,9 @@
 package game
 
-import "math"
+import (
+	"math"
+	"time"
+)
 
 const (
 	HeroBaseHP      = 30
@@ -26,6 +29,22 @@ func XPToNext(level int) int { return int(20 * math.Pow(1.5, float64(level-1))) 
 func MonsterScale(depthsAboveMin int) float64 { return math.Pow(1.1, float64(depthsAboveMin)) }
 
 func MonstersPerLevel(depth int) int { return min(3+depth/2, 12) }
+
+const (
+	BossEvery   = 10
+	BossHPMult  = 5
+	BossAtkMult = 1.4
+	BossDefMult = 1.3
+	BossXPMult  = 8
+	BossMinSpd  = 5
+)
+
+var BossKinds = []MonsterKind{
+	{Glyph: 'G', Name: "Rei Goblin", Color: "46"},
+	{Glyph: 'O', Name: "Senhor da Guerra Orc", Color: "34"},
+	{Glyph: 'L', Name: "Lich", Color: "51"},
+	{Glyph: 'D', Name: "Dragão Ancião", Color: "196"},
+}
 
 var MonsterKinds = []MonsterKind{
 	{'r', "rato", "180", 6, 3, 0, 4, 3, 1},
@@ -98,3 +117,5 @@ var trainBase = [NumTraits]float64{30, 40, 40, 120}
 func TrainCost(t Trait, level int) int {
 	return int(trainBase[t] * math.Pow(1.5, float64(level)))
 }
+
+const OfflineCap = 12 * time.Hour
