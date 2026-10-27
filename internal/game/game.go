@@ -199,10 +199,14 @@ func (g *Game) checkRetreat() {
 	}
 }
 
-// Retreat orders the hero back to the exit.
+// Retreat orders the hero back to the exit and keeps him in town afterwards.
 func (g *Game) Retreat() {
-	if g.Exp != nil && !g.Exp.Retreating {
-		g.startRetreat("ordem sua")
+	if g.Exp == nil || g.Exp.Retreating {
+		return
+	}
+	g.startRetreat("ordem sua")
+	if g.Auto {
+		g.ToggleAuto()
 	}
 }
 

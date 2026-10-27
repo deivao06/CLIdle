@@ -67,3 +67,24 @@ func TestBetterItemIsEquipped(t *testing.T) {
 		t.Fatalf("armor not equipped: %+v", g.Hero.Equip)
 	}
 }
+
+func TestManualRetreatTurnsOffAuto(t *testing.T) {
+	g := departed(6)
+	g.Auto = true
+	g.Retreat()
+	if !g.Exp.Retreating || g.Auto {
+		t.Fatalf("retreating %v auto %v", g.Exp.Retreating, g.Auto)
+	}
+}
+
+func TestAutomaticRetreatKeepsAuto(t *testing.T) {
+	g := departed(6)
+	g.Auto = true
+	for range BagSize {
+		g.Exp.Bag = append(g.Exp.Bag, &Item{Base: 1})
+	}
+	g.checkRetreat()
+	if !g.Exp.Retreating || !g.Auto {
+		t.Fatalf("retreating %v auto %v", g.Exp.Retreating, g.Auto)
+	}
+}

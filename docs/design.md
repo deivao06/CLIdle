@@ -39,6 +39,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Retirada automática:** 2–3 regras simples configuráveis (ex: HP < X% sem poções, mochila cheia, chegou ao andar X).
 - **Início:** o jogo começa na cidade; a expedição parte com `e` ou "Partir agora" na Preparação.
 - **Auto-expedição:** liga/desliga (desligada por padrão). Ao terminar, inicia outra com a mesma configuração.
+- Mandar o herói voltar manualmente desliga a auto-expedição; a retirada automática não.
 - Antes de partir, o herói compra poções até completar o número configurado (se tiver ouro).
 - **Poções:** bebidas automaticamente abaixo de um limite de HP configurável.
 
