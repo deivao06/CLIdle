@@ -118,7 +118,7 @@ func (m Model) viewTown() string {
 		`  |.| |.__.| |.|   `,
 		`__|_|_|_||_|_|_|__ `,
 	}, "\n"))
-	next := sMuted.Render("Auto-expedição desligada · e para partir")
+	next := sTitle.Render("Aperte e para partir")
 	if g.Auto {
 		secs := (game.TownWaitMs - g.AccMs + 999) / 1000
 		next = sMuted.Render(fmt.Sprintf("Próxima expedição em %ds", max(0, secs)))

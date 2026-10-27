@@ -61,10 +61,9 @@ func New(seed uint64) *Game {
 		RNG:    NewRNG(seed),
 		Hero:   NewHero(),
 		Config: DefaultConfig(),
-		Auto:   true,
 	}
 	g.refreshShop()
-	g.logf(LogInfo, "Bem-vindo à cidade. Prepare a primeira expedição na aba 2.")
+	g.logf(LogInfo, "Bem-vindo à cidade. Prepare a expedição na aba 2 e aperte e para partir.")
 	return g
 }
 

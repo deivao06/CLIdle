@@ -8,7 +8,8 @@ import (
 
 func TestSaveLoadRoundTripKeepsSimulationIdentical(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "save.json")
-	g := New(21)
+	g := departed(21)
+	g.Auto = true
 	g.Advance(3 * 60000)
 	if err := g.Save(path, time.Now()); err != nil {
 		t.Fatal(err)

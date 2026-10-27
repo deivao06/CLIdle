@@ -21,7 +21,8 @@ func TestLevelFullyConnected(t *testing.T) {
 }
 
 func TestHeroExploresAndDescends(t *testing.T) {
-	g := New(42)
+	g := departed(42)
+	g.Auto = true
 	g.Advance(10 * 60 * 1000)
 	if g.MaxDepth < 3 {
 		t.Fatalf("hero stuck, max depth %d", g.MaxDepth)
@@ -29,7 +30,8 @@ func TestHeroExploresAndDescends(t *testing.T) {
 }
 
 func TestAdvanceChunkingIsDeterministic(t *testing.T) {
-	a, b := New(7), New(7)
+	a, b := departed(7), departed(7)
+	a.Auto, b.Auto = true, true
 	a.Advance(120000)
 	for range 2400 {
 		b.Advance(50)

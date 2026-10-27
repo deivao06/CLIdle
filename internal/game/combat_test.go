@@ -34,14 +34,14 @@ func TestDeathReturnsToTownAndRestarts(t *testing.T) {
 	if g.Deaths != 1 || g.Hero.HP != g.Hero.MaxHP() {
 		t.Fatalf("deaths=%d hp=%d", g.Deaths, g.Hero.HP)
 	}
-	g.Advance(TownWaitMs)
+	g.Depart()
 	if g.Exp == nil || g.Exp.Num != 2 {
 		t.Fatal("expected a new expedition after waiting in town")
 	}
 }
 
 func TestHeroKillsMonsters(t *testing.T) {
-	g := New(11)
+	g := departed(11)
 	g.Advance(5 * 60 * 1000)
 	if g.Hero.Level < 2 {
 		t.Fatalf("hero never leveled: %+v", g.Hero)

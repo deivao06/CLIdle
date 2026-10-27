@@ -30,6 +30,9 @@ func (m Model) prepRows() []prepRow {
 	g := m.g
 	c := &g.Config
 	var rows []prepRow
+	if g.InTown() {
+		rows = append(rows, prepRow{section: "Próxima expedição", text: "▶ Partir agora", style: sTitle, enter: g.Depart})
+	}
 	cfg := func(label, value string, adjust func(int)) {
 		rows = append(rows, prepRow{
 			section: "Próxima expedição",

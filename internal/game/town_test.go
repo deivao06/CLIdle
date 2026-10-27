@@ -94,6 +94,11 @@ func TestNewGameStartsInTown(t *testing.T) {
 		t.Fatal("new game should start in town")
 	}
 	g.Advance(TownWaitMs)
+	if !g.InTown() {
+		t.Fatal("new game should wait for the player to depart")
+	}
+	g.Auto = true
+	g.Advance(TownWaitMs)
 	if g.InTown() {
 		t.Fatal("auto-expedition should depart after the town wait")
 	}
