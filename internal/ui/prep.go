@@ -139,13 +139,18 @@ func (m Model) compare(it *game.Item) string {
 func (m Model) viewPrep(h int) string {
 	g := m.g
 	rows := m.prepRows()
-	where := "Herói na cidade: compras valem agora."
-	if !g.InTown() {
-		where = "Herói na dungeon: config vale na próxima expedição, equipamento entra quando ele voltar."
+	head := []string{sGold.Render(fmt.Sprintf("Ouro %d", g.Gold))}
+	if g.InTown() {
+		head = append(head, sMuted.Render("Herói na cidade: tudo vale agora."))
+	} else {
+		head = append(head,
+			sMuted.Render("Herói na dungeon:"),
+			sMuted.Render("  · configurações valem na próxima expedição"),
+			sMuted.Render("  · compras da loja e do ferreiro entram quando ele voltar"))
 	}
-	head := []string{
-		sGold.Render(fmt.Sprintf("Ouro %d", g.Gold)) + sMuted.Render(" · ") + sMuted.Render(where),
-		sMuted.Render("↑↓ escolher · ←→ ajustar · enter comprar/alternar"),
+	head = append(head, sMuted.Render("↑↓ escolher · ←→ ajustar · enter comprar/alternar"))
+	for i := range head {
+		head[i] = truncate(head[i], m.w)
 	}
 	var lines []string
 	cursorLine := 0
