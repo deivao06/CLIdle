@@ -18,7 +18,9 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
   - **Médio:** + log.
   - **Grande:** + stats/inventário e legenda em painel lateral.
 - Abaixo de **40×10**: aviso "janela muito pequena".
-- Telas: `1` Dungeon (mapa + log) · `2` Cidade · `3` Herói · `?` legenda/ajuda · `q` sair.
+- Telas: `1` Principal · `2` Preparação · `3` Herói · `?` legenda/ajuda · `q` sair.
+- **Principal** muda sozinha: mostra a dungeon durante a expedição e a cidade quando o herói volta.
+- **Preparação** fica sempre disponível: configura a próxima expedição e gasta o ouro guardado. Mudanças valem a partir da próxima expedição; compras de equipamento entram quando o herói voltar.
 
 ## Visual
 
