@@ -66,11 +66,11 @@ func (m Model) statusLine() string {
 	if g.Exp != nil {
 		where = fmt.Sprintf("andar %d", g.Exp.Level.Depth)
 	}
-	return hp + sMuted.Render(fmt.Sprintf(" · nv %d · %s ", h.Level, where))
+	return hp + sMuted.Render(fmt.Sprintf(" · nv %d · %s · ", h.Level, where)) + sGold.Render(fmt.Sprintf("%d ouro ", g.Gold))
 }
 
 func (m Model) viewFooter() string {
-	return truncate(sMuted.Render("1-3 telas · ? legenda · q sair"), m.w)
+	return truncate(sMuted.Render("1-3 telas · r retirar · ? legenda · q sair"), m.w)
 }
 
 func (m Model) viewDungeon(h int) string {
@@ -103,8 +103,11 @@ func (m Model) viewDungeon(h int) string {
 
 func (m Model) statsLine(w int) string {
 	h := m.g.Hero
-	s := fmt.Sprintf("Atq %d · Def %d · Vel %d (%.1f/s) · XP %d/%d",
-		h.Atk(), h.Def(), h.Spd(), game.StepsPerSec(h.Spd()), h.XP, game.XPToNext(h.Level))
+	s := fmt.Sprintf("Atq %d · Def %d · Vel %d · Poções %d · XP %d/%d",
+		h.Atk(), h.Def(), h.Spd(), h.Potions, h.XP, game.XPToNext(h.Level))
+	if e := m.g.Exp; e != nil {
+		s += fmt.Sprintf(" · Mochila %d/%d", len(e.Bag), game.BagSize)
+	}
 	return sSection.Render(truncate(s, w))
 }
 
@@ -155,8 +158,16 @@ func (m Model) cell(l *game.Level, p game.Pos) (rune, *lipgloss.Style) {
 		k := mon.Info()
 		return k.Glyph, monsterStyle(k)
 	}
+	visible := l.Visible(g.Hero.Pos, p)
+	if i := l.ItemAt(p); i >= 0 {
+		f := l.Items[i]
+		if !visible {
+			return f.Glyph(), &sDim
+		}
+		return f.Glyph(), floorItemStyle(f)
+	}
 	t := l.At(p)
-	if !l.Visible(g.Hero.Pos, p) {
+	if !visible {
 		return t.Glyph(), &sDim
 	}
 	return t.Glyph(), tileStyle(t)
@@ -185,10 +196,23 @@ func (m Model) heroPanel(w int) string {
 	fmt.Fprintf(&b, "XP  %s\n", bar(h.XP, game.XPToNext(h.Level), w-4, sXP))
 	fmt.Fprintf(&b, "Ataque %d · Defesa %d\n", h.Atk(), h.Def())
 	fmt.Fprintf(&b, "Velocidade %d (%.1f/s)\n", h.Spd(), game.StepsPerSec(h.Spd()))
-	if g.Exp != nil {
-		fmt.Fprintf(&b, "\n%s #%d\nAndar %d\n", sSection.Render("Expedição"), g.Exp.Num, g.Exp.Level.Depth)
+	fmt.Fprintf(&b, "Poções %d · Ouro %d\n", h.Potions, g.Gold)
+	b.WriteString("\n" + sSection.Render("Equipamento") + "\n")
+	for s, it := range h.Equip {
+		if it == nil {
+			b.WriteString(sMuted.Render(truncate(fmt.Sprintf("%c sem %s", game.Slot(s).Glyph(), slotNames[s]), w)) + "\n")
+			continue
+		}
+		b.WriteString(rarityStyle(it.Rarity).Render(truncate(fmt.Sprintf("%c %s (%s)", it.Slot.Glyph(), it.Title(), it.StatLabel()), w)) + "\n")
 	}
-	fmt.Fprintf(&b, "\n%s\nAndar máx. %d\nMortes %d\n", sSection.Render("Recordes"), g.MaxDepth, g.Deaths)
+	if e := g.Exp; e != nil {
+		fmt.Fprintf(&b, "\n%s #%d · andar %d\n", sSection.Render("Expedição"), e.Num, e.Level.Depth)
+		fmt.Fprintf(&b, "Ouro achado %d\nMochila %d/%d\n", e.Gold, len(e.Bag), game.BagSize)
+		if e.Retreating {
+			b.WriteString(sWarn.Render("Retirando-se") + "\n")
+		}
+	}
+	fmt.Fprintf(&b, "\n%s\nAndar máx. %d\nVoltas %d · Mortes %d\n", sSection.Render("Recordes"), g.MaxDepth, g.Returns, g.Deaths)
 	return b.String()
 }
 
@@ -203,6 +227,11 @@ func (m Model) viewHelp(h int) string {
 		{sWall.Render("- |"), "parede"},
 		{sStairs.Render(">"), "escada para baixo"},
 		{sStairs.Render("<"), "escada para cima (saída)"},
+		{sGold.Render("$"), "ouro"},
+		{sPotion.Render("!"), "poção"},
+		{sPlain.Render(")"), "arma"},
+		{sPlain.Render("["), "armadura"},
+		{sPlain.Render("]"), "botas"},
 	}
 	for _, k := range game.MonsterKinds {
 		if k.MinDepth > m.g.MaxDepth {
@@ -211,12 +240,21 @@ func (m Model) viewHelp(h int) string {
 		}
 		rows = append(rows, [2]string{monsterStyle(k).Render(string(k.Glyph)), k.Name})
 	}
-	for _, r := range rows {
-		b.WriteString("  " + r[0] + strings.Repeat(" ", max(1, 4-lipgloss.Width(r[0]))) + r[1] + "\n")
+	perCol := max(1, h-4)
+	var cols []string
+	for i := 0; i < len(rows); i += perCol {
+		var col strings.Builder
+		for _, r := range rows[i:min(i+perCol, len(rows))] {
+			col.WriteString("  " + r[0] + strings.Repeat(" ", max(1, 4-lipgloss.Width(r[0]))) + r[1] + "  \n")
+		}
+		cols = append(cols, col.String())
 	}
-	b.WriteString("\n" + sMuted.Render("? fecha"))
+	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, cols...))
+	b.WriteString("\n" + sMuted.Render("? fecha · itens: branco comum, azul raro, roxo épico"))
 	return b.String()
 }
+
+var slotNames = [...]string{"arma", "armadura", "botas"}
 
 func bar(v, maxV, w int, st lipgloss.Style) string {
 	w = max(w, 4)

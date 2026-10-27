@@ -39,3 +39,45 @@ var MonsterKinds = []MonsterKind{
 	{'l', "lobisomem", "130", 45, 17, 7, 6, 40, 18},
 	{'d', "dragão jovem", "160", 70, 22, 10, 5, 60, 24},
 }
+
+const (
+	BagSize           = 8
+	StartPotions      = 2
+	PotionHealPct     = 50
+	PotionChance      = 0.5
+	GoldPilesMin      = 2
+	GoldPilesMax      = 4
+	ItemsMin          = 1
+	ItemsMax          = 2
+	RareChance        = 0.2
+	EpicChance        = 0.05
+	UpgradeDivisor    = 10
+	ItemValuePerBonus = 4
+)
+
+func GoldPerPile(depth int) float64 { return 5 * math.Pow(1.12, float64(depth-1)) }
+
+func GoldPerKill(xp int) int { return max(1, xp/2) }
+
+var rarityMult = [...]float64{1, 1.5, 2.2}
+
+func ItemBase(slot Slot, depth int, r Rarity) float64 {
+	switch slot {
+	case Weapon:
+		return (2 + float64(depth)*1.2) * rarityMult[r]
+	case Armor:
+		return (1 + float64(depth)*0.8) * rarityMult[r]
+	}
+	return 1 + float64(depth)/6 + float64(r)
+}
+
+type itemName struct {
+	depth int
+	name  string
+}
+
+var ItemNames = [NumSlots][]itemName{
+	Weapon: {{1, "Adaga"}, {4, "Espada Curta"}, {8, "Maça"}, {12, "Espada Longa"}, {18, "Machado de Guerra"}, {25, "Montante"}},
+	Armor:  {{1, "Gibão de Couro"}, {5, "Couro Batido"}, {10, "Cota de Malha"}, {16, "Brunea"}, {24, "Armadura de Placas"}},
+	Boots:  {{1, "Botas de Couro"}, {6, "Botas Reforçadas"}, {14, "Botas Ligeiras"}, {22, "Botas Élficas"}},
+}

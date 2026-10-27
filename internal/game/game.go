@@ -7,27 +7,54 @@ import (
 )
 
 type Expedition struct {
-	Num   int
-	Seed  uint64
-	RNG   *RNG
-	Level *Level
+	Num        int
+	Seed       uint64
+	RNG        *RNG
+	Level      *Level
+	Gold       int
+	Bag        []*Item
+	StartEquip [NumSlots]*Item
+	Retreating bool
+}
+
+type ExploreMode int
+
+const (
+	ExploreAll ExploreMode = iota
+	DescendFast
+)
+
+type Config struct {
+	Mode           ExploreMode
+	PotionAtPct    int
+	RetreatHPPct   int
+	RetreatBagFull bool
+	LastFloor      int
+}
+
+func DefaultConfig() Config {
+	return Config{Mode: ExploreAll, PotionAtPct: 40, RetreatHPPct: 30, RetreatBagFull: true}
 }
 
 type Game struct {
 	RNG      *RNG
 	Hero     *Hero
 	Exp      *Expedition
+	Config   Config
 	Log      []LogEntry
+	Gold     int
 	ExpNum   int
 	AccMs    int64
 	MaxDepth int
 	Deaths   int
+	Returns  int
 }
 
 func New(seed uint64) *Game {
 	g := &Game{
-		RNG:  NewRNG(seed),
-		Hero: NewHero(),
+		RNG:    NewRNG(seed),
+		Hero:   NewHero(),
+		Config: DefaultConfig(),
 	}
 	g.StartExpedition()
 	return g
@@ -65,7 +92,7 @@ func (g *Game) Advance(ms int64) {
 func (g *Game) StartExpedition() {
 	g.ExpNum++
 	seed := g.RNG.Uint64()
-	g.Exp = &Expedition{Num: g.ExpNum, Seed: seed, RNG: NewRNG(seed)}
+	g.Exp = &Expedition{Num: g.ExpNum, Seed: seed, RNG: NewRNG(seed), StartEquip: g.Hero.Equip}
 	g.Hero.HP = g.Hero.MaxHP()
 	g.logf(LogInfo, "Expedição #%d parte rumo à dungeon.", g.ExpNum)
 	g.enterLevel(1)
@@ -85,6 +112,7 @@ func (g *Game) enterLevel(depth int) {
 		m.Pos = l.RandomFloor(e.RNG, room)
 		l.Mons = append(l.Mons, m)
 	}
+	l.placeLoot(e.RNG, startRoom)
 	g.MaxDepth = max(g.MaxDepth, depth)
 	g.Hero.Pos = l.Up
 	l.Reveal(g.Hero.Pos)
@@ -97,11 +125,18 @@ func (g *Game) step() {
 	r := &round{}
 	g.monstersAct(r, true)
 	if g.Exp != nil {
-		if m := g.adjacentMonster(); m != nil {
+		g.checkRetreat()
+		if m := g.adjacentMonster(); g.needsPotion() {
+			heal := min(h.MaxHP()*PotionHealPct/100, h.MaxHP()-h.HP)
+			h.HP += heal
+			h.Potions--
+			r.hero = fmt.Sprintf("você bebe uma poção (+%d HP)", heal)
+		} else if m != nil {
 			g.heroAttack(m, r)
 		} else if next, ok := g.chooseStep(); ok {
 			h.Pos = next
 			l.Reveal(h.Pos)
+			g.pickup(r)
 		}
 		g.monstersAct(r, false)
 	}
@@ -109,8 +144,123 @@ func (g *Game) step() {
 	if g.Exp == nil {
 		return
 	}
-	if h.Pos == l.Down && g.explored() {
+	switch {
+	case g.Exp.Retreating && h.Pos == l.Up:
+		g.returnToTown()
+	case !g.Exp.Retreating && h.Pos == l.Down && g.readyToDescend():
+		if c := g.Config.LastFloor; c > 0 && l.Depth >= c {
+			g.startRetreat(fmt.Sprintf("andar %d concluído", l.Depth))
+			return
+		}
 		g.enterLevel(l.Depth + 1)
+	}
+}
+
+func (g *Game) needsPotion() bool {
+	h := g.Hero
+	return h.Potions > 0 && h.HP*100 < h.MaxHP()*g.Config.PotionAtPct
+}
+
+func (g *Game) checkRetreat() {
+	e := g.Exp
+	h := g.Hero
+	switch {
+	case e.Retreating:
+	case g.Config.RetreatBagFull && len(e.Bag) >= BagSize:
+		g.startRetreat("mochila cheia")
+	case h.Potions == 0 && h.HP*100 < h.MaxHP()*g.Config.RetreatHPPct:
+		g.startRetreat("HP baixo e sem poções")
+	}
+}
+
+// Retreat orders the hero back to the exit.
+func (g *Game) Retreat() {
+	if g.Exp != nil && !g.Exp.Retreating {
+		g.startRetreat("ordem sua")
+	}
+}
+
+func (g *Game) startRetreat(why string) {
+	g.Exp.Retreating = true
+	g.logf(LogInfo, "Retirada (%s): voltando para a saída.", why)
+}
+
+func (g *Game) returnToTown() {
+	e := g.Exp
+	sold := 0
+	for _, it := range e.Bag {
+		sold += it.Value()
+	}
+	g.Gold += e.Gold + sold
+	g.Returns++
+	if len(e.Bag) == 0 {
+		g.logf(LogGood, "Expedição #%d volta à cidade: +%d ouro.", e.Num, e.Gold)
+	} else {
+		g.logf(LogGood, "Expedição #%d volta à cidade: +%d ouro (%d achado + %d itens vendidos por %d).",
+			e.Num, e.Gold+sold, e.Gold, len(e.Bag), sold)
+	}
+	g.Exp = nil
+}
+
+func (g *Game) wants(f *FloorItem) bool {
+	if f.Item == nil {
+		return true
+	}
+	return g.better(f.Item) || len(g.Exp.Bag) < BagSize
+}
+
+func (g *Game) better(it *Item) bool {
+	cur := g.Hero.Equip[it.Slot]
+	return cur == nil || it.Bonus() > cur.Bonus()
+}
+
+func (g *Game) wantedItem(p Pos) bool {
+	l := g.Exp.Level
+	i := l.ItemAt(p)
+	return i >= 0 && l.IsSeen(p) && g.wants(l.Items[i])
+}
+
+func (g *Game) readyToDescend() bool {
+	if g.Config.Mode == DescendFast {
+		return true
+	}
+	if _, ok := g.Exp.Level.pathStep(g.Hero.Pos, g.passable, g.wantedItem); ok {
+		return false
+	}
+	return g.explored()
+}
+
+func (g *Game) pickup(r *round) {
+	e := g.Exp
+	l := e.Level
+	h := g.Hero
+	i := l.ItemAt(h.Pos)
+	if i < 0 || !g.wants(l.Items[i]) {
+		return
+	}
+	f := l.Items[i]
+	l.Items = append(l.Items[:i], l.Items[i+1:]...)
+	add := func(kind LogKind, format string, args ...any) {
+		r.after = append(r.after, LogEntry{Text: fmt.Sprintf(format, args...), Kind: kind})
+	}
+	switch {
+	case f.Gold > 0:
+		e.Gold += f.Gold
+		add(LogLoot, "Você pega %d de ouro.", f.Gold)
+	case f.Potion:
+		h.Potions++
+		add(LogLoot, "Você pega uma poção.")
+	case g.better(f.Item):
+		it := f.Item
+		old := h.Equip[it.Slot]
+		h.Equip[it.Slot] = it
+		add(it.Rarity.LogKind(), "Você equipa %s (%s, %s).", it.Title(), it.Rarity.Name(), it.StatLabel())
+		if old != nil && len(e.Bag) < BagSize {
+			e.Bag = append(e.Bag, old)
+		}
+	default:
+		e.Bag = append(e.Bag, f.Item)
+		add(f.Item.Rarity.LogKind(), "Você guarda %s (%s) na mochila.", f.Item.Title(), f.Item.Rarity.Name())
 	}
 }
 
@@ -208,7 +358,9 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 		r.hero = fmt.Sprintf("você acerta o %s (%d)", name, d)
 		return
 	}
-	r.after = append(r.after, LogEntry{Text: fmt.Sprintf("Você mata o %s! +%d XP", name, m.XP), Kind: LogGood})
+	gold := GoldPerKill(m.XP)
+	e.Gold += gold
+	r.after = append(r.after, LogEntry{Text: fmt.Sprintf("Você mata o %s! +%d XP, +%d ouro", name, m.XP, gold), Kind: LogGood})
 	e.Level.removeMonster(m)
 	if h.gainXP(m.XP) {
 		r.after = append(r.after, LogEntry{Text: fmt.Sprintf("Você sobe para o nível %d!", h.Level), Kind: LogGood})
@@ -289,12 +441,24 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	r.hurt = true
 	if h.HP <= 0 {
 		h.HP = 0
-		r.after = append(r.after, LogEntry{Text: fmt.Sprintf("Você foi morto por um %s no andar %d.", mr.name, e.Level.Depth), Kind: LogBad})
+		r.after = append(r.after, LogEntry{Text: fmt.Sprintf("Você foi morto por um %s no andar %d. Perdeu %d de ouro e %d itens.",
+			mr.name, e.Level.Depth, e.Gold, len(e.Bag)+g.foundEquipped()), Kind: LogBad})
 		g.die()
 	}
 }
 
+func (g *Game) foundEquipped() int {
+	n := 0
+	for s, it := range g.Hero.Equip {
+		if it != g.Exp.StartEquip[s] {
+			n++
+		}
+	}
+	return n
+}
+
 func (g *Game) die() {
+	g.Hero.Equip = g.Exp.StartEquip
 	g.Exp = nil
 	g.Deaths++
 	g.Hero.HP = g.Hero.MaxHP()
@@ -332,6 +496,10 @@ func (g *Game) explored() bool {
 func (g *Game) chooseStep() (Pos, bool) {
 	l := g.Exp.Level
 	h := g.Hero
+	to := func(target Pos) func(Pos) bool { return func(p Pos) bool { return p == target } }
+	if g.Exp.Retreating {
+		return l.pathStep(h.Pos, g.passable, to(l.Up))
+	}
 	seenMonster := func(p Pos) bool {
 		m := l.MonsterAt(p)
 		return m != nil && l.Visible(h.Pos, p)
@@ -339,8 +507,16 @@ func (g *Game) chooseStep() (Pos, bool) {
 	if next, ok := l.pathStep(h.Pos, g.passable, seenMonster); ok {
 		return next, true
 	}
+	if next, ok := l.pathStep(h.Pos, g.passable, g.wantedItem); ok {
+		return next, true
+	}
+	if g.Config.Mode == DescendFast && l.IsSeen(l.Down) {
+		if next, ok := l.pathStep(h.Pos, g.passable, to(l.Down)); ok {
+			return next, true
+		}
+	}
 	if next, ok := l.pathStep(h.Pos, g.passable, g.frontier); ok {
 		return next, true
 	}
-	return l.pathStep(h.Pos, g.passable, func(p Pos) bool { return p == l.Down })
+	return l.pathStep(h.Pos, g.passable, to(l.Down))
 }

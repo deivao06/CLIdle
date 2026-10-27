@@ -52,27 +52,32 @@ func spawnMonster(rng *RNG, depth int) *Monster {
 
 func scaled(v int, s float64) int { return int(float64(v)*s + 0.5) }
 
-type FloorItem struct {
-	Pos Pos
-}
-
 type Hero struct {
-	Pos   Pos
-	HP    int
-	Level int
-	XP    int
+	Pos     Pos
+	HP      int
+	Level   int
+	XP      int
+	Potions int
+	Equip   [NumSlots]*Item
 }
 
 func NewHero() *Hero {
-	h := &Hero{Level: 1}
+	h := &Hero{Level: 1, Potions: StartPotions}
 	h.HP = h.MaxHP()
 	return h
 }
 
 func (h *Hero) MaxHP() int { return HeroBaseHP + (h.Level-1)*HeroHPPerLevel }
-func (h *Hero) Atk() int   { return HeroBaseAtk + (h.Level-1)*HeroAtkPerLevel/2 }
-func (h *Hero) Def() int   { return HeroBaseDef + (h.Level-1)/2 }
-func (h *Hero) Spd() int   { return HeroBaseSpd }
+func (h *Hero) Atk() int   { return HeroBaseAtk + (h.Level-1)*HeroAtkPerLevel/2 + h.bonus(Weapon) }
+func (h *Hero) Def() int   { return HeroBaseDef + (h.Level-1)/2 + h.bonus(Armor) }
+func (h *Hero) Spd() int   { return HeroBaseSpd + h.bonus(Boots) }
+
+func (h *Hero) bonus(s Slot) int {
+	if h.Equip[s] == nil {
+		return 0
+	}
+	return h.Equip[s].Bonus()
+}
 
 func (h *Hero) gainXP(xp int) (leveled bool) {
 	h.XP += xp

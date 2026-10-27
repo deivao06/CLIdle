@@ -26,7 +26,27 @@ var (
 	sHPGood  = lipgloss.NewStyle().Foreground(lipgloss.Color("114"))
 	sHPMid   = lipgloss.NewStyle().Foreground(lipgloss.Color("220"))
 	sHPLow   = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true)
+	sGold    = lipgloss.NewStyle().Foreground(lipgloss.Color("220"))
+	sPotion  = lipgloss.NewStyle().Foreground(lipgloss.Color("207")).Bold(true)
 )
+
+var rarityStyles = [...]lipgloss.Style{
+	lipgloss.NewStyle().Foreground(lipgloss.Color("255")),
+	lipgloss.NewStyle().Foreground(lipgloss.Color("75")),
+	lipgloss.NewStyle().Foreground(lipgloss.Color("177")),
+}
+
+func rarityStyle(r game.Rarity) lipgloss.Style { return rarityStyles[r] }
+
+func floorItemStyle(f *game.FloorItem) *lipgloss.Style {
+	switch {
+	case f.Gold > 0:
+		return &sGold
+	case f.Potion:
+		return &sPotion
+	}
+	return &rarityStyles[f.Item.Rarity]
+}
 
 var monsterStyles = map[rune]*lipgloss.Style{}
 

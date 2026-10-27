@@ -55,6 +55,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.tab = tabTown
 		case "3":
 			m.tab = tabHero
+		case "r":
+			m.g.Retreat()
 		case "?":
 			m.help = !m.help
 		}
