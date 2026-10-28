@@ -66,3 +66,47 @@ func TestWhirlwindHitsAllAdjacent(t *testing.T) {
 		t.Fatalf("whirlwind hp %d %d", m1.HP, m2.HP)
 	}
 }
+
+func TestSneakAttackOnSleeper(t *testing.T) {
+	rogue, warrior := heroAt(Rogue, 1, 1), heroAt(Warrior, 1, 1)
+	warrior.Hero.Training[Str] = rogue.Hero.Atk() - warrior.Hero.Atk()
+	mr, mw := rogue.besideHero(dummy()), warrior.besideHero(dummy())
+	mr.Awake, mw.Awake = false, false
+	for mr.HP == mr.MaxHP {
+		rogue.heroAttack(mr, &round{})
+		warrior.heroAttack(mw, &round{})
+	}
+	if mr.MaxHP-mr.HP <= mw.MaxHP-mw.HP {
+		t.Fatalf("sneak %d, plain %d", mr.MaxHP-mr.HP, mw.MaxHP-mw.HP)
+	}
+}
+
+func TestDodgeAvoidsSomeHits(t *testing.T) {
+	g := heroAt(Rogue, 5, 1)
+	g.Hero.HP = 1 << 30
+	m := g.besideHero(&Monster{HP: 1, MaxHP: 1, Atk: 1, Spd: 1, Awake: true})
+	r := &round{}
+	for range 1000 {
+		g.monsterAttack(m, r)
+	}
+	if n := r.of(m).misses; n < 170 || n > 400 {
+		t.Fatalf("misses %d", n)
+	}
+}
+
+func TestNoseFindsMoreGold(t *testing.T) {
+	gold := func(nose bool) (sum int) {
+		for seed := range uint64(200) {
+			rng := NewRNG(seed)
+			l := GenerateLevel(rng, 5)
+			l.placeLoot(rng, l.RoomAt(l.Up), nose)
+			for _, f := range l.Items {
+				sum += f.Gold
+			}
+		}
+		return sum
+	}
+	if plain, nose := gold(false), gold(true); nose*10 < plain*12 {
+		t.Fatalf("nose %d, plain %d", nose, plain)
+	}
+}

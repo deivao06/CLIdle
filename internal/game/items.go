@@ -134,7 +134,7 @@ func newItemOf(rng *RNG, depth int, rarity Rarity) *Item {
 	return &Item{ID: rng.Uint64(), Slot: slot, Kind: kind, Rarity: rarity, Name: name, Base: max(1, int(base+0.5))}
 }
 
-func (l *Level) placeLoot(rng *RNG, startRoom int) {
+func (l *Level) placeLoot(rng *RNG, startRoom int, nose bool) {
 	room := func() int {
 		r := rng.Intn(len(l.Rooms) - 1)
 		if r >= startRoom {
@@ -143,13 +143,20 @@ func (l *Level) placeLoot(rng *RNG, startRoom int) {
 		return r
 	}
 	for range rng.Range(GoldPilesMin, GoldPilesMax) {
-		gold := max(1, int(GoldPerPile(l.Depth)*(0.5+rng.Float())))
-		l.Items = append(l.Items, &FloorItem{Pos: l.RandomFloor(rng, room()), Gold: gold})
+		gold := GoldPerPile(l.Depth) * (0.5 + rng.Float())
+		if nose {
+			gold *= NoseGoldMult
+		}
+		l.Items = append(l.Items, &FloorItem{Pos: l.RandomFloor(rng, room()), Gold: max(1, int(gold))})
 	}
 	if rng.Chance(PotionChance) {
 		l.Items = append(l.Items, &FloorItem{Pos: l.RandomFloor(rng, room()), Potion: true})
 	}
-	for range rng.Range(ItemsMin, ItemsMax) {
+	items := rng.Range(ItemsMin, ItemsMax)
+	if nose && rng.Chance(NoseItemChance) {
+		items++
+	}
+	for range items {
 		l.Items = append(l.Items, &FloorItem{Pos: l.RandomFloor(rng, room()), Item: newItem(rng, l.Depth)})
 	}
 }

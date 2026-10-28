@@ -258,5 +258,6 @@
   "spell.frost_ray": "Frost Ray",
   "spell.heal": "Cure Wounds",
   "spell.bless": "Bless",
-  "spell.turn_undead": "Turn Undead"
+  "spell.turn_undead": "Turn Undead",
+  "ability.sneak_attack.log": "you sneak attack the %s (%d)"
 }

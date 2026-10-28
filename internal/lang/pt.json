@@ -258,5 +258,6 @@
   "spell.frost_ray": "Raio Gélido",
   "spell.heal": "Curar Ferimentos",
   "spell.bless": "Bênção",
-  "spell.turn_undead": "Expulsar Mortos-Vivos"
+  "spell.turn_undead": "Expulsar Mortos-Vivos",
+  "ability.sneak_attack.log": "ataque furtivo no %s (%d)"
 }

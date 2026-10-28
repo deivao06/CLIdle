@@ -132,6 +132,12 @@ const (
 	PowerStrikeEvery  = 4
 	SecondWindPct     = 30
 	SecondWindHealPct = 40
+
+	SneakMult      = 3
+	DodgePerDex    = 0.03
+	DodgeCap       = 0.35
+	NoseGoldMult   = 1.5
+	NoseItemChance = 0.5
 )
 
 type itemName struct {

@@ -136,7 +136,7 @@ func (g *Game) enterLevel(depth int) {
 		m.Pos = l.RandomFloor(e.RNG, room)
 		l.Mons = append(l.Mons, m)
 	}
-	l.placeLoot(e.RNG, startRoom)
+	l.placeLoot(e.RNG, startRoom, g.Hero.Has(TreasureNose))
 	if depth%BossEvery == 0 {
 		b := spawnBoss(e.RNG, depth)
 		b.Pos = l.RandomFloor(e.RNG, l.RoomAt(l.Down))
@@ -400,6 +400,7 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	e := g.Exp
 	h := g.Hero
 	name := lang.T(m.Info().Name)
+	sneak := h.Has(SneakAttack) && (!m.Awake || m.HP == m.MaxHP)
 	m.Awake = true
 	if e.RNG.Chance(MissChance) {
 		r.hero = lang.T("combat.hero_miss", name)
@@ -411,8 +412,13 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 		return
 	}
 	d := damage(e.RNG, h.Atk(), m.Def)
+	key := "combat.hero_hit"
+	if sneak {
+		d *= SneakMult
+		key = "ability.sneak_attack.log"
+	}
 	if !g.hurt(m, d, r) {
-		r.hero = lang.T("combat.hero_hit", name, d)
+		r.hero = lang.T(key, name, d)
 	}
 }
 
@@ -532,7 +538,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	e := g.Exp
 	h := g.Hero
 	mr := r.of(m)
-	if e.RNG.Chance(MissChance) {
+	if e.RNG.Chance(MissChance) || h.Has(Dodge) && e.RNG.Chance(min(DodgeCap, float64(h.Attr(Dex))*DodgePerDex)) {
 		mr.misses++
 		return
 	}
