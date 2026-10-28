@@ -241,5 +241,22 @@
   "combat.mon_hit_n": "the %s hits you %dx (%s)",
   "combat.and_miss": ", misses",
   "combat.hero_miss": "you miss the %s",
-  "combat.hero_hit": "you hit the %s (%d)"
+  "combat.hero_hit": "you hit the %s (%d)",
+  "ability.power_strike": "Power Strike",
+  "ability.power_strike.log": "you power strike %s",
+  "ability.second_wind": "Second Wind",
+  "ability.second_wind.log": "second wind (+%d HP)",
+  "ability.whirlwind": "Whirlwind",
+  "ability.whirlwind.log": "you whirl and hit %s",
+  "ability.sneak_attack": "Sneak Attack",
+  "ability.dodge": "Dodge",
+  "ability.treasure_nose": "Treasure Nose",
+  "spell.magic_missile": "Magic Missile",
+  "spell.sleep": "Sleep",
+  "spell.fireball": "Fireball",
+  "spell.blink": "Blink",
+  "spell.frost_ray": "Frost Ray",
+  "spell.heal": "Cure Wounds",
+  "spell.bless": "Bless",
+  "spell.turn_undead": "Turn Undead"
 }

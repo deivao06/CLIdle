@@ -104,6 +104,36 @@ var ClassGear = [NumClasses]classGear{
 	Cleric:  {Mace, []int{Medium, Heavy}, true},
 }
 
+type abilityInfo struct {
+	Class Class
+	Level int
+	Mana  int
+	Key   string
+}
+
+var AbilityInfo = [NumAbilities]abilityInfo{
+	PowerStrike:  {Warrior, 1, 0, "ability.power_strike"},
+	SecondWind:   {Warrior, 5, 0, "ability.second_wind"},
+	Whirlwind:    {Warrior, 10, 0, "ability.whirlwind"},
+	SneakAttack:  {Rogue, 1, 0, "ability.sneak_attack"},
+	Dodge:        {Rogue, 5, 0, "ability.dodge"},
+	TreasureNose: {Rogue, 8, 0, "ability.treasure_nose"},
+	MagicMissile: {Mage, 1, 2, "spell.magic_missile"},
+	Sleep:        {Mage, 4, 3, "spell.sleep"},
+	Fireball:     {Mage, 7, 5, "spell.fireball"},
+	Blink:        {Mage, 10, 4, "spell.blink"},
+	FrostRay:     {Mage, 14, 4, "spell.frost_ray"},
+	Heal:         {Cleric, 1, 4, "spell.heal"},
+	Bless:        {Cleric, 4, 3, "spell.bless"},
+	TurnUndead:   {Cleric, 8, 3, "spell.turn_undead"},
+}
+
+const (
+	PowerStrikeEvery  = 4
+	SecondWindPct     = 30
+	SecondWindHealPct = 40
+)
+
 type itemName struct {
 	depth int
 	name  string

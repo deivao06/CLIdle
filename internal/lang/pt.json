@@ -241,5 +241,22 @@
   "combat.mon_hit_n": "o %s te acerta %dx (%s)",
   "combat.and_miss": ", erra",
   "combat.hero_miss": "você erra o %s",
-  "combat.hero_hit": "você acerta o %s (%d)"
+  "combat.hero_hit": "você acerta o %s (%d)",
+  "ability.power_strike": "Golpe Forte",
+  "ability.power_strike.log": "você dá um golpe forte em %s",
+  "ability.second_wind": "Segundo Fôlego",
+  "ability.second_wind.log": "segundo fôlego (+%d HP)",
+  "ability.whirlwind": "Golpe Giratório",
+  "ability.whirlwind.log": "você gira e acerta %s",
+  "ability.sneak_attack": "Ataque Furtivo",
+  "ability.dodge": "Esquiva",
+  "ability.treasure_nose": "Faro para Tesouro",
+  "spell.magic_missile": "Míssil Mágico",
+  "spell.sleep": "Sono",
+  "spell.fireball": "Bola de Fogo",
+  "spell.blink": "Piscar",
+  "spell.frost_ray": "Raio Gélido",
+  "spell.heal": "Curar Ferimentos",
+  "spell.bless": "Bênção",
+  "spell.turn_undead": "Expulsar Mortos-Vivos"
 }

@@ -18,6 +18,9 @@ type Expedition struct {
 	StartEquip [NumSlots]*Item
 	Retreating bool
 	Config     Config
+
+	Attacks        int
+	SecondWindUsed bool
 }
 
 type ExploreMode int
@@ -121,6 +124,7 @@ func (g *Game) StartExpedition() {
 func (g *Game) enterLevel(depth int) {
 	e := g.Exp
 	e.Level = GenerateLevel(e.RNG, depth)
+	e.SecondWindUsed = false
 	l := e.Level
 	startRoom := l.RoomAt(l.Up)
 	for range MonstersPerLevel(depth) {
@@ -154,17 +158,22 @@ func (g *Game) step() {
 	g.monstersAct(r, true)
 	if g.Exp != nil {
 		g.checkRetreat()
-		if m := g.adjacentMonster(); g.needsPotion() {
+		m := g.adjacentMonster()
+		switch {
+		case g.secondWind(r):
+		case g.needsPotion():
 			heal := min(h.MaxHP()*PotionHealPct/100, h.MaxHP()-h.HP)
 			h.HP += heal
 			h.Potions--
 			r.hero = lang.T("log.drink", heal)
-		} else if m != nil {
+		case m != nil:
 			g.heroAttack(m, r)
-		} else if next, ok := g.chooseStep(); ok {
-			h.Pos = next
-			l.Reveal(h.Pos)
-			g.pickup(r)
+		default:
+			if next, ok := g.chooseStep(); ok {
+				h.Pos = next
+				l.Reveal(h.Pos)
+				g.pickup(r)
+			}
 		}
 		g.monstersAct(r, false)
 	}
@@ -396,11 +405,25 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 		r.hero = lang.T("combat.hero_miss", name)
 		return
 	}
+	e.Attacks++
+	if h.Has(PowerStrike) && e.Attacks%PowerStrikeEvery == 0 {
+		g.powerStrike(m, r)
+		return
+	}
 	d := damage(e.RNG, h.Atk(), m.Def)
+	if !g.hurt(m, d, r) {
+		r.hero = lang.T("combat.hero_hit", name, d)
+	}
+}
+
+// hurt applies the hero's damage to m and reports whether it died.
+func (g *Game) hurt(m *Monster, d int, r *round) bool {
+	e := g.Exp
+	h := g.Hero
+	name := lang.T(m.Info().Name)
 	m.HP -= d
 	if m.HP > 0 {
-		r.hero = lang.T("combat.hero_hit", name, d)
-		return
+		return false
 	}
 	gold := GoldPerKill(m.XP)
 	e.Gold += gold
@@ -413,6 +436,7 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	if h.gainXP(m.XP) {
 		r.after = append(r.after, LogEntry{Text: lang.T("log.level_up", h.Level), Kind: LogGood})
 	}
+	return true
 }
 
 func (g *Game) killBoss(m *Monster, r *round) {
