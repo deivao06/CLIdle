@@ -157,7 +157,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch msg.String() {
 		case "q", "ctrl+c":
-			m.save(time.Now())
+			if !m.choosing {
+				m.save(time.Now())
+			}
 			return m, tea.Quit
 		case "1":
 			m.tab, m.help = tabDungeon, false

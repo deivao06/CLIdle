@@ -65,7 +65,7 @@ func (g *Game) cast(r *round) bool {
 	name := lang.T(t.Info().Name)
 	switch {
 	case g.blink(r):
-	case g.ready(Sleep) && t.Awake && t.Asleep == 0 && t.HP*100 > t.MaxHP*SleepMinHPPct:
+	case g.ready(Sleep) && t.Awake && t.Asleep == 0 && t.HP*100 > t.MaxHP*SleepMinHPPct && g.awakeInRange() >= 2:
 		g.useMana(Sleep)
 		t.Asleep = SleepRounds
 		if t.Boss {
@@ -100,6 +100,18 @@ func (g *Game) spellDamage(a Ability, m *Monster) int {
 	h := g.Hero
 	m.Awake = true
 	return damage(g.Exp.RNG, SpellPower[a]+h.Attr(Int)+h.bonus(Weapon), m.Def)
+}
+
+func (g *Game) awakeInRange() int {
+	l := g.Exp.Level
+	h := g.Hero.Pos
+	n := 0
+	for _, m := range l.Mons {
+		if m.Asleep == 0 && m.Pos.Dist(h) <= SpellRange && l.Visible(h, m.Pos) {
+			n++
+		}
+	}
+	return n
 }
 
 // around lists the monsters within one tile of t, t included.

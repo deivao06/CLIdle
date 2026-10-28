@@ -119,3 +119,14 @@ func TestTurnUndeadOnlyHitsUndead(t *testing.T) {
 		t.Fatalf("undead %d, living %d, mp %d", lost, normal, b.Hero.MP)
 	}
 }
+
+func TestSleepNotWastedOnLoneTarget(t *testing.T) {
+	g := heroAt(Mage, 4, 1)
+	m := dummy()
+	m.Pos = g.spotAt(3, nil)
+	g.Exp.Level.Mons = []*Monster{m}
+	g.cast(&round{})
+	if m.Asleep != 0 || m.HP == m.MaxHP {
+		t.Fatalf("lone target asleep %d hp %d", m.Asleep, m.HP)
+	}
+}

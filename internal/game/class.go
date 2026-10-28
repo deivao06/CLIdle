@@ -22,8 +22,10 @@ func (c Class) Name() string { return lang.T("class." + classKeys[c]) }
 
 func (c Class) Desc() string { return lang.T("class." + classKeys[c] + ".desc") }
 
-// DamageAttr is the attribute added to the hero's attack.
-func (c Class) DamageAttr() Trait { return [NumClasses]Trait{Str, Int, Dex, Str}[c] }
+// DamageAttr is the attribute added to the hero's melee attack.
+func (c Class) DamageAttr() Trait { return [NumClasses]Trait{Str, Str, Dex, Str}[c] }
+
+func (c Class) MainAttr() Trait { return [NumClasses]Trait{Str, Int, Dex, Str}[c] }
 
 func (c Class) CanUse(it *Item) bool {
 	gear := ClassGear[c]

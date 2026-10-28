@@ -15,7 +15,7 @@ func TestMainAttributeGrowsMost(t *testing.T) {
 	for c := range NumClasses {
 		h := NewHero(c)
 		h.Level = 21
-		main := c.DamageAttr()
+		main := c.MainAttr()
 		for tr := range NumTraits {
 			if tr != main && tr != Con && h.Attr(tr) > h.Attr(main) {
 				t.Fatalf("%v: %v grows past %v", c, tr, main)
@@ -34,5 +34,13 @@ func TestChooseClassOnlyBeforeFirstExpedition(t *testing.T) {
 	g.ChooseClass(Rogue)
 	if g.Hero.Class != Mage {
 		t.Fatal("class changed after departing")
+	}
+}
+
+func TestMageMeleeIgnoresInt(t *testing.T) {
+	h := NewHero(Mage)
+	h.Level = 10
+	if h.Atk() != HeroBaseAtk+h.Attr(Str) {
+		t.Fatalf("mage melee %d uses INT", h.Atk())
 	}
 }

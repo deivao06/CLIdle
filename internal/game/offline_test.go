@@ -31,7 +31,8 @@ func TestTwelveHoursIsFastEnough(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
-	g := departed(8)
+	g := New(8, Rogue)
+	g.StartExpedition()
 	g.Auto = true
 	start := time.Now()
 	s := g.CatchUp(OfflineCap, nil)

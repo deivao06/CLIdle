@@ -68,7 +68,7 @@ internal/ui/            Bubble Tea
 
 ## Testando a UI
 
-Não há testes de UI. Para ver telas:
+Quase não há testes de UI (só `internal/ui/model_test.go`). Para ver telas:
 
 - Teste temporário em `internal/ui` que monta `New(g)`, define `m.w, m.h` e imprime `m.View()`. Apague depois.
 - Ou `tmux`:
