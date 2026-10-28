@@ -91,6 +91,19 @@ func ItemBase(slot Slot, kind, depth int, r Rarity) float64 {
 	return 1 + float64(depth)/6 + float64(r)
 }
 
+type classGear struct {
+	Weapon int
+	Armor  []int
+	Shield bool
+}
+
+var ClassGear = [NumClasses]classGear{
+	Warrior: {Blade, []int{Light, Medium, Heavy}, true},
+	Mage:    {Staff, []int{Light}, false},
+	Rogue:   {Dagger, []int{Light, Medium}, false},
+	Cleric:  {Mace, []int{Medium, Heavy}, true},
+}
+
 type itemName struct {
 	depth int
 	name  string

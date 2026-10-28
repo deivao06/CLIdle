@@ -1,6 +1,10 @@
 package game
 
-import "clidle/internal/lang"
+import (
+	"slices"
+
+	"clidle/internal/lang"
+)
 
 type Class int
 
@@ -20,6 +24,19 @@ func (c Class) Desc() string { return lang.T("class." + classKeys[c] + ".desc") 
 
 // DamageAttr is the attribute added to the hero's attack.
 func (c Class) DamageAttr() Trait { return [NumClasses]Trait{Str, Int, Dex, Str}[c] }
+
+func (c Class) CanUse(it *Item) bool {
+	gear := ClassGear[c]
+	switch it.Slot {
+	case Weapon:
+		return it.Kind == gear.Weapon
+	case Armor:
+		return slices.Contains(gear.Armor, it.Kind)
+	case Shield:
+		return gear.Shield
+	}
+	return true
+}
 
 // ChooseClass picks the hero's class for a brand new game.
 func (g *Game) ChooseClass(c Class) {

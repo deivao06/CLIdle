@@ -105,3 +105,13 @@ func TestNewGameStartsInTown(t *testing.T) {
 		t.Fatal("auto-expedition should depart after the town wait")
 	}
 }
+
+func TestShopRefusesOtherClassItem(t *testing.T) {
+	g := New(1, Mage)
+	g.Gold = 100000
+	g.Shop = []*Item{{Slot: Shield, Base: 3}}
+	g.BuyShop(0)
+	if g.Gold != 100000 || g.Hero.Equip[Shield] != nil {
+		t.Fatal("bought a shield as mage")
+	}
+}

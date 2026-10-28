@@ -64,7 +64,14 @@ func (g *Game) spend(cost int) bool {
 }
 
 func (g *Game) BuyShop(i int) {
-	if i < 0 || i >= len(g.Shop) || !g.spend(ShopPrice(g.Shop[i])) {
+	if i < 0 || i >= len(g.Shop) {
+		return
+	}
+	if !g.Hero.Class.CanUse(g.Shop[i]) {
+		g.logf(LogInfo, "%s", lang.T("log.cannot_use", g.Shop[i].Title()))
+		return
+	}
+	if !g.spend(ShopPrice(g.Shop[i])) {
 		return
 	}
 	it := g.Shop[i]

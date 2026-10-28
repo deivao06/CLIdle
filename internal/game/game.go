@@ -243,7 +243,7 @@ func (g *Game) wants(f *FloorItem) bool {
 
 func (g *Game) better(it *Item) bool {
 	cur := g.Hero.Equip[it.Slot]
-	return cur == nil || it.Bonus() > cur.Bonus()
+	return g.Hero.Class.CanUse(it) && (cur == nil || it.Bonus() > cur.Bonus())
 }
 
 func (g *Game) wantedItem(p Pos) bool {
