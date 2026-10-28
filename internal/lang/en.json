@@ -43,6 +43,7 @@
   "town.press_prep": "Press 2 for Preparation",
 
   "stats.line": "Atk %d · Def %d · Spd %d · Potions %d · XP %d/%d",
+  "stats.mp": " · MP %d/%d",
   "stats.bag": " · Bag %d/%d",
 
   "hero.level": "level %d",
@@ -52,6 +53,7 @@
   "hero.atk_def": "Attack %d · Defense %d\n",
   "hero.speed": "Speed %d (%.1f/s)\n",
   "hero.potions_gold": "Potions %d · Gold %d\n",
+  "hero.abilities": "Abilities",
   "hero.equipment": "Equipment",
   "hero.no_slot": "%c no %s",
   "hero.expedition": "Expedition",

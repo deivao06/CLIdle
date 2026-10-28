@@ -83,6 +83,7 @@ type Hero struct {
 	Class    Class
 	Pos      Pos
 	HP       int
+	MP       int
 	Level    int
 	XP       int
 	Potions  int
@@ -99,6 +100,13 @@ func NewHero(c Class) *Hero {
 func (h *Hero) MaxHP() int {
 	c := ClassHP[h.Class]
 	return c.Base + (h.Level-1)*c.PerLevel + h.Attr(Con)*TrainHP
+}
+
+func (h *Hero) MaxMP() int {
+	if ClassMana[h.Class] == 0 {
+		return 0
+	}
+	return ClassMana[h.Class] + h.Attr(Int)*ManaPerInt
 }
 
 func (h *Hero) Attr(t Trait) int {

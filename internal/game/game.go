@@ -21,6 +21,7 @@ type Expedition struct {
 
 	Attacks        int
 	SecondWindUsed bool
+	ManaAcc        int
 }
 
 type ExploreMode int
@@ -116,6 +117,7 @@ func (g *Game) StartExpedition() {
 	seed := g.RNG.Uint64()
 	g.Exp = &Expedition{Num: g.ExpNum, Seed: seed, RNG: NewRNG(seed), StartEquip: g.Hero.Equip, Config: g.Config}
 	g.Hero.HP = g.Hero.MaxHP()
+	g.Hero.MP = g.Hero.MaxMP()
 	g.buyPotions()
 	g.logf(LogInfo, "%s", lang.T("log.depart", g.ExpNum))
 	g.enterLevel(g.startFloor())
@@ -155,6 +157,7 @@ func (g *Game) step() {
 	l := g.Exp.Level
 	h := g.Hero
 	r := &round{}
+	g.regenMana()
 	g.monstersAct(r, true)
 	if g.Exp != nil {
 		g.checkRetreat()

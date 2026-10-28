@@ -110,3 +110,15 @@ func TestNoseFindsMoreGold(t *testing.T) {
 		t.Fatalf("nose %d, plain %d", nose, plain)
 	}
 }
+
+func TestManaRegenIsChunkIndependent(t *testing.T) {
+	a, b := heroAt(Mage, 1, 3), heroAt(Mage, 1, 3)
+	a.Hero.MP, b.Hero.MP = 0, 0
+	a.Advance(120000)
+	for range 2400 {
+		b.Advance(50)
+	}
+	if a.Hero.MP != b.Hero.MP || a.Exp.ManaAcc != b.Exp.ManaAcc || a.Hero.MP == 0 {
+		t.Fatalf("mp %d/%d acc %d/%d", a.Hero.MP, b.Hero.MP, a.Exp.ManaAcc, b.Exp.ManaAcc)
+	}
+}

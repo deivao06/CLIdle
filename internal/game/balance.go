@@ -177,6 +177,14 @@ var trainBase = [NumTraits]float64{Str: 40, Dex: 120, Int: 40, Con: 30}
 
 type classHP struct{ Base, PerLevel int }
 
+var ClassMana = [NumClasses]int{Mage: 10, Cleric: 8}
+
+const (
+	ManaPerInt       = 2
+	ManaRegenPerStep = 1
+	ManaRegenDiv     = 4
+)
+
 var ClassHP = [NumClasses]classHP{Warrior: {30, 8}, Mage: {20, 5}, Rogue: {25, 6}, Cleric: {28, 7}}
 
 // ClassStats growth is per 2 levels.

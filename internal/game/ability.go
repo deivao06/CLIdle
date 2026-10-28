@@ -34,6 +34,18 @@ func (h *Hero) Has(a Ability) bool {
 	return h.Class == info.Class && h.Level >= info.Level
 }
 
+func (g *Game) regenMana() {
+	h, e := g.Hero, g.Exp
+	if h.MaxMP() == 0 {
+		return
+	}
+	e.ManaAcc += ManaRegenPerStep
+	for e.ManaAcc >= ManaRegenDiv {
+		e.ManaAcc -= ManaRegenDiv
+		h.MP = min(h.MaxMP(), h.MP+1)
+	}
+}
+
 func (g *Game) adjacentMonsters() []*Monster {
 	l := g.Exp.Level
 	var out []*Monster
