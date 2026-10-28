@@ -64,10 +64,10 @@ type Game struct {
 	Lang      string
 }
 
-func New(seed uint64) *Game {
+func New(seed uint64, c Class) *Game {
 	g := &Game{
 		RNG:    NewRNG(seed),
-		Hero:   NewHero(),
+		Hero:   NewHero(c),
 		Config: DefaultConfig(),
 	}
 	g.refreshShop()

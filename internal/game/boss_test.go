@@ -41,7 +41,7 @@ func TestKillingBossUnlocksShortcut(t *testing.T) {
 }
 
 func TestLockedStartFloorFallsBackToFirst(t *testing.T) {
-	g := New(3)
+	g := New(3, Warrior)
 	g.Config.StartFloor = 31
 	g.Depart()
 	if g.Exp.Level.Depth != 1 {

@@ -6,12 +6,9 @@ import (
 )
 
 const (
-	HeroBaseHP      = 30
-	HeroHPPerLevel  = 8
-	HeroBaseAtk     = 5
-	HeroAtkPerLevel = 3 // per 2 levels
-	HeroBaseDef     = 1
-	HeroBaseSpd     = 4
+	HeroBaseAtk = 5
+	HeroBaseDef = 1
+	HeroBaseSpd = 4
 
 	MissChance    = 0.1
 	CombatRoundMs = 1000
@@ -112,7 +109,21 @@ func UpgradeCost(it *Item, level int) int {
 	return int(float64(it.Value()+10) * math.Pow(1.6, float64(level)))
 }
 
-var trainBase = [NumTraits]float64{30, 40, 40, 120}
+var trainBase = [NumTraits]float64{Str: 40, Dex: 120, Int: 40, Con: 30}
+
+type classHP struct{ Base, PerLevel int }
+
+var ClassHP = [NumClasses]classHP{Warrior: {30, 8}, Mage: {20, 5}, Rogue: {25, 6}, Cleric: {28, 7}}
+
+// ClassStats growth is per 2 levels.
+type classStats struct{ Start, Growth [NumTraits]int }
+
+var ClassStats = [NumClasses]classStats{
+	Warrior: {Growth: [NumTraits]int{Str: 3}},
+	Mage:    {Start: [NumTraits]int{Int: 2}, Growth: [NumTraits]int{Int: 3}},
+	Rogue:   {Start: [NumTraits]int{Dex: 1}, Growth: [NumTraits]int{Dex: 2}},
+	Cleric:  {Growth: [NumTraits]int{Str: 2, Int: 1}},
+}
 
 func TrainCost(t Trait, level int) int {
 	return int(trainBase[t] * math.Pow(1.5, float64(level)))

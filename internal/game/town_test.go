@@ -3,7 +3,7 @@ package game
 import "testing"
 
 func townGame() *Game {
-	g := New(9)
+	g := New(9, Warrior)
 	g.Gold = 100000
 	return g
 }
@@ -50,8 +50,8 @@ func TestPurchaseSurvivesDeath(t *testing.T) {
 func TestNotEnoughGold(t *testing.T) {
 	g := townGame()
 	g.Gold = 0
-	g.Train(Vigor)
-	if g.Hero.Training[Vigor] != 0 {
+	g.Train(Con)
+	if g.Hero.Training[Con] != 0 {
 		t.Fatal("trained without gold")
 	}
 }
@@ -59,7 +59,7 @@ func TestNotEnoughGold(t *testing.T) {
 func TestTrainingRaisesStat(t *testing.T) {
 	g := townGame()
 	hp := g.Hero.MaxHP()
-	g.Train(Vigor)
+	g.Train(Con)
 	if g.Hero.MaxHP() != hp+TrainHP {
 		t.Fatalf("max hp %d", g.Hero.MaxHP())
 	}
@@ -89,7 +89,7 @@ func TestPotionsBoughtBeforeExpedition(t *testing.T) {
 }
 
 func TestNewGameStartsInTown(t *testing.T) {
-	g := New(1)
+	g := New(1, Warrior)
 	if !g.InTown() {
 		t.Fatal("new game should start in town")
 	}

@@ -18,7 +18,7 @@ func TestCatchUpMatchesOnlinePlay(t *testing.T) {
 }
 
 func TestCatchUpIsCapped(t *testing.T) {
-	g := New(1)
+	g := New(1, Warrior)
 	s := g.CatchUp(48*time.Hour, nil)
 	if !s.Capped || s.Eventful() {
 		t.Fatalf("summary %+v", s)

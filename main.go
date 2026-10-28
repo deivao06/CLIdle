@@ -21,7 +21,7 @@ func main() {
 	}
 	var away time.Duration
 	if g == nil {
-		g = game.New(uint64(time.Now().UnixNano()))
+		g = game.New(uint64(time.Now().UnixNano()), game.Warrior)
 	} else {
 		away = time.Since(savedAt)
 	}

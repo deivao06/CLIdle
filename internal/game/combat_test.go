@@ -12,7 +12,7 @@ func TestDamageIsAtLeastOne(t *testing.T) {
 }
 
 func TestLevelUpRaisesStats(t *testing.T) {
-	h := NewHero()
+	h := NewHero(Warrior)
 	hp, atk := h.MaxHP(), h.Atk()
 	if !h.gainXP(XPToNext(1)) {
 		t.Fatal("expected level up")
@@ -68,7 +68,7 @@ func TestRoundIsOneLogLine(t *testing.T) {
 }
 
 func TestRepeatedLinesAreCounted(t *testing.T) {
-	g := New(1)
+	g := New(1, Warrior)
 	before := len(g.Log)
 	g.logf(LogGood, "x")
 	g.logf(LogGood, "x")
@@ -78,7 +78,7 @@ func TestRepeatedLinesAreCounted(t *testing.T) {
 }
 
 func departed(seed uint64) *Game {
-	g := New(seed)
+	g := New(seed, Warrior)
 	g.Depart()
 	return g
 }

@@ -80,6 +80,7 @@ func spawnBoss(rng *RNG, depth int) *Monster {
 func scaled(v int, s float64) int { return int(float64(v)*s + 0.5) }
 
 type Hero struct {
+	Class    Class
 	Pos      Pos
 	HP       int
 	Level    int
@@ -89,22 +90,29 @@ type Hero struct {
 	Training [NumTraits]int
 }
 
-func NewHero() *Hero {
-	h := &Hero{Level: 1, Potions: StartPotions}
+func NewHero(c Class) *Hero {
+	h := &Hero{Class: c, Level: 1, Potions: StartPotions}
 	h.HP = h.MaxHP()
 	return h
 }
 
 func (h *Hero) MaxHP() int {
-	return HeroBaseHP + (h.Level-1)*HeroHPPerLevel + h.Training[Vigor]*TrainHP
+	c := ClassHP[h.Class]
+	return c.Base + (h.Level-1)*c.PerLevel + h.Attr(Con)*TrainHP
 }
+
+func (h *Hero) Attr(t Trait) int {
+	s := ClassStats[h.Class]
+	return s.Start[t] + s.Growth[t]*(h.Level-1)/2 + h.Training[t]
+}
+
 func (h *Hero) Atk() int {
-	return HeroBaseAtk + (h.Level-1)*HeroAtkPerLevel/2 + h.bonus(Weapon) + h.Training[Strength]
+	return HeroBaseAtk + h.bonus(Weapon) + h.Attr(h.Class.DamageAttr())
 }
 func (h *Hero) Def() int {
-	return HeroBaseDef + (h.Level-1)/2 + h.bonus(Armor) + h.Training[Toughness]
+	return HeroBaseDef + (h.Level-1)/2 + h.bonus(Armor)
 }
-func (h *Hero) Spd() int { return HeroBaseSpd + h.bonus(Boots) + h.Training[Agility] }
+func (h *Hero) Spd() int { return HeroBaseSpd + h.bonus(Boots) + h.Attr(Dex) }
 
 func (h *Hero) bonus(s Slot) int {
 	if h.Equip[s] == nil {
