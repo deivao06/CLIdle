@@ -45,8 +45,10 @@
   "stats.line": "Atk %d · Def %d · Spd %d · Potions %d · XP %d/%d",
   "stats.bag": " · Bag %d/%d",
 
-  "hero.title": "Hero",
   "hero.level": "level %d",
+  "choose.title": "Choose your hero's class",
+  "choose.keys": "↑↓ select · enter confirm",
+  "hero.attrs": "STR %d · DEX %d · INT %d · CON %d",
   "hero.atk_def": "Attack %d · Defense %d\n",
   "hero.speed": "Speed %d (%.1f/s)\n",
   "hero.potions_gold": "Potions %d · Gold %d\n",

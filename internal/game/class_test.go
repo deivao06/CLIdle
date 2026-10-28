@@ -23,3 +23,16 @@ func TestMainAttributeGrowsMost(t *testing.T) {
 		}
 	}
 }
+
+func TestChooseClassOnlyBeforeFirstExpedition(t *testing.T) {
+	g := New(1, Warrior)
+	g.ChooseClass(Mage)
+	if g.Hero.Class != Mage || g.Hero.HP != g.Hero.MaxHP() {
+		t.Fatalf("class %v hp %d/%d", g.Hero.Class, g.Hero.HP, g.Hero.MaxHP())
+	}
+	g.Depart()
+	g.ChooseClass(Rogue)
+	if g.Hero.Class != Mage {
+		t.Fatal("class changed after departing")
+	}
+}

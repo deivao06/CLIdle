@@ -25,6 +25,9 @@ func (m Model) View() string {
 			sMuted.Render(lang.T("ui.too_small_size", minW, minH, m.w, m.h))
 		return lipgloss.Place(m.w, m.h, lipgloss.Center, lipgloss.Center, msg)
 	}
+	if m.choosing {
+		return m.viewChoose()
+	}
 	bodyH := m.h - 2
 	if m.catching {
 		f := float64(m.progress.Load()) / 1000
@@ -263,7 +266,8 @@ func (m Model) heroPanel(w, maxH int) string {
 	g := m.g
 	h := g.Hero
 	var b strings.Builder
-	fmt.Fprintf(&b, "%s %s\n", sSection.Render(lang.T("hero.title")), lang.T("hero.level", h.Level))
+	fmt.Fprintf(&b, "%s %s\n", sSection.Render(h.Class.Name()), lang.T("hero.level", h.Level))
+	b.WriteString(truncate(lang.T("hero.attrs", h.Attr(game.Str), h.Attr(game.Dex), h.Attr(game.Int), h.Attr(game.Con)), w) + "\n")
 	fmt.Fprintf(&b, "HP  %s\n", bar(h.HP, h.MaxHP(), w-4, hpStyle(h.HP, h.MaxHP())))
 	fmt.Fprintf(&b, "XP  %s\n", bar(h.XP, game.XPToNext(h.Level), w-4, sXP))
 	b.WriteString(lang.T("hero.atk_def", h.Atk(), h.Def()))

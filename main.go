@@ -20,13 +20,14 @@ func main() {
 		os.Exit(1)
 	}
 	var away time.Duration
-	if g == nil {
+	fresh := g == nil
+	if fresh {
 		g = game.New(uint64(time.Now().UnixNano()), game.Warrior)
 	} else {
 		away = time.Since(savedAt)
 	}
 	lang.Set(g.Lang)
-	if _, err := tea.NewProgram(ui.NewWithSave(g, path, away), tea.WithAltScreen()).Run(); err != nil {
+	if _, err := tea.NewProgram(ui.NewWithSave(g, path, away, fresh), tea.WithAltScreen()).Run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
