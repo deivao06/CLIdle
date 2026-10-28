@@ -32,6 +32,7 @@ internal/game/          lógica pura, sem I/O de terminal
   balance.go            TODOS os números de balanceamento e tabelas (monstros, chefes, nomes de itens)
   log.go                log do jogo (com contador ×N)
   rng.go                RNG PCG serializável
+internal/lang/          textos do jogo (en.json, pt.json embutidos), lang.T/Set
 internal/ui/            Bubble Tea
   model.go              Model, ticks, teclas, autosave, catch-up em goroutine, confirmações
   view.go               layout adaptável, mapa, log, painel do herói, legenda, cidade, resumo
@@ -78,7 +79,7 @@ Não há testes de UI. Para ver telas:
 
 ## Convenções
 
-- **Texto do jogo em português**; identificadores e comentários de código em inglês.
+- **Texto do jogo só em `internal/lang/en.json` e `pt.json`**, acessado por `lang.T("chave", args...)`. Toda chave nova vai nos dois arquivos (um teste confere). Identificadores e comentários de código em inglês.
 - **Comentários só quando o porquê não é óbvio.** Regras de negócio ficam no `docs/design.md`, não em comentários.
 - **Mudanças mínimas.** Diffs pequenos e focados.
 - **Números de balanceamento só em `balance.go`.**

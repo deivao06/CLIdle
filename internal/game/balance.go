@@ -40,23 +40,23 @@ const (
 )
 
 var BossKinds = []MonsterKind{
-	{Glyph: 'G', Name: "Rei Goblin", Color: "46"},
-	{Glyph: 'O', Name: "Senhor da Guerra Orc", Color: "34"},
-	{Glyph: 'L', Name: "Lich", Color: "51"},
-	{Glyph: 'D', Name: "Dragão Ancião", Color: "196"},
+	{Glyph: 'G', Name: "boss.goblin_king", Color: "46"},
+	{Glyph: 'O', Name: "boss.orc_warlord", Color: "34"},
+	{Glyph: 'L', Name: "boss.lich", Color: "51"},
+	{Glyph: 'D', Name: "boss.ancient_dragon", Color: "196"},
 }
 
 var MonsterKinds = []MonsterKind{
-	{'r', "rato", "180", 6, 3, 0, 4, 3, 1},
-	{'b', "morcego", "137", 5, 3, 0, 7, 4, 1},
-	{'k', "kobold", "172", 10, 4, 1, 4, 6, 2},
-	{'g', "goblin", "70", 14, 6, 2, 4, 9, 4},
-	{'w', "lobo", "247", 16, 7, 1, 6, 12, 6},
-	{'z', "zumbi", "107", 28, 8, 3, 2, 15, 8},
-	{'o', "orc", "28", 30, 11, 5, 4, 22, 11},
-	{'e', "esqueleto", "255", 26, 13, 6, 4, 28, 14},
-	{'l', "lobisomem", "130", 45, 17, 7, 6, 40, 18},
-	{'d', "dragão jovem", "160", 70, 22, 10, 5, 60, 24},
+	{'r', "monster.rat", "180", 6, 3, 0, 4, 3, 1},
+	{'b', "monster.bat", "137", 5, 3, 0, 7, 4, 1},
+	{'k', "monster.kobold", "172", 10, 4, 1, 4, 6, 2},
+	{'g', "monster.goblin", "70", 14, 6, 2, 4, 9, 4},
+	{'w', "monster.wolf", "247", 16, 7, 1, 6, 12, 6},
+	{'z', "monster.zombie", "107", 28, 8, 3, 2, 15, 8},
+	{'o', "monster.orc", "28", 30, 11, 5, 4, 22, 11},
+	{'e', "monster.skeleton", "255", 26, 13, 6, 4, 28, 14},
+	{'l', "monster.werewolf", "130", 45, 17, 7, 6, 40, 18},
+	{'d', "monster.young_dragon", "160", 70, 22, 10, 5, 60, 24},
 }
 
 const (
@@ -96,9 +96,9 @@ type itemName struct {
 }
 
 var ItemNames = [NumSlots][]itemName{
-	Weapon: {{1, "Adaga"}, {4, "Espada Curta"}, {8, "Maça"}, {12, "Espada Longa"}, {18, "Machado de Guerra"}, {25, "Montante"}},
-	Armor:  {{1, "Gibão de Couro"}, {5, "Couro Batido"}, {10, "Cota de Malha"}, {16, "Brunea"}, {24, "Armadura de Placas"}},
-	Boots:  {{1, "Botas de Couro"}, {6, "Botas Reforçadas"}, {14, "Botas Ligeiras"}, {22, "Botas Élficas"}},
+	Weapon: {{1, "item.dagger"}, {4, "item.short_sword"}, {8, "item.mace"}, {12, "item.long_sword"}, {18, "item.war_axe"}, {25, "item.greatsword"}},
+	Armor:  {{1, "item.leather_jerkin"}, {5, "item.studded_leather"}, {10, "item.chain_mail"}, {16, "item.brigandine"}, {24, "item.plate_armor"}},
+	Boots:  {{1, "item.leather_boots"}, {6, "item.reinforced_boots"}, {14, "item.swift_boots"}, {22, "item.elven_boots"}},
 }
 
 const (

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"clidle/internal/game"
+	"clidle/internal/lang"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -155,13 +156,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.tab, m.help = tabHero, false
 		case "r":
 			if e := m.g.Exp; e != nil && !e.Retreating {
-				m.ask("Retirar o herói da dungeon?", m.g.Retreat)
+				m.ask(lang.T("confirm.retreat"), m.g.Retreat)
 			}
 		case "a":
 			m.g.ToggleAuto()
 		case "e":
 			if m.g.InTown() {
-				m.ask("Partir para a expedição?", m.g.Depart)
+				m.ask(lang.T("confirm.depart"), m.g.Depart)
 			}
 		case "?":
 			m.help = !m.help

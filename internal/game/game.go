@@ -1,10 +1,11 @@
 package game
 
 import (
-	"fmt"
 	"slices"
 	"strconv"
 	"strings"
+
+	"clidle/internal/lang"
 )
 
 type Expedition struct {
@@ -60,6 +61,7 @@ type Game struct {
 	Kills     int
 	BossKills int
 	Bell      bool
+	Lang      string
 }
 
 func New(seed uint64) *Game {
@@ -69,7 +71,7 @@ func New(seed uint64) *Game {
 		Config: DefaultConfig(),
 	}
 	g.refreshShop()
-	g.logf(LogInfo, "Bem-vindo à cidade. Prepare a expedição na aba 2 e aperte e para partir.")
+	g.logf(LogInfo, "%s", lang.T("log.welcome"))
 	return g
 }
 
@@ -112,7 +114,7 @@ func (g *Game) StartExpedition() {
 	g.Exp = &Expedition{Num: g.ExpNum, Seed: seed, RNG: NewRNG(seed), StartEquip: g.Hero.Equip, Config: g.Config}
 	g.Hero.HP = g.Hero.MaxHP()
 	g.buyPotions()
-	g.logf(LogInfo, "Expedição #%d parte rumo à dungeon.", g.ExpNum)
+	g.logf(LogInfo, "%s", lang.T("log.depart", g.ExpNum))
 	g.enterLevel(g.startFloor())
 }
 
@@ -139,9 +141,9 @@ func (g *Game) enterLevel(depth int) {
 	g.MaxDepth = max(g.MaxDepth, depth)
 	g.Hero.Pos = l.Up
 	l.Reveal(g.Hero.Pos)
-	g.logf(LogInfo, "Você chega ao andar %d.", depth)
+	g.logf(LogInfo, "%s", lang.T("log.arrive_floor", depth))
 	if b := l.boss(); b != nil {
-		g.logf(LogBad, "Uma presença terrível guarda a escada: %s.", b.Info().Name)
+		g.logf(LogBad, "%s", lang.T("log.boss_guard", lang.T(b.Info().Name)))
 	}
 }
 
@@ -156,7 +158,7 @@ func (g *Game) step() {
 			heal := min(h.MaxHP()*PotionHealPct/100, h.MaxHP()-h.HP)
 			h.HP += heal
 			h.Potions--
-			r.hero = fmt.Sprintf("você bebe uma poção (+%d HP)", heal)
+			r.hero = lang.T("log.drink", heal)
 		} else if m != nil {
 			g.heroAttack(m, r)
 		} else if next, ok := g.chooseStep(); ok {
@@ -175,7 +177,7 @@ func (g *Game) step() {
 		g.returnToTown()
 	case !g.Exp.Retreating && h.Pos == l.Down && g.readyToDescend():
 		if c := g.Exp.Config.LastFloor; c > 0 && l.Depth >= c {
-			g.startRetreat(fmt.Sprintf("andar %d concluído", l.Depth))
+			g.startRetreat(lang.T("retreat.floor_done", l.Depth))
 			return
 		}
 		g.enterLevel(l.Depth + 1)
@@ -193,9 +195,9 @@ func (g *Game) checkRetreat() {
 	switch {
 	case e.Retreating:
 	case g.Exp.Config.RetreatBagFull && len(e.Bag) >= BagSize:
-		g.startRetreat("mochila cheia")
+		g.startRetreat(lang.T("retreat.bag_full"))
 	case h.Potions == 0 && h.HP*100 < h.MaxHP()*g.Exp.Config.RetreatHPPct:
-		g.startRetreat("HP baixo e sem poções")
+		g.startRetreat(lang.T("retreat.low_hp"))
 	}
 }
 
@@ -204,7 +206,7 @@ func (g *Game) Retreat() {
 	if g.Exp == nil || g.Exp.Retreating {
 		return
 	}
-	g.startRetreat("ordem sua")
+	g.startRetreat(lang.T("retreat.order"))
 	if g.Auto {
 		g.ToggleAuto()
 	}
@@ -212,7 +214,7 @@ func (g *Game) Retreat() {
 
 func (g *Game) startRetreat(why string) {
 	g.Exp.Retreating = true
-	g.logf(LogInfo, "Retirada (%s): voltando para a saída.", why)
+	g.logf(LogInfo, "%s", lang.T("log.retreat", why))
 }
 
 func (g *Game) returnToTown() {
@@ -224,10 +226,9 @@ func (g *Game) returnToTown() {
 	g.Gold += e.Gold + sold
 	g.Returns++
 	if len(e.Bag) == 0 {
-		g.logf(LogGood, "Expedição #%d volta à cidade: +%d ouro.", e.Num, e.Gold)
+		g.logf(LogGood, "%s", lang.T("log.return", e.Num, e.Gold))
 	} else {
-		g.logf(LogGood, "Expedição #%d volta à cidade: +%d ouro (%d achado + %d itens vendidos por %d).",
-			e.Num, e.Gold+sold, e.Gold, len(e.Bag), sold)
+		g.logf(LogGood, "%s", lang.T("log.return_sold", e.Num, e.Gold+sold, e.Gold, len(e.Bag), sold))
 	}
 	g.Exp = nil
 	g.arriveInTown()
@@ -284,26 +285,26 @@ func (g *Game) pickup(r *round) {
 	f := l.Items[i]
 	l.Items = append(l.Items[:i], l.Items[i+1:]...)
 	add := func(kind LogKind, format string, args ...any) {
-		r.after = append(r.after, LogEntry{Text: fmt.Sprintf(format, args...), Kind: kind})
+		r.after = append(r.after, LogEntry{Text: lang.T(format, args...), Kind: kind})
 	}
 	switch {
 	case f.Gold > 0:
 		e.Gold += f.Gold
-		add(LogLoot, "Você pega %d de ouro.", f.Gold)
+		add(LogLoot, "log.pick_gold", f.Gold)
 	case f.Potion:
 		h.Potions++
-		add(LogLoot, "Você pega uma poção.")
+		add(LogLoot, "log.pick_potion")
 	case g.better(f.Item):
 		it := f.Item
 		old := h.Equip[it.Slot]
 		h.Equip[it.Slot] = it
-		add(it.Rarity.LogKind(), "Você equipa %s (%s, %s).", it.Title(), it.Rarity.Name(), it.StatLabel())
+		add(it.Rarity.LogKind(), "log.equip", it.Title(), it.Rarity.Name(), it.StatLabel())
 		if old != nil && len(e.Bag) < BagSize {
 			e.Bag = append(e.Bag, old)
 		}
 	default:
 		e.Bag = append(e.Bag, f.Item)
-		add(f.Item.Rarity.LogKind(), "Você guarda %s (%s) na mochila.", f.Item.Title(), f.Item.Rarity.Name())
+		add(f.Item.Rarity.LogKind(), "log.stash", f.Item.Title(), f.Item.Rarity.Name())
 	}
 }
 
@@ -322,7 +323,7 @@ type monsterRound struct {
 }
 
 func (r *round) of(m *Monster) *monsterRound {
-	name := m.Info().Name
+	name := lang.T(m.Info().Name)
 	for _, mr := range r.mons {
 		if mr.name == name {
 			return mr
@@ -336,20 +337,20 @@ func (r *round) of(m *Monster) *monsterRound {
 func (mr *monsterRound) String() string {
 	if len(mr.hits) == 0 {
 		if mr.misses > 1 {
-			return fmt.Sprintf("o %s erra %dx", mr.name, mr.misses)
+			return lang.T("combat.mon_miss_n", mr.name, mr.misses)
 		}
-		return "o " + mr.name + " erra"
+		return lang.T("combat.mon_miss", mr.name)
 	}
 	var dmgs []string
 	for _, d := range mr.hits {
 		dmgs = append(dmgs, strconv.Itoa(d))
 	}
-	s := fmt.Sprintf("o %s te acerta (%s)", mr.name, strings.Join(dmgs, ", "))
+	s := lang.T("combat.mon_hit", mr.name, strings.Join(dmgs, ", "))
 	if len(mr.hits) > 1 {
-		s = fmt.Sprintf("o %s te acerta %dx (%s)", mr.name, len(mr.hits), strings.Join(dmgs, ", "))
+		s = lang.T("combat.mon_hit_n", mr.name, len(mr.hits), strings.Join(dmgs, ", "))
 	}
 	if mr.misses > 0 {
-		s += ", erra"
+		s += lang.T("combat.and_miss")
 	}
 	return s
 }
@@ -389,28 +390,28 @@ func (g *Game) adjacentMonster() *Monster {
 func (g *Game) heroAttack(m *Monster, r *round) {
 	e := g.Exp
 	h := g.Hero
-	name := m.Info().Name
+	name := lang.T(m.Info().Name)
 	m.Awake = true
 	if e.RNG.Chance(MissChance) {
-		r.hero = "você erra o " + name
+		r.hero = lang.T("combat.hero_miss", name)
 		return
 	}
 	d := damage(e.RNG, h.Atk(), m.Def)
 	m.HP -= d
 	if m.HP > 0 {
-		r.hero = fmt.Sprintf("você acerta o %s (%d)", name, d)
+		r.hero = lang.T("combat.hero_hit", name, d)
 		return
 	}
 	gold := GoldPerKill(m.XP)
 	e.Gold += gold
 	g.Kills++
-	r.after = append(r.after, LogEntry{Text: fmt.Sprintf("Você mata o %s! +%d XP, +%d ouro", name, m.XP, gold), Kind: LogGood})
+	r.after = append(r.after, LogEntry{Text: lang.T("log.kill", name, m.XP, gold), Kind: LogGood})
 	if m.Boss {
 		g.killBoss(m, r)
 	}
 	e.Level.removeMonster(m)
 	if h.gainXP(m.XP) {
-		r.after = append(r.after, LogEntry{Text: fmt.Sprintf("Você sobe para o nível %d!", h.Level), Kind: LogGood})
+		r.after = append(r.after, LogEntry{Text: lang.T("log.level_up", h.Level), Kind: LogGood})
 	}
 }
 
@@ -420,10 +421,10 @@ func (g *Game) killBoss(m *Monster, r *round) {
 	depth := e.Level.Depth
 	drop := newItemOf(e.RNG, depth, Epic)
 	e.Level.Items = append(e.Level.Items, &FloorItem{Pos: m.Pos, Item: drop})
-	text := fmt.Sprintf("%s foi derrotado! Deixou cair %s.", m.Info().Name, drop.Title())
+	text := lang.T("log.boss_dead", lang.T(m.Info().Name), drop.Title())
 	if !slices.Contains(g.ShortcutList(), depth+1) {
 		g.Shortcuts = append(g.ShortcutList(), depth+1)
-		text += fmt.Sprintf(" Atalho para o andar %d liberado.", depth+1)
+		text += lang.T("log.shortcut", depth+1)
 	}
 	r.after = append(r.after, LogEntry{Text: text, Kind: LogEpic})
 }
@@ -517,7 +518,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	r.hurt = true
 	if h.HP <= 0 {
 		h.HP = 0
-		r.after = append(r.after, LogEntry{Text: fmt.Sprintf("Você foi morto por um %s no andar %d. Perdeu %d de ouro e %d itens.",
+		r.after = append(r.after, LogEntry{Text: lang.T("log.death",
 			mr.name, e.Level.Depth, e.Gold, len(e.Bag)+g.foundEquipped()), Kind: LogBad})
 		g.die()
 	}

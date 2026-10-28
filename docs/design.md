@@ -74,6 +74,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - RNG com seed por expedição (testes e reprodução de bugs).
 - Testes automatizados na lógica (geração, combate, simulação); sem testar a UI.
 - Bip do terminal (morte/chefe) desligado por padrão, com opção para ligar.
+- **Idioma:** inglês por padrão, português como opção na Preparação. Fica no save. Ao trocar, nomes de itens mudam junto; linhas antigas do log ficam no idioma em que foram escritas.
 
 ## Marcos
 

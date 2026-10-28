@@ -1,6 +1,11 @@
 package game
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"clidle/internal/lang"
+)
 
 type Slot int
 
@@ -20,7 +25,7 @@ const (
 )
 
 func (r Rarity) Name() string {
-	return [...]string{"comum", "raro", "épico"}[r]
+	return lang.T([...]string{"rarity.common", "rarity.rare", "rarity.epic"}[r])
 }
 
 func (r Rarity) LogKind() LogKind {
@@ -40,8 +45,23 @@ func (it *Item) Bonus() int { return it.Base + it.Upgrade*max(1, it.Base/Upgrade
 
 func (it *Item) Value() int { return it.Bonus() * ItemValuePerBonus * (int(it.Rarity) + 1) }
 
+// Label translates the item name; saves from before translation hold the Portuguese name itself.
+func (it *Item) Label() string {
+	if strings.HasPrefix(it.Name, "item.") {
+		return lang.T(it.Name)
+	}
+	for _, names := range ItemNames {
+		for _, n := range names {
+			if lang.In("pt", n.name) == it.Name {
+				return lang.T(n.name)
+			}
+		}
+	}
+	return it.Name
+}
+
 func (it *Item) Title() string {
-	s := it.Name
+	s := it.Label()
 	if it.Upgrade > 0 {
 		s = fmt.Sprintf("%s +%d", s, it.Upgrade)
 	}
@@ -49,7 +69,7 @@ func (it *Item) Title() string {
 }
 
 func (it *Item) StatLabel() string {
-	return fmt.Sprintf("%s +%d", [...]string{"Atq", "Def", "Vel"}[it.Slot], it.Bonus())
+	return fmt.Sprintf("%s +%d", lang.T([...]string{"stat.atk", "stat.def", "stat.spd"}[it.Slot]), it.Bonus())
 }
 
 func (s Slot) Glyph() rune { return [...]rune{')', '[', ']'}[s] }

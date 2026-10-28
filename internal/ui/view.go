@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"clidle/internal/game"
+	"clidle/internal/lang"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -20,21 +21,21 @@ func (m Model) View() string {
 		return ""
 	}
 	if m.w < minW || m.h < minH {
-		msg := sWarn.Render("Janela muito pequena") + "\n" +
-			sMuted.Render(fmt.Sprintf("mínimo %dx%d · atual %dx%d", minW, minH, m.w, m.h))
+		msg := sWarn.Render(lang.T("ui.too_small")) + "\n" +
+			sMuted.Render(lang.T("ui.too_small_size", minW, minH, m.w, m.h))
 		return lipgloss.Place(m.w, m.h, lipgloss.Center, lipgloss.Center, msg)
 	}
 	bodyH := m.h - 2
 	if m.catching {
 		f := float64(m.progress.Load()) / 1000
-		msg := sTitle.Render("Simulando o tempo fora...") + "\n\n" +
+		msg := sTitle.Render(lang.T("ui.simulating")) + "\n\n" +
 			bar(int(f*100), 100, min(40, m.w-4), sXP) + "\n" + sMuted.Render(fmt.Sprintf("%.0f%%", f*100))
 		return lipgloss.Place(m.w, m.h, lipgloss.Center, lipgloss.Center, msg)
 	}
 	var body string
 	switch {
 	case m.confirmDo != nil:
-		box := sBox.Render(sTitle.Render(m.confirmText) + "\n\n" + sMuted.Render("(S/n)"))
+		box := sBox.Render(sTitle.Render(m.confirmText) + "\n\n" + sMuted.Render(lang.T("ui.confirm_hint")))
 		body = lipgloss.Place(m.w, bodyH, lipgloss.Center, lipgloss.Center, box)
 	case m.summary != nil:
 		block := m.viewSummary()
@@ -49,7 +50,7 @@ func (m Model) View() string {
 	case m.tab == tabHero:
 		body = m.heroPanel(min(48, m.w-4), bodyH)
 	default:
-		body = sMuted.Render("Em breve.")
+		body = sMuted.Render(lang.T("ui.soon"))
 	}
 	body = lipgloss.NewStyle().Width(m.w).Height(bodyH).MaxHeight(bodyH).Render(body)
 	return lipgloss.JoinVertical(lipgloss.Left, m.viewHeader(), body, m.viewFooter())
@@ -57,7 +58,7 @@ func (m Model) View() string {
 
 func (m Model) viewHeader() string {
 	right := m.statusLine()
-	for _, tabs := range [][]string{{"1 Principal", "2 Preparação", "3 Herói"}, {"1", "2", "3"}} {
+	for _, tabs := range [][]string{{"1 " + lang.T("tab.main"), "2 " + lang.T("tab.prep"), "3 " + lang.T("tab.hero")}, {"1", "2", "3"}} {
 		var parts []string
 		for i, t := range tabs {
 			if i == m.tab && !m.help {
@@ -78,23 +79,23 @@ func (m Model) statusLine() string {
 	g := m.g
 	h := g.Hero
 	hp := hpStyle(h.HP, h.MaxHP()).Render(fmt.Sprintf("HP %d/%d", h.HP, h.MaxHP()))
-	where := "cidade"
+	where := lang.T("status.town")
 	if g.Exp != nil {
-		where = fmt.Sprintf("andar %d", g.Exp.Level.Depth)
+		where = lang.T("status.floor", g.Exp.Level.Depth)
 	}
-	return hp + sMuted.Render(fmt.Sprintf(" · nv %d · %s · ", h.Level, where)) + sGold.Render(fmt.Sprintf("%d ouro ", g.Gold))
+	return hp + sMuted.Render(lang.T("status.level", h.Level, where)) + sGold.Render(lang.T("status.gold", g.Gold))
 }
 
 func (m Model) viewFooter() string {
-	keys := "1-3 telas · r retirar · a auto · ? legenda · q sair"
+	keys := lang.T("footer.dungeon")
 	if m.g.InTown() {
-		keys = "1-3 telas · e partir · a auto · ? legenda · q sair"
+		keys = lang.T("footer.town")
 	}
 	if m.confirmDo != nil {
-		return truncate(sMuted.Render("s/enter confirmar · n/esc cancelar"), m.w)
+		return truncate(sMuted.Render(lang.T("footer.confirm")), m.w)
 	}
 	if m.saveErr != nil {
-		return truncate(sWarn.Render("erro ao salvar: "+m.saveErr.Error()), m.w)
+		return truncate(sWarn.Render(lang.T("footer.save_error", m.saveErr.Error())), m.w)
 	}
 	return truncate(sMuted.Render(keys), m.w)
 }
@@ -129,21 +130,21 @@ func (m Model) viewDungeon(h int) string {
 
 func (m Model) viewSummary() string {
 	s := m.summary
-	title := fmt.Sprintf("Enquanto você esteve fora (%s)", fmtDuration(s.Away))
+	title := lang.T("summary.title", fmtDuration(s.Away))
 	var b strings.Builder
 	b.WriteString(sTitle.Render(title) + "\n\n")
-	fmt.Fprintf(&b, "Expedições   %d  (%d voltas, %d mortes)\n", s.Expeditions, s.Returns, s.Deaths)
-	fmt.Fprintf(&b, "Monstros     %d mortos\n", s.Kills)
+	b.WriteString(lang.T("summary.expeditions", s.Expeditions, s.Returns, s.Deaths))
+	b.WriteString(lang.T("summary.kills", s.Kills))
 	if s.BossKills > 0 {
-		b.WriteString(logStyles[game.LogEpic].Render(fmt.Sprintf("Chefes       %d derrotados", s.BossKills)) + "\n")
+		b.WriteString(logStyles[game.LogEpic].Render(lang.T("summary.bosses", s.BossKills)) + "\n")
 	}
-	b.WriteString(sGold.Render(fmt.Sprintf("Ouro         %+d", s.Gold)) + "\n")
-	fmt.Fprintf(&b, "Nível        %d → %d\n", s.LevelFrom, s.LevelTo)
-	fmt.Fprintf(&b, "Andar máx.   %d → %d\n", s.DepthFrom, s.DepthTo)
+	b.WriteString(sGold.Render(lang.T("summary.gold", s.Gold)) + "\n")
+	b.WriteString(lang.T("summary.level", s.LevelFrom, s.LevelTo))
+	b.WriteString(lang.T("summary.depth", s.DepthFrom, s.DepthTo))
 	if s.Capped {
-		b.WriteString("\n" + sMuted.Render(fmt.Sprintf("Só as primeiras %s contam.", fmtDuration(game.OfflineCap))) + "\n")
+		b.WriteString("\n" + sMuted.Render(lang.T("summary.capped", fmtDuration(game.OfflineCap))) + "\n")
 	}
-	b.WriteString("\n" + sMuted.Render("aperte qualquer tecla"))
+	b.WriteString("\n" + sMuted.Render(lang.T("summary.any_key")))
 	return b.String()
 }
 
@@ -163,21 +164,21 @@ func (m Model) viewTown() string {
 		`  |.| |.__.| |.|   `,
 		`__|_|_|_||_|_|_|__ `,
 	}, "\n"))
-	next := sTitle.Render("Aperte e para partir")
+	next := sTitle.Render(lang.T("town.press_e"))
 	if g.Auto {
 		secs := (game.TownWaitMs - g.AccMs + 999) / 1000
-		next = sMuted.Render(fmt.Sprintf("Próxima expedição em %ds", max(0, secs)))
+		next = sMuted.Render(lang.T("town.next_in", max(0, secs)))
 	}
-	return lipgloss.JoinVertical(lipgloss.Center, art, "", sTitle.Render("Cidade"),
-		"O herói descansa e se prepara.", next, sMuted.Render("Aperte 2 para a Preparação"))
+	return lipgloss.JoinVertical(lipgloss.Center, art, "", sTitle.Render(lang.T("town.title")),
+		lang.T("town.rest"), next, sMuted.Render(lang.T("town.press_prep")))
 }
 
 func (m Model) statsLine(w int) string {
 	h := m.g.Hero
-	s := fmt.Sprintf("Atq %d · Def %d · Vel %d · Poções %d · XP %d/%d",
+	s := lang.T("stats.line",
 		h.Atk(), h.Def(), h.Spd(), h.Potions, h.XP, game.XPToNext(h.Level))
 	if e := m.g.Exp; e != nil {
-		s += fmt.Sprintf(" · Mochila %d/%d", len(e.Bag), game.BagSize)
+		s += lang.T("stats.bag", len(e.Bag), game.BagSize)
 	}
 	return sSection.Render(truncate(s, w))
 }
@@ -262,29 +263,29 @@ func (m Model) heroPanel(w, maxH int) string {
 	g := m.g
 	h := g.Hero
 	var b strings.Builder
-	fmt.Fprintf(&b, "%s nível %d\n", sSection.Render("Herói"), h.Level)
+	fmt.Fprintf(&b, "%s %s\n", sSection.Render(lang.T("hero.title")), lang.T("hero.level", h.Level))
 	fmt.Fprintf(&b, "HP  %s\n", bar(h.HP, h.MaxHP(), w-4, hpStyle(h.HP, h.MaxHP())))
 	fmt.Fprintf(&b, "XP  %s\n", bar(h.XP, game.XPToNext(h.Level), w-4, sXP))
-	fmt.Fprintf(&b, "Ataque %d · Defesa %d\n", h.Atk(), h.Def())
-	fmt.Fprintf(&b, "Velocidade %d (%.1f/s)\n", h.Spd(), game.StepsPerSec(h.Spd()))
-	fmt.Fprintf(&b, "Poções %d · Ouro %d\n", h.Potions, g.Gold)
-	b.WriteString("\n" + sSection.Render("Equipamento") + "\n")
+	b.WriteString(lang.T("hero.atk_def", h.Atk(), h.Def()))
+	b.WriteString(lang.T("hero.speed", h.Spd(), game.StepsPerSec(h.Spd())))
+	b.WriteString(lang.T("hero.potions_gold", h.Potions, g.Gold))
+	b.WriteString("\n" + sSection.Render(lang.T("hero.equipment")) + "\n")
 	for s, it := range h.Equip {
 		if it == nil {
-			b.WriteString(sMuted.Render(truncate(fmt.Sprintf("%c sem %s", game.Slot(s).Glyph(), slotNames[s]), w)) + "\n")
+			b.WriteString(sMuted.Render(truncate(lang.T("hero.no_slot", game.Slot(s).Glyph(), lang.T(slotNames[s])), w)) + "\n")
 			continue
 		}
 		b.WriteString(rarityStyle(it.Rarity).Render(truncate(fmt.Sprintf("%c %s (%s)", it.Slot.Glyph(), it.Title(), it.StatLabel()), w)) + "\n")
 	}
 	if e := g.Exp; e != nil {
-		fmt.Fprintf(&b, "\n%s #%d · andar %d\n", sSection.Render("Expedição"), e.Num, e.Level.Depth)
-		fmt.Fprintf(&b, "Ouro achado %d\nMochila %d/%d\n", e.Gold, len(e.Bag), game.BagSize)
+		fmt.Fprintf(&b, "\n%s %s", sSection.Render(lang.T("hero.expedition")), lang.T("hero.exp_floor", e.Num, e.Level.Depth))
+		b.WriteString(lang.T("hero.exp_loot", e.Gold, len(e.Bag), game.BagSize))
 		if e.Retreating {
-			b.WriteString(sWarn.Render("Retirando-se") + "\n")
+			b.WriteString(sWarn.Render(lang.T("hero.retreating")) + "\n")
 		}
 	}
-	bottom := fmt.Sprintf("\n%s\nAndar máx. %d · Chefes %d\nVoltas %d · Mortes %d\n",
-		sSection.Render("Recordes"), g.MaxDepth, g.BossKills, g.Returns, g.Deaths)
+	bottom := "\n" + sSection.Render(lang.T("hero.records")) + "\n" +
+		lang.T("hero.records_line", g.MaxDepth, g.BossKills, g.Returns, g.Deaths)
 	if e := g.Exp; e != nil {
 		avail := maxH - strings.Count(b.String(), "\n") - strings.Count(bottom, "\n")
 		bag := e.Bag
@@ -292,11 +293,11 @@ func (m Model) heroPanel(w, maxH int) string {
 			bag = bag[:max(0, avail-1)]
 		}
 		for _, it := range bag {
-			line := fmt.Sprintf("%c %s (%s) · %d ouro", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.Value())
+			line := lang.T("hero.bag_item", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.Value())
 			b.WriteString(rarityStyle(it.Rarity).Render(truncate(line, w)) + "\n")
 		}
 		if rest := len(e.Bag) - len(bag); rest > 0 {
-			b.WriteString(sMuted.Render(fmt.Sprintf("+%d itens", rest)) + "\n")
+			b.WriteString(sMuted.Render(lang.T("hero.more_items", rest)) + "\n")
 		}
 	}
 	return b.String() + bottom
@@ -304,34 +305,34 @@ func (m Model) heroPanel(w, maxH int) string {
 
 func (m Model) viewHelp(h int) string {
 	var b strings.Builder
-	b.WriteString(sSection.Render("Legenda") + "\n\n")
+	b.WriteString(sSection.Render(lang.T("help.title")) + "\n\n")
 	rows := [][2]string{
-		{sHero.Render("@"), "herói"},
-		{sFloor.Render("."), "chão"},
-		{sFloor.Render("#"), "corredor"},
-		{sDoor.Render("+"), "porta"},
-		{sWall.Render("- |"), "parede"},
-		{sStairs.Render(">"), "escada para baixo"},
-		{sStairs.Render("<"), "escada para cima (saída)"},
-		{sGold.Render("$"), "ouro"},
-		{sPotion.Render("!"), "poção"},
-		{sPlain.Render(")"), "arma"},
-		{sPlain.Render("["), "armadura"},
-		{sPlain.Render("]"), "botas"},
+		{sHero.Render("@"), lang.T("help.hero")},
+		{sFloor.Render("."), lang.T("help.floor")},
+		{sFloor.Render("#"), lang.T("help.corridor")},
+		{sDoor.Render("+"), lang.T("help.door")},
+		{sWall.Render("- |"), lang.T("help.wall")},
+		{sStairs.Render(">"), lang.T("help.stairs_down")},
+		{sStairs.Render("<"), lang.T("help.stairs_up")},
+		{sGold.Render("$"), lang.T("help.gold")},
+		{sPotion.Render("!"), lang.T("help.potion")},
+		{sPlain.Render(")"), lang.T("slot.weapon")},
+		{sPlain.Render("["), lang.T("slot.armor")},
+		{sPlain.Render("]"), lang.T("slot.boots")},
 	}
 	for _, k := range game.MonsterKinds {
 		if k.MinDepth > m.g.MaxDepth {
-			rows = append(rows, [2]string{sMuted.Render("?"), sMuted.Render("ainda não encontrado")})
+			rows = append(rows, [2]string{sMuted.Render("?"), sMuted.Render(lang.T("help.unknown"))})
 			break
 		}
-		rows = append(rows, [2]string{monsterStyle(k).Render(string(k.Glyph)), k.Name})
+		rows = append(rows, [2]string{monsterStyle(k).Render(string(k.Glyph)), lang.T(k.Name)})
 	}
 	for i, k := range game.BossKinds {
 		if (i+1)*game.BossEvery > m.g.MaxDepth {
-			rows = append(rows, [2]string{sMuted.Render("?"), sMuted.Render("chefe (a cada 10 andares)")})
+			rows = append(rows, [2]string{sMuted.Render("?"), sMuted.Render(lang.T("help.unknown_boss"))})
 			break
 		}
-		rows = append(rows, [2]string{monsterStyle(k).Render(string(k.Glyph)), k.Name + " (chefe)"})
+		rows = append(rows, [2]string{monsterStyle(k).Render(string(k.Glyph)), lang.T("help.boss", lang.T(k.Name))})
 	}
 	perCol := max(1, h-4)
 	var cols []string
@@ -343,11 +344,11 @@ func (m Model) viewHelp(h int) string {
 		cols = append(cols, col.String())
 	}
 	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, cols...))
-	b.WriteString("\n" + sMuted.Render("? fecha · itens: branco comum, azul raro, roxo épico"))
+	b.WriteString("\n" + sMuted.Render(lang.T("help.footer")))
 	return b.String()
 }
 
-var slotNames = [...]string{"arma", "armadura", "botas"}
+var slotNames = [...]string{"slot.weapon", "slot.armor", "slot.boots"}
 
 func bar(v, maxV, w int, st lipgloss.Style) string {
 	w = max(w, 4)

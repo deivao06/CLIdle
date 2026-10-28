@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"clidle/internal/game"
+	"clidle/internal/lang"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -21,9 +22,9 @@ type prepRow struct {
 
 func onOff(b bool) string {
 	if b {
-		return "sim"
+		return lang.T("prep.yes")
 	}
-	return "não"
+	return lang.T("prep.no")
 }
 
 func step(v *int, delta, by, lo, hi int) { *v = clamp(*v+delta*by, lo, hi) }
@@ -32,85 +33,90 @@ func (m Model) prepRows() []prepRow {
 	g := m.g
 	c := &g.Config
 	var rows []prepRow
+	nextSection := lang.T("prep.section.next")
 	if g.InTown() {
-		rows = append(rows, prepRow{section: "Próxima expedição", text: "▶ Partir agora", style: sTitle, enter: g.Depart,
-			confirm: "Partir para a expedição?"})
+		rows = append(rows, prepRow{section: nextSection, text: lang.T("prep.depart_now"), style: sTitle, enter: g.Depart,
+			confirm: lang.T("confirm.depart")})
 	}
 	cfg := func(label, value string, adjust func(int)) {
 		rows = append(rows, prepRow{
-			section: "Próxima expedição",
-			text:    fmt.Sprintf("%-22s %s", label, value),
+			section: nextSection,
+			text:    fmt.Sprintf("%-22s %s", lang.T(label), value),
 			style:   sPlain,
 			adjust:  adjust,
 			enter:   func() { adjust(1) },
 		})
 	}
-	auto := "desligada"
+	auto := lang.T("prep.off")
 	if g.Auto {
-		auto = "ligada"
+		auto = lang.T("prep.on")
 	}
-	cfg("Auto-expedição", auto, func(int) { g.ToggleAuto() })
-	mode := "explorar tudo"
+	cfg("prep.auto", auto, func(int) { g.ToggleAuto() })
+	mode := lang.T("prep.mode.explore")
 	if c.Mode == game.DescendFast {
-		mode = "descer direto"
+		mode = lang.T("prep.mode.descend")
 	}
-	cfg("Modo", mode, func(int) { c.Mode = 1 - c.Mode })
-	cfg("Levar poções", fmt.Sprintf("%d (%d ouro cada)", c.PotionsToBring, game.PotionPrice),
+	cfg("prep.mode", mode, func(int) { c.Mode = 1 - c.Mode })
+	cfg("prep.potions", lang.T("prep.potions_value", c.PotionsToBring, game.PotionPrice),
 		func(d int) { step(&c.PotionsToBring, d, 1, 0, 30) })
-	cfg("Beber poção com HP <", fmt.Sprintf("%d%%", c.PotionAtPct), func(d int) { step(&c.PotionAtPct, d, 5, 5, 90) })
-	retreat := "nunca"
+	cfg("prep.potion_at", fmt.Sprintf("%d%%", c.PotionAtPct), func(d int) { step(&c.PotionAtPct, d, 5, 5, 90) })
+	retreat := lang.T("prep.never")
 	if c.RetreatHPPct > 0 {
 		retreat = fmt.Sprintf("%d%%", c.RetreatHPPct)
 	}
-	cfg("Recuar sem poção, HP <", retreat, func(d int) { step(&c.RetreatHPPct, d, 5, 0, 90) })
-	cfg("Recuar mochila cheia", onOff(c.RetreatBagFull), func(int) { c.RetreatBagFull = !c.RetreatBagFull })
-	last := "sem limite"
+	cfg("prep.retreat_hp", retreat, func(d int) { step(&c.RetreatHPPct, d, 5, 0, 90) })
+	cfg("prep.retreat_bag", onOff(c.RetreatBagFull), func(int) { c.RetreatBagFull = !c.RetreatBagFull })
+	last := lang.T("prep.no_limit")
 	if c.LastFloor > 0 {
-		last = fmt.Sprintf("andar %d", c.LastFloor)
+		last = lang.T("status.floor", c.LastFloor)
 	}
-	cfg("Último andar", last, func(d int) { step(&c.LastFloor, d, 1, 0, 999) })
+	cfg("prep.last_floor", last, func(d int) { step(&c.LastFloor, d, 1, 0, 999) })
 	floors := g.ShortcutList()
 	at := max(0, slices.Index(floors, c.StartFloor))
-	cfg("Começar no andar", fmt.Sprintf("%d (%d atalhos)", floors[at], len(floors)-1), func(d int) {
+	cfg("prep.start_floor", lang.T("prep.start_floor_value", floors[at], len(floors)-1), func(d int) {
 		c.StartFloor = floors[(at+d+len(floors))%len(floors)]
 	})
-	cfg("Bip em morte/chefe", onOff(g.Bell), func(int) { g.Bell = !g.Bell })
+	cfg("prep.bell", onOff(g.Bell), func(int) { g.Bell = !g.Bell })
+	cfg("prep.language", lang.T("lang.name"), func(int) {
+		g.Lang = lang.Next(lang.Current())
+		lang.Set(g.Lang)
+	})
 
 	for i, it := range g.Shop {
 		price := game.ShopPrice(it)
-		text := fmt.Sprintf("%c %-22s %-8s %6d ouro%s", it.Slot.Glyph(), it.Title(), it.StatLabel(), price, m.compare(it))
-		rows = append(rows, prepRow{section: "Loja", text: text, style: m.priced(rarityStyle(it.Rarity), price),
+		text := lang.T("prep.shop_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), price, m.compare(it))
+		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.priced(rarityStyle(it.Rarity), price),
 			enter: func() { g.BuyShop(i) }})
 	}
 	if len(g.Shop) == 0 {
-		rows = append(rows, prepRow{section: "Loja", text: "esgotada: renova quando o herói voltar", style: sMuted})
+		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.sold_out"), style: sMuted})
 	}
 	for _, it := range g.Pending {
-		rows = append(rows, prepRow{section: "Loja", text: fmt.Sprintf("na fila: %s (%s)", it.Title(), it.StatLabel()), style: sMuted})
+		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.queued", it.Title(), it.StatLabel()), style: sMuted})
 	}
 
 	for s := range game.NumSlots {
 		it, queued := g.UpgradeTarget(s)
 		if it == nil {
-			rows = append(rows, prepRow{section: "Ferreiro", text: fmt.Sprintf("%c sem %s", s.Glyph(), slotNames[s]), style: sMuted})
+			rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: lang.T("hero.no_slot", s.Glyph(), lang.T(slotNames[s])), style: sMuted})
 			continue
 		}
 		next := *it
 		next.Upgrade += queued + 1
 		cost := g.UpgradeCost(s)
-		text := fmt.Sprintf("%c %-22s → %-8s %6d ouro", s.Glyph(), it.Name+fmt.Sprintf(" +%d", it.Upgrade+queued), next.StatLabel(), cost)
+		text := lang.T("prep.smith_row", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade+queued), next.StatLabel(), cost)
 		if queued > 0 {
-			text += fmt.Sprintf("  (+%d na fila)", queued)
+			text += lang.T("prep.smith_queued", queued)
 		}
-		rows = append(rows, prepRow{section: "Ferreiro", text: text, style: m.priced(sPlain, cost),
+		rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: m.priced(sPlain, cost),
 			enter: func() { g.Upgrade(s) }})
 	}
 
 	for t := range game.NumTraits {
 		lvl := g.Hero.Training[t]
 		cost := game.TrainCost(t, lvl)
-		text := fmt.Sprintf("%-12s nv %-3d %-8s %6d ouro", t.Name(), lvl, t.Effect(), cost)
-		rows = append(rows, prepRow{section: "Treino", text: text, style: m.priced(sPlain, cost),
+		text := lang.T("prep.train_row", t.Name(), lvl, t.Effect(), cost)
+		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.priced(sPlain, cost),
 			enter: func() { g.Train(t) }})
 	}
 	return rows
@@ -139,16 +145,16 @@ func (m Model) compare(it *game.Item) string {
 func (m Model) viewPrep(h int) string {
 	g := m.g
 	rows := m.prepRows()
-	head := []string{sGold.Render(fmt.Sprintf("Ouro %d", g.Gold))}
+	head := []string{sGold.Render(lang.T("prep.gold", g.Gold))}
 	if g.InTown() {
-		head = append(head, sMuted.Render("Herói na cidade: tudo vale agora."))
+		head = append(head, sMuted.Render(lang.T("prep.in_town")))
 	} else {
 		head = append(head,
-			sMuted.Render("Herói na dungeon:"),
-			sMuted.Render("  · configurações valem na próxima expedição"),
-			sMuted.Render("  · compras da loja e do ferreiro entram quando ele voltar"))
+			sMuted.Render(lang.T("prep.away")),
+			sMuted.Render(lang.T("prep.away_config")),
+			sMuted.Render(lang.T("prep.away_shop")))
 	}
-	head = append(head, sMuted.Render("↑↓ escolher · ←→ ajustar · enter comprar/alternar"))
+	head = append(head, sMuted.Render(lang.T("prep.keys")))
 	for i := range head {
 		head[i] = truncate(head[i], m.w)
 	}

@@ -88,3 +88,10 @@ func TestAutomaticRetreatKeepsAuto(t *testing.T) {
 		t.Fatalf("retreating %v auto %v", g.Exp.Retreating, g.Auto)
 	}
 }
+
+func TestLegacyItemNameIsTranslated(t *testing.T) {
+	it := &Item{Name: "Adaga"}
+	if got := it.Label(); got != "Dagger" {
+		t.Fatalf("got %q", got)
+	}
+}

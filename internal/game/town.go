@@ -1,6 +1,10 @@
 package game
 
-import "fmt"
+import (
+	"fmt"
+
+	"clidle/internal/lang"
+)
 
 type Trait int
 
@@ -13,11 +17,11 @@ const (
 )
 
 func (t Trait) Name() string {
-	return [...]string{"Vigor", "Força", "Resistência", "Agilidade"}[t]
+	return lang.T([...]string{"trait.vigor", "trait.strength", "trait.toughness", "trait.agility"}[t])
 }
 
 func (t Trait) Effect() string {
-	return [...]string{fmt.Sprintf("+%d HP", TrainHP), "+1 Atq", "+1 Def", "+1 Vel"}[t]
+	return [...]string{fmt.Sprintf("+%d HP", TrainHP), "+1 " + lang.T("stat.atk"), "+1 " + lang.T("stat.def"), "+1 " + lang.T("stat.spd")}[t]
 }
 
 func (g *Game) InTown() bool { return g.Exp == nil }
@@ -32,9 +36,9 @@ func (g *Game) Depart() {
 func (g *Game) ToggleAuto() {
 	g.Auto = !g.Auto
 	if g.Auto {
-		g.logf(LogInfo, "Auto-expedição ligada.")
+		g.logf(LogInfo, "%s", lang.T("log.auto_on"))
 	} else {
-		g.logf(LogInfo, "Auto-expedição desligada: o herói fica na cidade ao voltar.")
+		g.logf(LogInfo, "%s", lang.T("log.auto_off"))
 	}
 }
 
@@ -49,7 +53,7 @@ func ShopPrice(it *Item) int { return it.Value() * ShopMarkup }
 
 func (g *Game) spend(cost int) bool {
 	if g.Gold < cost {
-		g.logf(LogBad, "Ouro insuficiente (precisa de %d).", cost)
+		g.logf(LogBad, "%s", lang.T("log.no_gold", cost))
 		return false
 	}
 	g.Gold -= cost
@@ -67,15 +71,15 @@ func (g *Game) BuyShop(i int) {
 		return
 	}
 	g.Pending = append(g.Pending, it)
-	g.logf(LogInfo, "Você compra %s. Ele recebe quando voltar.", it.Title())
+	g.logf(LogInfo, "%s", lang.T("log.bought_later", it.Title()))
 }
 
 func (g *Game) equipBought(it *Item) {
 	h := g.Hero
-	msg := fmt.Sprintf("O herói equipa %s (%s).", it.Title(), it.StatLabel())
+	msg := lang.T("log.hero_equips", it.Title(), it.StatLabel())
 	if old := h.Equip[it.Slot]; old != nil {
 		g.Gold += old.Value()
-		msg += fmt.Sprintf(" %s vendido por %d.", old.Title(), old.Value())
+		msg += lang.T("log.sold_old", old.Title(), old.Value())
 	}
 	h.Equip[it.Slot] = it
 	g.logf(it.Rarity.LogKind(), "%s", msg)
@@ -107,11 +111,11 @@ func (g *Game) Upgrade(s Slot) {
 	}
 	if g.InTown() {
 		it.Upgrade++
-		g.logf(LogGood, "O ferreiro melhora %s (%s).", it.Title(), it.StatLabel())
+		g.logf(LogGood, "%s", lang.T("log.smith_done", it.Title(), it.StatLabel()))
 		return
 	}
 	g.Upgrades[s]++
-	g.logf(LogInfo, "Melhoria de %s na fila: o ferreiro trabalha quando o herói voltar.", it.Name)
+	g.logf(LogInfo, "%s", lang.T("log.smith_queued", it.Label()))
 }
 
 func (g *Game) Train(t Trait) {
@@ -119,7 +123,7 @@ func (g *Game) Train(t Trait) {
 		return
 	}
 	g.Hero.Training[t]++
-	g.logf(LogGood, "Treino de %s: nível %d (%s).", t.Name(), g.Hero.Training[t], t.Effect())
+	g.logf(LogGood, "%s", lang.T("log.trained", t.Name(), g.Hero.Training[t], t.Effect()))
 }
 
 func (g *Game) buyPotions() {
@@ -130,11 +134,11 @@ func (g *Game) buyPotions() {
 	}
 	g.Gold -= n * PotionPrice
 	h.Potions += n
-	noun := "poções"
+	key := "log.buy_potions"
 	if n == 1 {
-		noun = "poção"
+		key = "log.buy_potion"
 	}
-	g.logf(LogInfo, "Compra %d %s (%d ouro).", n, noun, n*PotionPrice)
+	g.logf(LogInfo, "%s", lang.T(key, n, n*PotionPrice))
 }
 
 func (g *Game) arriveInTown() {
@@ -146,7 +150,7 @@ func (g *Game) arriveInTown() {
 	for s, n := range g.Upgrades {
 		if it := g.Hero.Equip[s]; it != nil && n > 0 {
 			it.Upgrade += n
-			g.logf(LogGood, "O ferreiro melhora %s (%s).", it.Title(), it.StatLabel())
+			g.logf(LogGood, "%s", lang.T("log.smith_done", it.Title(), it.StatLabel()))
 		}
 	}
 	g.Upgrades = [NumSlots]int{}
