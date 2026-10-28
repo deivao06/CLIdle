@@ -22,6 +22,10 @@ gofmt -l .               # precisa sair vazio
 main.go                 carrega o save, calcula o tempo fora, abre a UI
 internal/game/          lógica pura, sem I/O de terminal
   game.go               Game, Expedition, Config, loop (Advance/step), IA do herói, combate, retirada
+  class.go              Class, atributos de dano, o que cada classe pode usar, escolha da classe
+  ability.go            habilidades (Has), mana, golpe forte, segundo fôlego
+  spell.go              magias do mago e do clérigo (cast, castTarget, blink, cura, bênção)
+  migrate.go            migração de saves antigos (um passo por versão)
   dungeon.go            Level, tiles, geração estilo Rogue (grade 3x3 de salas), visibilidade/névoa
   path.go               BFS do herói (search, multi-objetivo) e mapa de distância dos monstros
   entity.go             Hero, Monster, spawn de monstros e chefes, dano
@@ -53,8 +57,9 @@ internal/ui/            Bubble Tea
 
 ## Mecânicas importantes (resumo)
 
-- **Passo do herói** (`step`): monstros rápidos agem, herói checa retirada, bebe poção / ataca / anda, pega item, monstros lentos agem. Tudo de um passo vira **uma linha de log** (`round` + `flush`).
-- **Ritmo:** explorar segue `StepsPerSec(Velocidade)`; combate é fixo em `CombatRoundMs`. Velocidade em combate = iniciativa e ataques extras (sistema de energia).
+- **Passo do herói** (`step`): mana regenera, monstros rápidos agem, herói checa retirada e faz **uma** ação na ordem: segundo fôlego, cura por magia, poção, magia à distância (mago), bênção, ataque, andar. Depois monstros lentos agem. Tudo de um passo vira **uma linha de log** (`round` + `flush`).
+- **Classes:** `Hero.Class` (zero = Guerreiro). Habilidades liberam por nível (`AbilityInfo` em `balance.go`, `Hero.Has`). Estado de habilidade da expedição (`Attacks`, `SecondWindUsed`, `ManaAcc`, `Blessed`) fica na `Expedition`; sono/lentidão ficam no `Monster`. Mana regenera em inteiros (`ManaAcc`) para não quebrar o determinismo.
+- **Ritmo:** explorar segue `StepsPerSec(Velocidade)`; combate é fixo em `CombatRoundMs` (também quando o mago tem alvo e mana para atacar de longe). Velocidade em combate = iniciativa e ataques extras (sistema de energia).
 - **IA do herói** (`chooseStep`): uma BFS com prioridade: monstro visível > item desejado > escada (modo descer direto) > fronteira inexplorada > chefe ou escada.
 - **Config da expedição** é copiada em `Expedition.Config` ao partir; a IA lê dela, não de `Game.Config`.
 - **Compras com o herói fora:** loja e ferreiro vão para `Pending`/`Upgrades` e são aplicados em `arriveInTown` (que roda tanto na volta quanto na morte). Treino vale na hora.

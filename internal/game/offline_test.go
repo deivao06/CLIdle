@@ -6,14 +6,16 @@ import (
 )
 
 func TestCatchUpMatchesOnlinePlay(t *testing.T) {
-	a, b := departed(5), departed(5)
-	a.Auto, b.Auto = true, true
-	a.CatchUp(20*time.Minute, nil)
-	for range 20 * 60 * 20 {
-		b.Advance(50)
-	}
-	if a.Gold != b.Gold || a.Hero.XP != b.Hero.XP || a.ExpNum != b.ExpNum {
-		t.Fatalf("offline differs from online: gold %d/%d xp %d/%d", a.Gold, b.Gold, a.Hero.XP, b.Hero.XP)
+	for c := range NumClasses {
+		a, b := heroAt(c, 15, 5), heroAt(c, 15, 5)
+		a.Auto, b.Auto = true, true
+		a.CatchUp(20*time.Minute, nil)
+		for range 20 * 60 * 20 {
+			b.Advance(50)
+		}
+		if a.Gold != b.Gold || a.Hero.XP != b.Hero.XP || a.Hero.MP != b.Hero.MP || a.ExpNum != b.ExpNum {
+			t.Fatalf("%s offline differs from online: gold %d/%d xp %d/%d", c.Name(), a.Gold, b.Gold, a.Hero.XP, b.Hero.XP)
+		}
 	}
 }
 

@@ -13,6 +13,28 @@ func (g *Game) ready(a Ability) bool {
 
 func (g *Game) useMana(a Ability) { g.Hero.MP -= AbilityInfo[a].Mana }
 
+func (g *Game) healSpell(r *round) bool {
+	h := g.Hero
+	if !g.ready(Heal) || h.HP >= h.MaxHP() {
+		return false
+	}
+	g.useMana(Heal)
+	heal := min(h.MaxHP()*HealPct/100+h.Attr(Int), h.MaxHP()-h.HP)
+	h.HP += heal
+	r.hero = lang.T("spell.heal.log", heal)
+	return true
+}
+
+func (g *Game) bless(r *round) bool {
+	if g.Exp.Blessed > 0 || !g.ready(Bless) {
+		return false
+	}
+	g.useMana(Bless)
+	g.Exp.Blessed = BlessRounds
+	r.hero = lang.T("spell.bless.log")
+	return true
+}
+
 // castTarget prefers the nearest monster in range that is not asleep.
 func (g *Game) castTarget() *Monster {
 	l := g.Exp.Level

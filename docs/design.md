@@ -57,10 +57,18 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 
 ## Herói
 
-- Um herói na v1.
-- Atributos: HP, Ataque, Defesa, Velocidade (passos por segundo + iniciativa).
-- Velocidade de exploração vem de atributo/equipamento.
+- Um herói, com **classe escolhida no jogo novo**: Guerreiro, Mago, Ladino ou Clérigo. Save antigo vira Guerreiro. Trocar de classe fica para o prestígio.
+- Atributos: **FOR** (dano corpo a corpo), **DES** (velocidade), **INT** (magia e mana), **CON** (vida). Cada classe tem valores iniciais e ganho por nível próprios. O treino da cidade sobe esses quatro.
+- Derivados: Ataque = arma + atributo de dano da classe; Defesa = armadura + capacete + escudo + nível; Velocidade = DES + botas; Mana só para Mago e Clérigo, recupera um pouco por passo.
 - Fontes de poder: nível/XP, equipamento (achado ou comprado), melhorias permanentes na cidade.
+- Equipamento: arma, armadura, botas, capacete, escudo. Armas por classe (Guerreiro espadas/machados, Mago cajados, Ladino adagas, Clérigo maças). Armadura leve/média/pesada (mais pesada = mais Defesa).
+  - Guerreiro: qualquer armadura e escudo. Mago: leve, sem escudo. Ladino: leve/média, sem escudo. Clérigo: média/pesada e escudo.
+  - A dungeon e a loja geram itens de todas as classes. O que o herói não usa vai para a mochila e é vendido na volta; a loja não deixa comprar.
+- Habilidades por nível (aparecem no log da rodada):
+  - **Guerreiro:** golpe forte (dano dobrado a cada N golpes), segundo fôlego (cura uma vez por andar com vida baixa), golpe giratório (o golpe forte acerta todos em volta).
+  - **Ladino:** ataque furtivo (dano triplo em monstro dormindo ou intacto), esquiva (cresce com DES), faro para tesouro (mais ouro e itens).
+  - **Mago:** ataca de longe quando tem mana: míssil mágico, sono, bola de fogo, piscar (foge quando cercado e ferido), raio gélido (desacelera). Sem mana, luta com o cajado.
+  - **Clérigo:** curar ferimentos (antes da poção), bênção (mais acerto e Defesa no começo da luta), expulsar mortos-vivos (dano triplo em zumbi, esqueleto e Lich).
 
 ## Cidade (v1)
 
@@ -90,5 +98,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Prestígio (reset com bônus permanente).
 - Itens lendários (únicos).
 - Cavernas e outras variações de andar.
-- Mais atributos (crítico, sorte...), materiais, outros prédios.
+- Baú (stash) na cidade para guardar itens de outras classes.
+- Magias por loot (livros/pergaminhos).
+- Materiais, outros prédios.
 - Herói autônomo o bastante para explorar sem preocupação (regras de retirada mais elaboradas).

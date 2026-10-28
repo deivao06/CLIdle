@@ -266,5 +266,8 @@
   "spell.sleep.log": "o %s adormece",
   "spell.fireball.log": "sua bola de fogo acerta %s",
   "spell.frost_ray.log": "seu raio gélido desacelera o %s (%d)",
-  "spell.blink.log": "você pisca para longe"
+  "spell.blink.log": "você pisca para longe",
+  "spell.heal.log": "você cura seus ferimentos (+%d HP)",
+  "spell.bless.log": "você recebe uma bênção",
+  "spell.turn_undead.log": "você expulsa o %s (%d)"
 }

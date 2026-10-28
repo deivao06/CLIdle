@@ -39,21 +39,21 @@ const (
 var BossKinds = []MonsterKind{
 	{Glyph: 'G', Name: "boss.goblin_king", Color: "46"},
 	{Glyph: 'O', Name: "boss.orc_warlord", Color: "34"},
-	{Glyph: 'L', Name: "boss.lich", Color: "51"},
+	{Glyph: 'L', Name: "boss.lich", Color: "51", Undead: true},
 	{Glyph: 'D', Name: "boss.ancient_dragon", Color: "196"},
 }
 
 var MonsterKinds = []MonsterKind{
-	{'r', "monster.rat", "180", 6, 3, 0, 4, 3, 1},
-	{'b', "monster.bat", "137", 5, 3, 0, 7, 4, 1},
-	{'k', "monster.kobold", "172", 10, 4, 1, 4, 6, 2},
-	{'g', "monster.goblin", "70", 14, 6, 2, 4, 9, 4},
-	{'w', "monster.wolf", "247", 16, 7, 1, 6, 12, 6},
-	{'z', "monster.zombie", "107", 28, 8, 3, 2, 15, 8},
-	{'o', "monster.orc", "28", 30, 11, 5, 4, 22, 11},
-	{'e', "monster.skeleton", "255", 26, 13, 6, 4, 28, 14},
-	{'l', "monster.werewolf", "130", 45, 17, 7, 6, 40, 18},
-	{'d', "monster.young_dragon", "160", 70, 22, 10, 5, 60, 24},
+	{'r', "monster.rat", "180", 6, 3, 0, 4, 3, 1, false},
+	{'b', "monster.bat", "137", 5, 3, 0, 7, 4, 1, false},
+	{'k', "monster.kobold", "172", 10, 4, 1, 4, 6, 2, false},
+	{'g', "monster.goblin", "70", 14, 6, 2, 4, 9, 4, false},
+	{'w', "monster.wolf", "247", 16, 7, 1, 6, 12, 6, false},
+	{'z', "monster.zombie", "107", 28, 8, 3, 2, 15, 8, true},
+	{'o', "monster.orc", "28", 30, 11, 5, 4, 22, 11, false},
+	{'e', "monster.skeleton", "255", 26, 13, 6, 4, 28, 14, true},
+	{'l', "monster.werewolf", "130", 45, 17, 7, 6, 40, 18, false},
+	{'d', "monster.young_dragon", "160", 70, 22, 10, 5, 60, 24, false},
 }
 
 const (
@@ -145,6 +145,12 @@ const (
 	SleepBossRounds = 2
 	FrostSlowRounds = 5
 	BlinkHPPct      = 35
+
+	HealPct         = 35
+	BlessRounds     = 8
+	BlessMissChance = 0.03
+	BlessDef        = 3
+	TurnUndeadMult  = 3
 )
 
 var SpellPower = [NumAbilities]int{MagicMissile: 4, Fireball: 4, FrostRay: 6}

@@ -10,6 +10,7 @@ type MonsterKind struct {
 	Spd      int
 	XP       int
 	MinDepth int
+	Undead   bool
 }
 
 type Monster struct {

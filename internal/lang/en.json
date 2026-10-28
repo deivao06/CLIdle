@@ -266,5 +266,8 @@
   "spell.sleep.log": "the %s falls asleep",
   "spell.fireball.log": "your fireball hits %s",
   "spell.frost_ray.log": "your frost ray slows the %s (%d)",
-  "spell.blink.log": "you blink away"
+  "spell.blink.log": "you blink away",
+  "spell.heal.log": "you cure your wounds (+%d HP)",
+  "spell.bless.log": "you are blessed",
+  "spell.turn_undead.log": "you turn the %s (%d)"
 }

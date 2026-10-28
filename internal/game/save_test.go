@@ -9,21 +9,23 @@ import (
 )
 
 func TestSaveLoadRoundTripKeepsSimulationIdentical(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "save.json")
-	g := departed(21)
-	g.Auto = true
-	g.Advance(3 * 60000)
-	if err := g.Save(path, time.Now()); err != nil {
-		t.Fatal(err)
-	}
-	loaded, _, err := Load(path)
-	if err != nil || loaded == nil {
-		t.Fatalf("load: %v", err)
-	}
-	g.Advance(5 * 60000)
-	loaded.Advance(5 * 60000)
-	if g.Hero.Pos != loaded.Hero.Pos || g.Hero.XP != loaded.Hero.XP || g.Gold != loaded.Gold || len(g.Log) != len(loaded.Log) {
-		t.Fatalf("diverged after load: %+v vs %+v", g.Hero, loaded.Hero)
+	for c := range NumClasses {
+		path := filepath.Join(t.TempDir(), "save.json")
+		g := heroAt(c, 15, 21)
+		g.Auto = true
+		g.Advance(3 * 60000)
+		if err := g.Save(path, time.Now()); err != nil {
+			t.Fatal(err)
+		}
+		loaded, _, err := Load(path)
+		if err != nil || loaded == nil {
+			t.Fatalf("load: %v", err)
+		}
+		g.Advance(5 * 60000)
+		loaded.Advance(5 * 60000)
+		if g.Hero.Pos != loaded.Hero.Pos || g.Hero.XP != loaded.Hero.XP || g.Hero.MP != loaded.Hero.MP || g.Gold != loaded.Gold || len(g.Log) != len(loaded.Log) {
+			t.Fatalf("%s diverged after load: %+v vs %+v", c.Name(), g.Hero, loaded.Hero)
+		}
 	}
 }
 

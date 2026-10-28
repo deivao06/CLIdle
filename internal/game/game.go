@@ -22,6 +22,7 @@ type Expedition struct {
 	Attacks        int
 	SecondWindUsed bool
 	ManaAcc        int
+	Blessed        int
 }
 
 type ExploreMode int
@@ -158,18 +159,23 @@ func (g *Game) step() {
 	h := g.Hero
 	r := &round{}
 	g.regenMana()
+	if g.Exp.Blessed > 0 {
+		g.Exp.Blessed--
+	}
 	g.monstersAct(r, true)
 	if g.Exp != nil {
 		g.checkRetreat()
 		m := g.adjacentMonster()
 		switch {
 		case g.secondWind(r):
+		case g.lowHP() && g.healSpell(r):
 		case g.needsPotion():
 			heal := min(h.MaxHP()*PotionHealPct/100, h.MaxHP()-h.HP)
 			h.HP += heal
 			h.Potions--
 			r.hero = lang.T("log.drink", heal)
 		case g.cast(r):
+		case m != nil && g.bless(r):
 		case m != nil:
 			g.heroAttack(m, r)
 		default:
@@ -199,7 +205,12 @@ func (g *Game) step() {
 
 func (g *Game) needsPotion() bool {
 	h := g.Hero
-	return h.Potions > 0 && h.HP*100 < h.MaxHP()*g.Exp.Config.PotionAtPct
+	return h.Potions > 0 && g.lowHP()
+}
+
+func (g *Game) lowHP() bool {
+	h := g.Hero
+	return h.HP*100 < h.MaxHP()*g.Exp.Config.PotionAtPct
 }
 
 func (g *Game) checkRetreat() {
@@ -406,7 +417,11 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	name := lang.T(m.Info().Name)
 	sneak := h.Has(SneakAttack) && (!m.Awake || m.HP == m.MaxHP)
 	m.Awake = true
-	if e.RNG.Chance(MissChance) {
+	miss := MissChance
+	if e.Blessed > 0 {
+		miss = BlessMissChance
+	}
+	if e.RNG.Chance(miss) {
 		r.hero = lang.T("combat.hero_miss", name)
 		return
 	}
@@ -421,7 +436,12 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 		d *= SneakMult
 		key = "ability.sneak_attack.log"
 	}
-	if !g.hurt(m, d, r) {
+	if m.Info().Undead && g.ready(TurnUndead) {
+		g.useMana(TurnUndead)
+		d *= TurnUndeadMult
+		key = "spell.turn_undead.log"
+	}
+	if !g.hurt(m, d, r) || key != "combat.hero_hit" {
 		r.hero = lang.T(key, name, d)
 	}
 }
@@ -556,7 +576,11 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 		mr.misses++
 		return
 	}
-	d := damage(e.RNG, m.Atk, h.Def())
+	def := h.Def()
+	if e.Blessed > 0 {
+		def += BlessDef
+	}
+	d := damage(e.RNG, m.Atk, def)
 	h.HP -= d
 	mr.hits = append(mr.hits, d)
 	r.hurt = true

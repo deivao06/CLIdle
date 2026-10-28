@@ -84,3 +84,38 @@ func TestFireballHitsNeighbors(t *testing.T) {
 		t.Fatalf("fireball hp %d %d", a.HP, b.HP)
 	}
 }
+
+func TestClericHealsBeforePotion(t *testing.T) {
+	g := heroAt(Cleric, 1, 1)
+	g.Hero.Potions = 3
+	g.Hero.HP = 1
+	mp := g.Hero.MP
+	g.step()
+	if g.Hero.Potions != 3 || g.Hero.HP <= 1 || g.Hero.MP >= mp {
+		t.Fatalf("potions %d hp %d mp %d", g.Hero.Potions, g.Hero.HP, g.Hero.MP)
+	}
+}
+
+func kindNamed(name string) int {
+	for i, k := range MonsterKinds {
+		if k.Name == name {
+			return i
+		}
+	}
+	panic(name)
+}
+
+func TestTurnUndeadOnlyHitsUndead(t *testing.T) {
+	a, b := heroAt(Cleric, 8, 1), heroAt(Cleric, 8, 1)
+	zombie, rat := dummy(), dummy()
+	zombie.Kind, rat.Kind = kindNamed("monster.zombie"), kindNamed("monster.rat")
+	a.besideHero(zombie)
+	b.besideHero(rat)
+	for zombie.HP == zombie.MaxHP {
+		a.heroAttack(zombie, &round{})
+		b.heroAttack(rat, &round{})
+	}
+	if lost, normal := zombie.MaxHP-zombie.HP, rat.MaxHP-rat.HP; lost != TurnUndeadMult*normal || b.Hero.MP != b.Hero.MaxMP() {
+		t.Fatalf("undead %d, living %d, mp %d", lost, normal, b.Hero.MP)
+	}
+}
