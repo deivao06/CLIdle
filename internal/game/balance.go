@@ -138,7 +138,16 @@ const (
 	DodgeCap       = 0.35
 	NoseGoldMult   = 1.5
 	NoseItemChance = 0.5
+
+	SpellRange      = 5
+	SleepMinHPPct   = 50
+	SleepRounds     = 6
+	SleepBossRounds = 2
+	FrostSlowRounds = 5
+	BlinkHPPct      = 35
 )
+
+var SpellPower = [NumAbilities]int{MagicMissile: 4, Fireball: 4, FrostRay: 6}
 
 type itemName struct {
 	depth int

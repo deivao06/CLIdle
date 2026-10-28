@@ -261,5 +261,10 @@
   "spell.heal": "Curar Ferimentos",
   "spell.bless": "Bênção",
   "spell.turn_undead": "Expulsar Mortos-Vivos",
-  "ability.sneak_attack.log": "ataque furtivo no %s (%d)"
+  "ability.sneak_attack.log": "ataque furtivo no %s (%d)",
+  "spell.magic_missile.log": "seu míssil mágico acerta o %s (%d)",
+  "spell.sleep.log": "o %s adormece",
+  "spell.fireball.log": "sua bola de fogo acerta %s",
+  "spell.frost_ray.log": "seu raio gélido desacelera o %s (%d)",
+  "spell.blink.log": "você pisca para longe"
 }

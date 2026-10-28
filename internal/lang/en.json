@@ -261,5 +261,10 @@
   "spell.heal": "Cure Wounds",
   "spell.bless": "Bless",
   "spell.turn_undead": "Turn Undead",
-  "ability.sneak_attack.log": "you sneak attack the %s (%d)"
+  "ability.sneak_attack.log": "you sneak attack the %s (%d)",
+  "spell.magic_missile.log": "your magic missile hits the %s (%d)",
+  "spell.sleep.log": "the %s falls asleep",
+  "spell.fireball.log": "your fireball hits %s",
+  "spell.frost_ray.log": "your frost ray slows the %s (%d)",
+  "spell.blink.log": "you blink away"
 }

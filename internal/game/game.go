@@ -81,7 +81,7 @@ func New(seed uint64, c Class) *Game {
 
 // StepMs is the duration of the next step: combat rounds have a fixed pace, exploration follows speed.
 func (g *Game) StepMs() int64 {
-	if g.Exp != nil && g.adjacentMonster() != nil {
+	if g.Exp != nil && (g.adjacentMonster() != nil || g.ready(MagicMissile) && g.castTarget() != nil) {
 		return CombatRoundMs
 	}
 	return int64(1000 / StepsPerSec(g.Hero.Spd()))
@@ -169,6 +169,7 @@ func (g *Game) step() {
 			h.HP += heal
 			h.Potions--
 			r.hero = lang.T("log.drink", heal)
+		case g.cast(r):
 		case m != nil:
 			g.heroAttack(m, r)
 		default:
@@ -431,6 +432,7 @@ func (g *Game) hurt(m *Monster, d int, r *round) bool {
 	h := g.Hero
 	name := lang.T(m.Info().Name)
 	m.HP -= d
+	m.Asleep = 0
 	if m.HP > 0 {
 		return false
 	}
@@ -496,13 +498,22 @@ func (g *Game) monstersAct(r *round, fast bool) {
 		if (m.Spd > h.Spd()) != fast {
 			continue
 		}
+		if m.Asleep > 0 {
+			m.Asleep--
+			continue
+		}
 		if !m.Awake {
 			if !l.Visible(h.Pos, m.Pos) {
 				continue
 			}
 			m.Awake = true
 		}
-		m.Energy += float64(m.Spd) / float64(h.Spd())
+		gain := float64(m.Spd) / float64(h.Spd())
+		if m.Slowed > 0 {
+			m.Slowed--
+			gain /= 2
+		}
+		m.Energy += gain
 		for m.Energy >= 1 {
 			m.Energy--
 			if m.Pos.Dist(h.Pos) == 1 && l.CanStep(m.Pos, h.Pos) {

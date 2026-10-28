@@ -24,6 +24,8 @@ type Monster struct {
 	Awake  bool
 	Energy float64
 	Boss   bool
+	Asleep int
+	Slowed int
 }
 
 func (m *Monster) Info() MonsterKind {
