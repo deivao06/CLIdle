@@ -50,3 +50,17 @@ func TestV1SaveMigratesTraining(t *testing.T) {
 		t.Fatal("migration ran twice")
 	}
 }
+
+func TestV1SaveMigratesItemKind(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := New(1, Warrior)
+	g.Depart()
+	g.Hero.Equip[Weapon] = &Item{Slot: Weapon, Name: "Maça", Base: 3}
+	g.Exp.Bag = []*Item{{Slot: Weapon, Name: "Maça", Base: 3}, {Slot: Armor, Name: "item.plate_armor", Base: 3}}
+	data, _ := json.Marshal(saveFile{1, time.Now(), g})
+	os.WriteFile(path, data, 0o644)
+	got, _, err := Load(path)
+	if err != nil || got.Hero.Equip[Weapon].Kind != Mace || got.Exp.Bag[0].Kind != Mace || got.Exp.Bag[1].Kind != Heavy {
+		t.Fatalf("kinds not migrated: %v", err)
+	}
+}

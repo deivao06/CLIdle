@@ -77,12 +77,16 @@ func GoldPerKill(xp int) int { return max(1, xp/2) }
 
 var rarityMult = [...]float64{1, 1.5, 2.2}
 
-func ItemBase(slot Slot, depth int, r Rarity) float64 {
+var armorWeightMult = [...]float64{Light: 0.8, Medium: 1, Heavy: 1.25}
+
+func ItemBase(slot Slot, kind, depth int, r Rarity) float64 {
 	switch slot {
 	case Weapon:
 		return (2 + float64(depth)*1.2) * rarityMult[r]
 	case Armor:
-		return (1 + float64(depth)*0.8) * rarityMult[r]
+		return (1 + float64(depth)*0.8) * rarityMult[r] * armorWeightMult[kind]
+	case Helmet, Shield:
+		return (1 + float64(depth)*0.8) * rarityMult[r] / 2
 	}
 	return 1 + float64(depth)/6 + float64(r)
 }
@@ -92,10 +96,21 @@ type itemName struct {
 	name  string
 }
 
-var ItemNames = [NumSlots][]itemName{
-	Weapon: {{1, "item.dagger"}, {4, "item.short_sword"}, {8, "item.mace"}, {12, "item.long_sword"}, {18, "item.war_axe"}, {25, "item.greatsword"}},
-	Armor:  {{1, "item.leather_jerkin"}, {5, "item.studded_leather"}, {10, "item.chain_mail"}, {16, "item.brigandine"}, {24, "item.plate_armor"}},
-	Boots:  {{1, "item.leather_boots"}, {6, "item.reinforced_boots"}, {14, "item.swift_boots"}, {22, "item.elven_boots"}},
+var ItemNames = [NumSlots][][]itemName{
+	Weapon: {
+		Blade:  {{1, "item.short_sword"}, {8, "item.long_sword"}, {16, "item.war_axe"}, {25, "item.greatsword"}},
+		Staff:  {{1, "item.quarterstaff"}, {8, "item.oak_staff"}, {16, "item.runed_staff"}, {25, "item.archmage_staff"}},
+		Dagger: {{1, "item.dagger"}, {8, "item.stiletto"}, {16, "item.kris"}, {25, "item.shadow_blade"}},
+		Mace:   {{1, "item.mace"}, {8, "item.flail"}, {16, "item.morning_star"}, {25, "item.warhammer"}},
+	},
+	Armor: {
+		Light:  {{1, "item.leather_jerkin"}, {8, "item.studded_leather"}, {18, "item.shadow_leather"}},
+		Medium: {{1, "item.scale_mail"}, {8, "item.chain_mail"}, {18, "item.brigandine"}},
+		Heavy:  {{1, "item.banded_mail"}, {10, "item.splint_mail"}, {20, "item.plate_armor"}},
+	},
+	Boots:  {{{1, "item.leather_boots"}, {6, "item.reinforced_boots"}, {14, "item.swift_boots"}, {22, "item.elven_boots"}}},
+	Helmet: {{{1, "item.leather_cap"}, {8, "item.iron_helm"}, {18, "item.great_helm"}}},
+	Shield: {{{1, "item.buckler"}, {8, "item.kite_shield"}, {18, "item.tower_shield"}}},
 }
 
 const (

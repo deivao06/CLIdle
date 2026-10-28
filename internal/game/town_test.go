@@ -41,7 +41,9 @@ func TestPurchaseSurvivesDeath(t *testing.T) {
 	g.Shop = []*Item{{Slot: Boots, Base: 3}}
 	g.BuyShop(0)
 	g.Hero.HP = 1
-	g.monsterAttack(&Monster{Atk: 100}, &round{})
+	for g.Exp != nil {
+		g.monsterAttack(&Monster{Atk: 100}, &round{})
+	}
 	if b := g.Hero.Equip[Boots]; b == nil || b.Base != 3 {
 		t.Fatalf("boots %+v", b)
 	}

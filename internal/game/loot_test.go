@@ -95,3 +95,17 @@ func TestLegacyItemNameIsTranslated(t *testing.T) {
 		t.Fatalf("got %q", got)
 	}
 }
+
+func TestItemsCoverEveryKind(t *testing.T) {
+	rng := NewRNG(1)
+	seen := map[[2]int]bool{}
+	for range 5000 {
+		it := newItem(rng, 30)
+		seen[[2]int{int(it.Slot), it.Kind}] = true
+	}
+	for _, want := range [][2]int{{int(Weapon), Staff}, {int(Weapon), Dagger}, {int(Armor), Heavy}, {int(Helmet), 0}, {int(Shield), 0}} {
+		if !seen[want] {
+			t.Fatalf("never generated %v", want)
+		}
+	}
+}

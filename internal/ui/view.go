@@ -323,6 +323,8 @@ func (m Model) viewHelp(h int) string {
 		{sPlain.Render(")"), lang.T("slot.weapon")},
 		{sPlain.Render("["), lang.T("slot.armor")},
 		{sPlain.Render("]"), lang.T("slot.boots")},
+		{sPlain.Render("^"), lang.T("slot.helmet")},
+		{sPlain.Render("}"), lang.T("slot.shield")},
 	}
 	for _, k := range game.MonsterKinds {
 		if k.MinDepth > m.g.MaxDepth {
@@ -352,7 +354,7 @@ func (m Model) viewHelp(h int) string {
 	return b.String()
 }
 
-var slotNames = [...]string{"slot.weapon", "slot.armor", "slot.boots"}
+var slotNames = [...]string{"slot.weapon", "slot.armor", "slot.boots", "slot.helmet", "slot.shield"}
 
 func bar(v, maxV, w int, st lipgloss.Style) string {
 	w = max(w, 4)

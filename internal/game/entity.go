@@ -110,7 +110,7 @@ func (h *Hero) Atk() int {
 	return HeroBaseAtk + h.bonus(Weapon) + h.Attr(h.Class.DamageAttr())
 }
 func (h *Hero) Def() int {
-	return HeroBaseDef + (h.Level-1)/2 + h.bonus(Armor)
+	return HeroBaseDef + (h.Level-1)/2 + h.bonus(Armor) + h.bonus(Helmet) + h.bonus(Shield)
 }
 func (h *Hero) Spd() int { return HeroBaseSpd + h.bonus(Boots) + h.Attr(Dex) }
 
