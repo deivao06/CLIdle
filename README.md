@@ -18,6 +18,7 @@ Você equipa Espada Curta (raro, Atq +8).
 
 ## Como funciona
 
+- **Classes:** guerreiro, mago, ladino ou clérigo, escolhida no começo. Cada uma usa armas e armaduras próprias e libera habilidades e magias por nível.
 - **Expedições:** o herói sai da cidade, desce andar por andar e volta com o que achou.
 - **Sair ou morrer:** se voltar, guarda o ouro e vende a mochila. Se morrer, perde o loot da expedição, mas mantém nível, poções e o equipamento com que saiu.
 - **Tudo automático:** ele explora, luta, pega itens, equipa o que for melhor e bebe poções sozinho.
@@ -66,7 +67,7 @@ Nas **confirmações**: `s`, `y` ou `enter` confirmam; `n` ou `esc` cancelam.
 | `.` `#` `+` | chão, corredor, porta |
 | `>` `<` | escada para baixo, saída |
 | `$` `!` | ouro, poção |
-| `)` `[` `]` | arma, armadura, botas |
+| `)` `[` `]` `^` `}` | arma, armadura, botas, capacete, escudo |
 | `r` `b` `k` `g`... | monstros (letra minúscula) |
 | `G` `O` `L` `D` | chefes (letra maiúscula) |
 
@@ -77,6 +78,7 @@ Cor do item = raridade: branco comum, azul raro, roxo épico.
 - Fica em `~/.local/share/clidle/save.json` (ou `$XDG_DATA_HOME/clidle/save.json`).
 - Salva a cada 30 segundos e ao sair.
 - Para recomeçar do zero, apague o arquivo.
+- O jogo abre em inglês; o idioma muda na Preparação (`2`).
 
 ## Desenvolvimento
 

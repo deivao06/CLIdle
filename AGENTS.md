@@ -10,7 +10,7 @@ Idle game de terminal em Go: um herói (`@`) explora sozinho uma dungeon estilo 
 
 ```sh
 go build -o clidle .     # binário (ignorado pelo git)
-go test ./...            # todos os testes; inclui ~5s do teste de 12h offline
+go test ./...            # todos os testes; inclui ~10s do teste de 12h offline
 go test -short ./...     # pula o teste de desempenho
 go vet ./...
 gofmt -l .               # precisa sair vazio
@@ -103,17 +103,20 @@ Quase não há testes de UI (só `internal/ui/model_test.go`). Para ver telas:
 
 ## Estado atual
 
-Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline.
+Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline. Depois vieram idioma (inglês padrão, português opcional) e classes (4 classes, atributos FOR/DES/INT/CON, capacete/escudo, habilidades, mana e magias).
 
 **Problemas conhecidos / ajustes pendentes:**
 - Com a config padrão, a mochila (8 vagas) enche por volta do andar 6–8, o herói volta e recomeça do andar 1, e a progressão trava até o jogador mudar a config ou usar atalhos.
 - Poções se acumulam demais (dezenas em poucas horas).
 - Com "descer direto" e sem recuar com mochila cheia, ele chega ao andar 30 em ~1h. O ritmo geral ainda não foi ajustado jogando.
 - Os andares iniciais parecem parecidos (mesma grade 3×3, só rato e morcego no andar 1).
+- Números das classes não-guerreiro são provisórios. O ladino é rápido demais (12h offline levam ~10s e ele faz ~3× mais expedições).
+- DES ainda não afeta acerto nem crítico; o respingo da bola de fogo ignora paredes; segundo fôlego quase nunca dispara (a poção vem antes).
 
 **Ideias já combinadas para depois** (ver `docs/design.md` → "Para depois"):
 - Grupo de heróis (vários `@` com cores diferentes)
-- Prestígio
+- Prestígio (com troca de classe)
+- Baú na cidade e equipar manualmente
 - Itens lendários únicos
 - Cavernas e outras variações de andar
 - Mais atributos, materiais, outros prédios
