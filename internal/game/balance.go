@@ -11,9 +11,10 @@ const (
 	HeroBaseSpd   = 4
 	ExploreDexDiv = 2
 
-	MissChance    = 0.1
-	CombatRoundMs = 1000
-	MonsterWindow = 4
+	MissChance     = 0.1
+	CombatRoundMs  = 1000
+	MonsterWindow  = 4
+	MonsterAtkMult = 1.3
 
 	TownWaitMs = 5000
 	LogSize    = 200
@@ -24,7 +25,7 @@ func StepsPerSec(spd int) float64 { return 1 + float64(spd)*0.5 }
 
 func XPToNext(level int) int { return int(20 * math.Pow(1.5, float64(level-1))) }
 
-func MonsterScale(depthsAboveMin int) float64 { return math.Pow(1.1, float64(depthsAboveMin)) }
+func MonsterScale(depthsAboveMin int) float64 { return math.Pow(1.15, float64(depthsAboveMin)) }
 
 func MonstersPerLevel(depth int) int { return min(3+depth/2, 12) }
 

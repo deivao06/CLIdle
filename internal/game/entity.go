@@ -52,7 +52,7 @@ func spawnMonster(rng *RNG, depth int) *Monster {
 		Kind:  kind,
 		HP:    hp,
 		MaxHP: hp,
-		Atk:   scaled(k.Atk, s),
+		Atk:   scaled(k.Atk, s*MonsterAtkMult),
 		Def:   scaled(k.Def, s),
 		Spd:   k.Spd,
 		XP:    scaled(k.XP, s),

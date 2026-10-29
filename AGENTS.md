@@ -80,7 +80,7 @@ Quase não há testes de UI (só `internal/ui/model_test.go`). Para ver telas:
   - **Sempre** use um `XDG_DATA_HOME` isolado para não sobrescrever o save real do usuário.
   - Mande **uma tecla por `send-keys`**: várias juntas chegam como um único `KeyMsg` (ex.: `"ar1"`) e não são reconhecidas.
 - Para testar offline: salve, edite `SavedAt` no JSON para horas atrás e abra de novo.
-- Para balanceamento: teste temporário que roda `CatchUp` com algumas seeds e imprime nível, andar máximo, mortes e ouro.
+- Para balanceamento: teste temporário que roda `Advance` hora a hora com algumas seeds e imprime nível, andar máximo, mortes e ouro. A cada hora ponha `Config.StartFloor` no atalho mais fundo, como um jogador faria; sem isso o herói sempre recomeça do andar 1 e nunca é testado fundo.
 
 ## Convenções
 
