@@ -6,19 +6,21 @@ import (
 )
 
 func TestCatchUpMatchesOnlinePlay(t *testing.T) {
-	a, b := departed(5), departed(5)
-	a.Auto, b.Auto = true, true
-	a.CatchUp(20*time.Minute, nil)
-	for range 20 * 60 * 20 {
-		b.Advance(50)
-	}
-	if a.Gold != b.Gold || a.Hero.XP != b.Hero.XP || a.ExpNum != b.ExpNum {
-		t.Fatalf("offline differs from online: gold %d/%d xp %d/%d", a.Gold, b.Gold, a.Hero.XP, b.Hero.XP)
+	for c := range NumClasses {
+		a, b := heroAt(c, 15, 5), heroAt(c, 15, 5)
+		a.Auto, b.Auto = true, true
+		a.CatchUp(20*time.Minute, nil)
+		for range 20 * 60 * 20 {
+			b.Advance(50)
+		}
+		if a.Gold != b.Gold || a.Hero.XP != b.Hero.XP || a.Hero.MP != b.Hero.MP || a.ExpNum != b.ExpNum {
+			t.Fatalf("%s offline differs from online: gold %d/%d xp %d/%d", c.Name(), a.Gold, b.Gold, a.Hero.XP, b.Hero.XP)
+		}
 	}
 }
 
 func TestCatchUpIsCapped(t *testing.T) {
-	g := New(1)
+	g := New(1, Warrior)
 	s := g.CatchUp(48*time.Hour, nil)
 	if !s.Capped || s.Eventful() {
 		t.Fatalf("summary %+v", s)
@@ -29,7 +31,8 @@ func TestTwelveHoursIsFastEnough(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
-	g := departed(8)
+	g := New(8, Rogue)
+	g.StartExpedition()
 	g.Auto = true
 	start := time.Now()
 	s := g.CatchUp(OfflineCap, nil)

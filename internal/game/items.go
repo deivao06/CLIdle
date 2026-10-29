@@ -13,7 +13,22 @@ const (
 	Weapon Slot = iota
 	Armor
 	Boots
+	Helmet
+	Shield
 	NumSlots
+)
+
+const (
+	Blade = iota
+	Staff
+	Dagger
+	Mace
+)
+
+const (
+	Light = iota
+	Medium
+	Heavy
 )
 
 type Rarity int
@@ -35,6 +50,7 @@ func (r Rarity) LogKind() LogKind {
 type Item struct {
 	ID      uint64
 	Slot    Slot
+	Kind    int
 	Rarity  Rarity
 	Name    string
 	Base    int
@@ -50,10 +66,12 @@ func (it *Item) Label() string {
 	if strings.HasPrefix(it.Name, "item.") {
 		return lang.T(it.Name)
 	}
-	for _, names := range ItemNames {
-		for _, n := range names {
-			if lang.In("pt", n.name) == it.Name {
-				return lang.T(n.name)
+	for _, kinds := range ItemNames {
+		for _, names := range kinds {
+			for _, n := range names {
+				if lang.In("pt", n.name) == it.Name {
+					return lang.T(n.name)
+				}
 			}
 		}
 	}
@@ -69,10 +87,10 @@ func (it *Item) Title() string {
 }
 
 func (it *Item) StatLabel() string {
-	return fmt.Sprintf("%s +%d", lang.T([...]string{"stat.atk", "stat.def", "stat.spd"}[it.Slot]), it.Bonus())
+	return fmt.Sprintf("%s +%d", lang.T([...]string{"stat.atk", "stat.def", "stat.spd", "stat.def", "stat.def"}[it.Slot]), it.Bonus())
 }
 
-func (s Slot) Glyph() rune { return [...]rune{')', '[', ']'}[s] }
+func (s Slot) Glyph() rune { return [...]rune{')', '[', ']', '^', '}'}[s] }
 
 type FloorItem struct {
 	Pos    Pos
@@ -104,18 +122,19 @@ func newItem(rng *RNG, depth int) *Item {
 
 func newItemOf(rng *RNG, depth int, rarity Rarity) *Item {
 	slot := Slot(rng.Intn(int(NumSlots)))
-	base := ItemBase(slot, depth, rarity) * (0.8 + 0.4*rng.Float())
-	names := ItemNames[slot]
+	kind := rng.Intn(len(ItemNames[slot]))
+	base := ItemBase(slot, kind, depth, rarity) * (0.8 + 0.4*rng.Float())
+	names := ItemNames[slot][kind]
 	name := names[0].name
 	for _, n := range names {
 		if n.depth <= depth {
 			name = n.name
 		}
 	}
-	return &Item{ID: rng.Uint64(), Slot: slot, Rarity: rarity, Name: name, Base: max(1, int(base+0.5))}
+	return &Item{ID: rng.Uint64(), Slot: slot, Kind: kind, Rarity: rarity, Name: name, Base: max(1, int(base+0.5))}
 }
 
-func (l *Level) placeLoot(rng *RNG, startRoom int) {
+func (l *Level) placeLoot(rng *RNG, startRoom int, nose bool) {
 	room := func() int {
 		r := rng.Intn(len(l.Rooms) - 1)
 		if r >= startRoom {
@@ -124,13 +143,20 @@ func (l *Level) placeLoot(rng *RNG, startRoom int) {
 		return r
 	}
 	for range rng.Range(GoldPilesMin, GoldPilesMax) {
-		gold := max(1, int(GoldPerPile(l.Depth)*(0.5+rng.Float())))
-		l.Items = append(l.Items, &FloorItem{Pos: l.RandomFloor(rng, room()), Gold: gold})
+		gold := GoldPerPile(l.Depth) * (0.5 + rng.Float())
+		if nose {
+			gold *= NoseGoldMult
+		}
+		l.Items = append(l.Items, &FloorItem{Pos: l.RandomFloor(rng, room()), Gold: max(1, int(gold))})
 	}
 	if rng.Chance(PotionChance) {
 		l.Items = append(l.Items, &FloorItem{Pos: l.RandomFloor(rng, room()), Potion: true})
 	}
-	for range rng.Range(ItemsMin, ItemsMax) {
+	items := rng.Range(ItemsMin, ItemsMax)
+	if nose && rng.Chance(NoseItemChance) {
+		items++
+	}
+	for range items {
 		l.Items = append(l.Items, &FloorItem{Pos: l.RandomFloor(rng, room()), Item: newItem(rng, l.Depth)})
 	}
 }

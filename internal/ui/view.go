@@ -25,6 +25,9 @@ func (m Model) View() string {
 			sMuted.Render(lang.T("ui.too_small_size", minW, minH, m.w, m.h))
 		return lipgloss.Place(m.w, m.h, lipgloss.Center, lipgloss.Center, msg)
 	}
+	if m.choosing {
+		return m.viewChoose()
+	}
 	bodyH := m.h - 2
 	if m.catching {
 		f := float64(m.progress.Load()) / 1000
@@ -177,6 +180,9 @@ func (m Model) statsLine(w int) string {
 	h := m.g.Hero
 	s := lang.T("stats.line",
 		h.Atk(), h.Def(), h.Spd(), h.Potions, h.XP, game.XPToNext(h.Level))
+	if h.MaxMP() > 0 {
+		s += lang.T("stats.mp", h.MP, h.MaxMP())
+	}
 	if e := m.g.Exp; e != nil {
 		s += lang.T("stats.bag", len(e.Bag), game.BagSize)
 	}
@@ -263,8 +269,12 @@ func (m Model) heroPanel(w, maxH int) string {
 	g := m.g
 	h := g.Hero
 	var b strings.Builder
-	fmt.Fprintf(&b, "%s %s\n", sSection.Render(lang.T("hero.title")), lang.T("hero.level", h.Level))
+	fmt.Fprintf(&b, "%s %s\n", sSection.Render(h.Class.Name()), lang.T("hero.level", h.Level))
+	b.WriteString(truncate(lang.T("hero.attrs", h.Attr(game.Str), h.Attr(game.Dex), h.Attr(game.Int), h.Attr(game.Con)), w) + "\n")
 	fmt.Fprintf(&b, "HP  %s\n", bar(h.HP, h.MaxHP(), w-4, hpStyle(h.HP, h.MaxHP())))
+	if h.MaxMP() > 0 {
+		fmt.Fprintf(&b, "MP  %s\n", bar(h.MP, h.MaxMP(), w-4, sMP))
+	}
 	fmt.Fprintf(&b, "XP  %s\n", bar(h.XP, game.XPToNext(h.Level), w-4, sXP))
 	b.WriteString(lang.T("hero.atk_def", h.Atk(), h.Def()))
 	b.WriteString(lang.T("hero.speed", h.Spd(), game.StepsPerSec(h.Spd())))
@@ -276,6 +286,16 @@ func (m Model) heroPanel(w, maxH int) string {
 			continue
 		}
 		b.WriteString(rarityStyle(it.Rarity).Render(truncate(fmt.Sprintf("%c %s (%s)", it.Slot.Glyph(), it.Title(), it.StatLabel()), w)) + "\n")
+	}
+	var abilities []string
+	for a := range game.NumAbilities {
+		if h.Has(a) {
+			abilities = append(abilities, a.Name())
+		}
+	}
+	if len(abilities) > 0 {
+		b.WriteString("\n" + sSection.Render(lang.T("hero.abilities")) + "\n")
+		b.WriteString(lipgloss.NewStyle().Width(w).Render(strings.Join(abilities, ", ")) + "\n")
 	}
 	if e := g.Exp; e != nil {
 		fmt.Fprintf(&b, "\n%s %s", sSection.Render(lang.T("hero.expedition")), lang.T("hero.exp_floor", e.Num, e.Level.Depth))
@@ -319,6 +339,8 @@ func (m Model) viewHelp(h int) string {
 		{sPlain.Render(")"), lang.T("slot.weapon")},
 		{sPlain.Render("["), lang.T("slot.armor")},
 		{sPlain.Render("]"), lang.T("slot.boots")},
+		{sPlain.Render("^"), lang.T("slot.helmet")},
+		{sPlain.Render("}"), lang.T("slot.shield")},
 	}
 	for _, k := range game.MonsterKinds {
 		if k.MinDepth > m.g.MaxDepth {
@@ -348,7 +370,7 @@ func (m Model) viewHelp(h int) string {
 	return b.String()
 }
 
-var slotNames = [...]string{"slot.weapon", "slot.armor", "slot.boots"}
+var slotNames = [...]string{"slot.weapon", "slot.armor", "slot.boots", "slot.helmet", "slot.shield"}
 
 func bar(v, maxV, w int, st lipgloss.Style) string {
 	w = max(w, 4)

@@ -85,7 +85,12 @@ func (m Model) prepRows() []prepRow {
 	for i, it := range g.Shop {
 		price := game.ShopPrice(it)
 		text := lang.T("prep.shop_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), price, m.compare(it))
-		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.priced(rarityStyle(it.Rarity), price),
+		st := m.priced(rarityStyle(it.Rarity), price)
+		if !g.Hero.Class.CanUse(it) {
+			text += lang.T("prep.other_class")
+			st = sMuted
+		}
+		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: st,
 			enter: func() { g.BuyShop(i) }})
 	}
 	if len(g.Shop) == 0 {

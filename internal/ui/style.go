@@ -23,6 +23,7 @@ var (
 	sPanel   = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, false, true).BorderForeground(lipgloss.Color("238")).PaddingLeft(1)
 	sSection = lipgloss.NewStyle().Foreground(lipgloss.Color("214"))
 	sXP      = lipgloss.NewStyle().Foreground(lipgloss.Color("141"))
+	sMP      = lipgloss.NewStyle().Foreground(lipgloss.Color("75"))
 	sHPGood  = lipgloss.NewStyle().Foreground(lipgloss.Color("114"))
 	sHPMid   = lipgloss.NewStyle().Foreground(lipgloss.Color("220"))
 	sHPLow   = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true)

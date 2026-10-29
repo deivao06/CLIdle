@@ -18,6 +18,11 @@ type Expedition struct {
 	StartEquip [NumSlots]*Item
 	Retreating bool
 	Config     Config
+
+	Attacks        int
+	SecondWindUsed bool
+	ManaAcc        int
+	Blessed        int
 }
 
 type ExploreMode int
@@ -64,10 +69,10 @@ type Game struct {
 	Lang      string
 }
 
-func New(seed uint64) *Game {
+func New(seed uint64, c Class) *Game {
 	g := &Game{
 		RNG:    NewRNG(seed),
-		Hero:   NewHero(),
+		Hero:   NewHero(c),
 		Config: DefaultConfig(),
 	}
 	g.refreshShop()
@@ -77,7 +82,7 @@ func New(seed uint64) *Game {
 
 // StepMs is the duration of the next step: combat rounds have a fixed pace, exploration follows speed.
 func (g *Game) StepMs() int64 {
-	if g.Exp != nil && g.adjacentMonster() != nil {
+	if g.Exp != nil && (g.adjacentMonster() != nil || g.ready(MagicMissile) && g.castTarget() != nil) {
 		return CombatRoundMs
 	}
 	return int64(1000 / StepsPerSec(g.Hero.Spd()))
@@ -113,6 +118,7 @@ func (g *Game) StartExpedition() {
 	seed := g.RNG.Uint64()
 	g.Exp = &Expedition{Num: g.ExpNum, Seed: seed, RNG: NewRNG(seed), StartEquip: g.Hero.Equip, Config: g.Config}
 	g.Hero.HP = g.Hero.MaxHP()
+	g.Hero.MP = g.Hero.MaxMP()
 	g.buyPotions()
 	g.logf(LogInfo, "%s", lang.T("log.depart", g.ExpNum))
 	g.enterLevel(g.startFloor())
@@ -121,6 +127,7 @@ func (g *Game) StartExpedition() {
 func (g *Game) enterLevel(depth int) {
 	e := g.Exp
 	e.Level = GenerateLevel(e.RNG, depth)
+	e.SecondWindUsed = false
 	l := e.Level
 	startRoom := l.RoomAt(l.Up)
 	for range MonstersPerLevel(depth) {
@@ -132,7 +139,7 @@ func (g *Game) enterLevel(depth int) {
 		m.Pos = l.RandomFloor(e.RNG, room)
 		l.Mons = append(l.Mons, m)
 	}
-	l.placeLoot(e.RNG, startRoom)
+	l.placeLoot(e.RNG, startRoom, g.Hero.Has(TreasureNose))
 	if depth%BossEvery == 0 {
 		b := spawnBoss(e.RNG, depth)
 		b.Pos = l.RandomFloor(e.RNG, l.RoomAt(l.Down))
@@ -151,20 +158,32 @@ func (g *Game) step() {
 	l := g.Exp.Level
 	h := g.Hero
 	r := &round{}
+	g.regenMana()
+	if g.Exp.Blessed > 0 {
+		g.Exp.Blessed--
+	}
 	g.monstersAct(r, true)
 	if g.Exp != nil {
 		g.checkRetreat()
-		if m := g.adjacentMonster(); g.needsPotion() {
+		m := g.adjacentMonster()
+		switch {
+		case g.secondWind(r):
+		case g.lowHP() && g.healSpell(r):
+		case g.needsPotion():
 			heal := min(h.MaxHP()*PotionHealPct/100, h.MaxHP()-h.HP)
 			h.HP += heal
 			h.Potions--
 			r.hero = lang.T("log.drink", heal)
-		} else if m != nil {
+		case g.cast(r):
+		case m != nil && g.bless(r):
+		case m != nil:
 			g.heroAttack(m, r)
-		} else if next, ok := g.chooseStep(); ok {
-			h.Pos = next
-			l.Reveal(h.Pos)
-			g.pickup(r)
+		default:
+			if next, ok := g.chooseStep(); ok {
+				h.Pos = next
+				l.Reveal(h.Pos)
+				g.pickup(r)
+			}
 		}
 		g.monstersAct(r, false)
 	}
@@ -186,7 +205,12 @@ func (g *Game) step() {
 
 func (g *Game) needsPotion() bool {
 	h := g.Hero
-	return h.Potions > 0 && h.HP*100 < h.MaxHP()*g.Exp.Config.PotionAtPct
+	return h.Potions > 0 && g.lowHP()
+}
+
+func (g *Game) lowHP() bool {
+	h := g.Hero
+	return h.HP*100 < h.MaxHP()*g.Exp.Config.PotionAtPct
 }
 
 func (g *Game) checkRetreat() {
@@ -243,7 +267,7 @@ func (g *Game) wants(f *FloorItem) bool {
 
 func (g *Game) better(it *Item) bool {
 	cur := g.Hero.Equip[it.Slot]
-	return cur == nil || it.Bonus() > cur.Bonus()
+	return g.Hero.Class.CanUse(it) && (cur == nil || it.Bonus() > cur.Bonus())
 }
 
 func (g *Game) wantedItem(p Pos) bool {
@@ -391,16 +415,46 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	e := g.Exp
 	h := g.Hero
 	name := lang.T(m.Info().Name)
+	sneak := h.Has(SneakAttack) && (!m.Awake || m.HP == m.MaxHP)
 	m.Awake = true
-	if e.RNG.Chance(MissChance) {
+	miss := MissChance
+	if e.Blessed > 0 {
+		miss = BlessMissChance
+	}
+	if e.RNG.Chance(miss) {
 		r.hero = lang.T("combat.hero_miss", name)
 		return
 	}
-	d := damage(e.RNG, h.Atk(), m.Def)
-	m.HP -= d
-	if m.HP > 0 {
-		r.hero = lang.T("combat.hero_hit", name, d)
+	e.Attacks++
+	if h.Has(PowerStrike) && e.Attacks%PowerStrikeEvery == 0 {
+		g.powerStrike(m, r)
 		return
+	}
+	d := damage(e.RNG, h.Atk(), m.Def)
+	key := "combat.hero_hit"
+	if sneak {
+		d *= SneakMult
+		key = "ability.sneak_attack.log"
+	}
+	if m.Info().Undead && g.ready(TurnUndead) {
+		g.useMana(TurnUndead)
+		d *= TurnUndeadMult
+		key = "spell.turn_undead.log"
+	}
+	if !g.hurt(m, d, r) || key != "combat.hero_hit" {
+		r.hero = lang.T(key, name, d)
+	}
+}
+
+// hurt applies the hero's damage to m and reports whether it died.
+func (g *Game) hurt(m *Monster, d int, r *round) bool {
+	e := g.Exp
+	h := g.Hero
+	name := lang.T(m.Info().Name)
+	m.HP -= d
+	m.Asleep = 0
+	if m.HP > 0 {
+		return false
 	}
 	gold := GoldPerKill(m.XP)
 	e.Gold += gold
@@ -413,6 +467,7 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	if h.gainXP(m.XP) {
 		r.after = append(r.after, LogEntry{Text: lang.T("log.level_up", h.Level), Kind: LogGood})
 	}
+	return true
 }
 
 func (g *Game) killBoss(m *Monster, r *round) {
@@ -463,13 +518,22 @@ func (g *Game) monstersAct(r *round, fast bool) {
 		if (m.Spd > h.Spd()) != fast {
 			continue
 		}
+		if m.Asleep > 0 {
+			m.Asleep--
+			continue
+		}
 		if !m.Awake {
 			if !l.Visible(h.Pos, m.Pos) {
 				continue
 			}
 			m.Awake = true
 		}
-		m.Energy += float64(m.Spd) / float64(h.Spd())
+		gain := float64(m.Spd) / float64(h.Spd())
+		if m.Slowed > 0 {
+			m.Slowed--
+			gain /= 2
+		}
+		m.Energy += gain
 		for m.Energy >= 1 {
 			m.Energy--
 			if m.Pos.Dist(h.Pos) == 1 && l.CanStep(m.Pos, h.Pos) {
@@ -508,11 +572,15 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	e := g.Exp
 	h := g.Hero
 	mr := r.of(m)
-	if e.RNG.Chance(MissChance) {
+	if e.RNG.Chance(MissChance) || h.Has(Dodge) && e.RNG.Chance(min(DodgeCap, float64(h.Attr(Dex))*DodgePerDex)) {
 		mr.misses++
 		return
 	}
-	d := damage(e.RNG, m.Atk, h.Def())
+	def := h.Def()
+	if e.Blessed > 0 {
+		def += BlessDef
+	}
+	d := damage(e.RNG, m.Atk, def)
 	h.HP -= d
 	mr.hits = append(mr.hits, d)
 	r.hurt = true

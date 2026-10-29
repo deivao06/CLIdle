@@ -10,7 +10,7 @@ Idle game de terminal em Go: um herói (`@`) explora sozinho uma dungeon estilo 
 
 ```sh
 go build -o clidle .     # binário (ignorado pelo git)
-go test ./...            # todos os testes; inclui ~5s do teste de 12h offline
+go test ./...            # todos os testes; inclui ~10s do teste de 12h offline
 go test -short ./...     # pula o teste de desempenho
 go vet ./...
 gofmt -l .               # precisa sair vazio
@@ -22,6 +22,10 @@ gofmt -l .               # precisa sair vazio
 main.go                 carrega o save, calcula o tempo fora, abre a UI
 internal/game/          lógica pura, sem I/O de terminal
   game.go               Game, Expedition, Config, loop (Advance/step), IA do herói, combate, retirada
+  class.go              Class, atributos de dano, o que cada classe pode usar, escolha da classe
+  ability.go            habilidades (Has), mana, golpe forte, segundo fôlego
+  spell.go              magias do mago e do clérigo (cast, castTarget, blink, cura, bênção)
+  migrate.go            migração de saves antigos (um passo por versão)
   dungeon.go            Level, tiles, geração estilo Rogue (grade 3x3 de salas), visibilidade/névoa
   path.go               BFS do herói (search, multi-objetivo) e mapa de distância dos monstros
   entity.go             Hero, Monster, spawn de monstros e chefes, dano
@@ -46,15 +50,16 @@ internal/ui/            Bubble Tea
 2. **`Advance` é independente do fatiamento.** `Advance(120000)` precisa dar o mesmo estado que 2400× `Advance(50)`. O tempo é contado em milissegundos inteiros (`AccMs`). Não zere nem arredonde `AccMs` no meio do loop. Há testes para isso (`TestAdvanceChunkingIsDeterministic`, `TestCatchUpMatchesOnlinePlay`).
 3. **Offline usa a mesma lógica do jogo ao vivo.** `CatchUp` só chama `Advance`. Não crie atalhos estatísticos.
 4. **Save/load preserva a simulação.** `TestSaveLoadRoundTripKeepsSimulationIdentical` garante que carregar e continuar dá o mesmo resultado. Ponteiros não sobrevivem ao JSON: identidade de item é por `Item.ID`, não por ponteiro.
-5. **Compatibilidade do save.** Não há migração (`saveVersion = 1`). Campos novos devem funcionar com valor zero (ex.: `Shortcuts` vazio vira `ShortcutList() == [1]`). Não renomeie campos exportados de structs salvas sem migração.
+5. **Compatibilidade do save.** `saveVersion = 2`. Campos novos devem funcionar com valor zero (ex.: `Shortcuts` vazio vira `ShortcutList() == [1]`). O que valor zero não resolve ganha um passo em `migrate.go`; nunca edite um passo já publicado. Não renomeie campos exportados de structs salvas sem migração.
 6. **Concorrência.** `path.go` usa um buffer global (`scratch`) e o jogo não é thread-safe. Enquanto `Model.catching` for verdadeiro, a UI não pode tocar em `m.g` (a goroutine do `CatchUp` está rodando). `View` retorna cedo nesse estado.
 7. **Desempenho.** 12h offline devem simular em poucos segundos (`TestTwelveHoursIsFastEnough`, limite de 15s). O custo está no `search` por passo. Evite BFS extras por passo.
 8. **Bubble Tea:** `Init` tem receiver por valor; mudanças no model feitas ali se perdem. Configure o estado no construtor (`NewWithSave`).
 
 ## Mecânicas importantes (resumo)
 
-- **Passo do herói** (`step`): monstros rápidos agem, herói checa retirada, bebe poção / ataca / anda, pega item, monstros lentos agem. Tudo de um passo vira **uma linha de log** (`round` + `flush`).
-- **Ritmo:** explorar segue `StepsPerSec(Velocidade)`; combate é fixo em `CombatRoundMs`. Velocidade em combate = iniciativa e ataques extras (sistema de energia).
+- **Passo do herói** (`step`): mana regenera, monstros rápidos agem, herói checa retirada e faz **uma** ação na ordem: segundo fôlego, cura por magia, poção, magia à distância (mago), bênção, ataque, andar. Depois monstros lentos agem. Tudo de um passo vira **uma linha de log** (`round` + `flush`).
+- **Classes:** `Hero.Class` (zero = Guerreiro). Habilidades liberam por nível (`AbilityInfo` em `balance.go`, `Hero.Has`). Estado de habilidade da expedição (`Attacks`, `SecondWindUsed`, `ManaAcc`, `Blessed`) fica na `Expedition`; sono/lentidão ficam no `Monster`. Mana regenera em inteiros (`ManaAcc`) para não quebrar o determinismo.
+- **Ritmo:** explorar segue `StepsPerSec(Velocidade)`; combate é fixo em `CombatRoundMs` (também quando o mago tem alvo e mana para atacar de longe). Velocidade em combate = iniciativa e ataques extras (sistema de energia).
 - **IA do herói** (`chooseStep`): uma BFS com prioridade: monstro visível > item desejado > escada (modo descer direto) > fronteira inexplorada > chefe ou escada.
 - **Config da expedição** é copiada em `Expedition.Config` ao partir; a IA lê dela, não de `Game.Config`.
 - **Compras com o herói fora:** loja e ferreiro vão para `Pending`/`Upgrades` e são aplicados em `arriveInTown` (que roda tanto na volta quanto na morte). Treino vale na hora.
@@ -63,7 +68,7 @@ internal/ui/            Bubble Tea
 
 ## Testando a UI
 
-Não há testes de UI. Para ver telas:
+Quase não há testes de UI (só `internal/ui/model_test.go`). Para ver telas:
 
 - Teste temporário em `internal/ui` que monta `New(g)`, define `m.w, m.h` e imprime `m.View()`. Apague depois.
 - Ou `tmux`:
@@ -98,17 +103,20 @@ Não há testes de UI. Para ver telas:
 
 ## Estado atual
 
-Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline.
+Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline. Depois vieram idioma (inglês padrão, português opcional) e classes (4 classes, atributos FOR/DES/INT/CON, capacete/escudo, habilidades, mana e magias).
 
 **Problemas conhecidos / ajustes pendentes:**
 - Com a config padrão, a mochila (8 vagas) enche por volta do andar 6–8, o herói volta e recomeça do andar 1, e a progressão trava até o jogador mudar a config ou usar atalhos.
 - Poções se acumulam demais (dezenas em poucas horas).
 - Com "descer direto" e sem recuar com mochila cheia, ele chega ao andar 30 em ~1h. O ritmo geral ainda não foi ajustado jogando.
 - Os andares iniciais parecem parecidos (mesma grade 3×3, só rato e morcego no andar 1).
+- Números das classes não-guerreiro são provisórios. O ladino é rápido demais (12h offline levam ~10s e ele faz ~3× mais expedições).
+- DES ainda não afeta acerto nem crítico; o respingo da bola de fogo ignora paredes; segundo fôlego quase nunca dispara (a poção vem antes).
 
 **Ideias já combinadas para depois** (ver `docs/design.md` → "Para depois"):
 - Grupo de heróis (vários `@` com cores diferentes)
-- Prestígio
+- Prestígio (com troca de classe)
+- Baú na cidade e equipar manualmente
 - Itens lendários únicos
 - Cavernas e outras variações de andar
 - Mais atributos, materiais, outros prédios

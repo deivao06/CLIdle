@@ -3,7 +3,7 @@ package game
 import "testing"
 
 func townGame() *Game {
-	g := New(9)
+	g := New(9, Warrior)
 	g.Gold = 100000
 	return g
 }
@@ -41,7 +41,9 @@ func TestPurchaseSurvivesDeath(t *testing.T) {
 	g.Shop = []*Item{{Slot: Boots, Base: 3}}
 	g.BuyShop(0)
 	g.Hero.HP = 1
-	g.monsterAttack(&Monster{Atk: 100}, &round{})
+	for g.Exp != nil {
+		g.monsterAttack(&Monster{Atk: 100}, &round{})
+	}
 	if b := g.Hero.Equip[Boots]; b == nil || b.Base != 3 {
 		t.Fatalf("boots %+v", b)
 	}
@@ -50,8 +52,8 @@ func TestPurchaseSurvivesDeath(t *testing.T) {
 func TestNotEnoughGold(t *testing.T) {
 	g := townGame()
 	g.Gold = 0
-	g.Train(Vigor)
-	if g.Hero.Training[Vigor] != 0 {
+	g.Train(Con)
+	if g.Hero.Training[Con] != 0 {
 		t.Fatal("trained without gold")
 	}
 }
@@ -59,7 +61,7 @@ func TestNotEnoughGold(t *testing.T) {
 func TestTrainingRaisesStat(t *testing.T) {
 	g := townGame()
 	hp := g.Hero.MaxHP()
-	g.Train(Vigor)
+	g.Train(Con)
 	if g.Hero.MaxHP() != hp+TrainHP {
 		t.Fatalf("max hp %d", g.Hero.MaxHP())
 	}
@@ -89,7 +91,7 @@ func TestPotionsBoughtBeforeExpedition(t *testing.T) {
 }
 
 func TestNewGameStartsInTown(t *testing.T) {
-	g := New(1)
+	g := New(1, Warrior)
 	if !g.InTown() {
 		t.Fatal("new game should start in town")
 	}
@@ -101,5 +103,15 @@ func TestNewGameStartsInTown(t *testing.T) {
 	g.Advance(TownWaitMs)
 	if g.InTown() {
 		t.Fatal("auto-expedition should depart after the town wait")
+	}
+}
+
+func TestShopRefusesOtherClassItem(t *testing.T) {
+	g := New(1, Mage)
+	g.Gold = 100000
+	g.Shop = []*Item{{Slot: Shield, Base: 3}}
+	g.BuyShop(0)
+	if g.Gold != 100000 || g.Hero.Equip[Shield] != nil {
+		t.Fatal("bought a shield as mage")
 	}
 }

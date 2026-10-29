@@ -30,13 +30,17 @@ func TestHeroExploresAndDescends(t *testing.T) {
 }
 
 func TestAdvanceChunkingIsDeterministic(t *testing.T) {
-	a, b := departed(7), departed(7)
-	a.Auto, b.Auto = true, true
-	a.Advance(120000)
-	for range 2400 {
-		b.Advance(50)
-	}
-	if a.Hero.Pos != b.Hero.Pos || a.Hero.XP != b.Hero.XP || a.ExpNum != b.ExpNum || len(a.Log) != len(b.Log) {
-		t.Fatalf("diverged: %+v vs %+v", a.Hero, b.Hero)
+	for c := range NumClasses {
+		a, b := New(7, c), New(7, c)
+		a.Depart()
+		b.Depart()
+		a.Auto, b.Auto = true, true
+		a.Advance(120000)
+		for range 2400 {
+			b.Advance(50)
+		}
+		if a.Hero.Pos != b.Hero.Pos || a.Hero.XP != b.Hero.XP || a.ExpNum != b.ExpNum || len(a.Log) != len(b.Log) {
+			t.Fatalf("class %d diverged: %+v vs %+v", c, a.Hero, b.Hero)
+		}
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const saveVersion = 1
+const saveVersion = 2
 
 type saveFile struct {
 	Version int
@@ -53,6 +53,9 @@ func Load(path string) (*Game, time.Time, error) {
 	var f saveFile
 	if err := json.Unmarshal(data, &f); err != nil {
 		return nil, time.Time{}, err
+	}
+	if f.Version < saveVersion {
+		migrate(&f)
 	}
 	return f.Game, f.SavedAt, nil
 }

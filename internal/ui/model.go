@@ -47,6 +47,8 @@ type Model struct {
 
 	confirmText string
 	confirmDo   func()
+
+	choosing bool
 }
 
 func (m *Model) ask(text string, do func()) {
@@ -58,9 +60,10 @@ func New(g *game.Game) Model {
 		lastDeaths: g.Deaths, lastBosses: g.BossKills}
 }
 
-// NewWithSave catches up on the time spent away before resuming live play.
-func NewWithSave(g *game.Game, path string, away time.Duration) Model {
+// NewWithSave catches up on the time spent away before resuming live play; a fresh game first asks for the class.
+func NewWithSave(g *game.Game, path string, away time.Duration, fresh bool) Model {
 	m := New(g)
+	m.choosing = fresh
 	m.savePath = path
 	m.away = away
 	m.catching = away >= wakeGap
@@ -112,6 +115,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tick()
 		}
 		now := time.Time(msg)
+		if m.choosing {
+			m.lastTick = now
+			return m, tick()
+		}
 		gap := now.Sub(m.lastTick)
 		if gap >= wakeGap {
 			m.lastTick = now
@@ -134,6 +141,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.summary = nil
 			return m, nil
 		}
+		if m.choosing && msg.String() != "ctrl+c" && msg.String() != "q" {
+			m.chooseKey(msg.String())
+			return m, nil
+		}
 		if m.confirmDo != nil {
 			switch msg.String() {
 			case "s", "S", "y", "Y", "enter":
@@ -146,7 +157,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch msg.String() {
 		case "q", "ctrl+c":
-			m.save(time.Now())
+			if !m.choosing {
+				m.save(time.Now())
+			}
 			return m, tea.Quit
 		case "1":
 			m.tab, m.help = tabDungeon, false

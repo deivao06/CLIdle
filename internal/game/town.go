@@ -9,19 +9,22 @@ import (
 type Trait int
 
 const (
-	Vigor Trait = iota
-	Strength
-	Toughness
-	Agility
+	Str Trait = iota
+	Dex
+	Int
+	Con
 	NumTraits
 )
 
 func (t Trait) Name() string {
-	return lang.T([...]string{"trait.vigor", "trait.strength", "trait.toughness", "trait.agility"}[t])
+	return lang.T([...]string{"trait.str", "trait.dex", "trait.int", "trait.con"}[t])
 }
 
 func (t Trait) Effect() string {
-	return [...]string{fmt.Sprintf("+%d HP", TrainHP), "+1 " + lang.T("stat.atk"), "+1 " + lang.T("stat.def"), "+1 " + lang.T("stat.spd")}[t]
+	if t == Con {
+		return fmt.Sprintf("+%d HP", TrainHP)
+	}
+	return "+1 " + lang.T([...]string{"stat.str", "stat.dex", "stat.int"}[t])
 }
 
 func (g *Game) InTown() bool { return g.Exp == nil }
@@ -61,7 +64,14 @@ func (g *Game) spend(cost int) bool {
 }
 
 func (g *Game) BuyShop(i int) {
-	if i < 0 || i >= len(g.Shop) || !g.spend(ShopPrice(g.Shop[i])) {
+	if i < 0 || i >= len(g.Shop) {
+		return
+	}
+	if !g.Hero.Class.CanUse(g.Shop[i]) {
+		g.logf(LogInfo, "%s", lang.T("log.cannot_use", g.Shop[i].Title()))
+		return
+	}
+	if !g.spend(ShopPrice(g.Shop[i])) {
 		return
 	}
 	it := g.Shop[i]

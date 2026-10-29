@@ -95,3 +95,26 @@ func TestLegacyItemNameIsTranslated(t *testing.T) {
 		t.Fatalf("got %q", got)
 	}
 }
+
+func TestItemsCoverEveryKind(t *testing.T) {
+	rng := NewRNG(1)
+	seen := map[[2]int]bool{}
+	for range 5000 {
+		it := newItem(rng, 30)
+		seen[[2]int{int(it.Slot), it.Kind}] = true
+	}
+	for _, want := range [][2]int{{int(Weapon), Staff}, {int(Weapon), Dagger}, {int(Armor), Heavy}, {int(Helmet), 0}, {int(Shield), 0}} {
+		if !seen[want] {
+			t.Fatalf("never generated %v", want)
+		}
+	}
+}
+
+func TestMageStashesSword(t *testing.T) {
+	g := New(1, Mage)
+	g.StartExpedition()
+	sword := &Item{Slot: Weapon, Kind: Blade, Base: 99}
+	if g.better(sword) || !g.wants(&FloorItem{Item: sword}) {
+		t.Fatal("mage should bag, not equip, a sword")
+	}
+}
