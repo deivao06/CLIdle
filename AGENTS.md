@@ -10,7 +10,7 @@ Idle game de terminal em Go: um herói (`@`) explora sozinho uma dungeon estilo 
 
 ```sh
 go build -o clidle .     # binário (ignorado pelo git)
-go test ./...            # todos os testes; inclui ~5s do teste de 12h offline
+go test ./...            # todos os testes; inclui ~8s do teste de 12h offline
 go test -short ./...     # pula o teste de desempenho
 go vet ./...
 gofmt -l .               # precisa sair vazio
