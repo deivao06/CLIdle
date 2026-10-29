@@ -57,6 +57,8 @@ go build -o clidle .
 
 Na **Preparação**: `↑↓` ou `j/k` escolhem, `←→` ou `h/l` ajustam, `enter` compra ou alterna.
 
+No **Herói**: `↑↓` ou `j/k` rolam a tela quando ela não cabe.
+
 Nas **confirmações**: `s`, `y` ou `enter` confirmam; `n` ou `esc` cancelam.
 
 ## Legenda

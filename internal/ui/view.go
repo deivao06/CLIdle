@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -51,7 +52,9 @@ func (m Model) View() string {
 	case m.tab == tabPrep:
 		body = m.viewPrep(bodyH)
 	case m.tab == tabHero:
-		body = m.heroPanel(min(48, m.w-4), bodyH)
+		lines := m.heroLines()
+		top := clamp(m.heroTop, 0, max(0, len(lines)-bodyH))
+		body = strings.Join(lines[top:min(len(lines), top+bodyH)], "\n")
 	default:
 		body = sMuted.Render(lang.T("ui.soon"))
 	}
@@ -263,6 +266,10 @@ func (m Model) renderLog(w, h int) string {
 		lines = append(lines, logStyles[e.Kind].Render(truncate(text, w)))
 	}
 	return strings.Join(lines, "\n")
+}
+
+func (m Model) heroLines() []string {
+	return strings.Split(m.heroPanel(min(48, m.w-4), math.MaxInt/2), "\n")
 }
 
 func (m Model) heroPanel(w, maxH int) string {

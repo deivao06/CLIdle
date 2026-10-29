@@ -33,6 +33,7 @@ type Model struct {
 	tab      int
 	help     bool
 	cursor   int
+	heroTop  int
 	lastTick time.Time
 	savePath string
 	lastSave time.Time
@@ -183,6 +184,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.tab == tabPrep && !m.help {
 				m.prepKey(msg.String())
 			}
+			if m.tab == tabHero && !m.help {
+				m.heroKey(msg.String())
+			}
 		}
 	}
 	return m, nil
@@ -194,6 +198,16 @@ func (m *Model) bell() {
 		os.Stdout.WriteString("\a")
 	}
 	m.lastDeaths, m.lastBosses = g.Deaths, g.BossKills
+}
+
+func (m *Model) heroKey(key string) {
+	switch key {
+	case "up", "k":
+		m.heroTop--
+	case "down", "j":
+		m.heroTop++
+	}
+	m.heroTop = clamp(m.heroTop, 0, max(0, len(m.heroLines())-(m.h-2)))
 }
 
 func (m *Model) prepKey(key string) {

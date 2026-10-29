@@ -3,6 +3,7 @@ package ui
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"clidle/internal/game"
@@ -27,5 +28,23 @@ func TestGameSettingsComeLastInTheirOwnSection(t *testing.T) {
 		if r.section != lang.T("prep.section.game") {
 			t.Fatalf("%q in section %q", r.text, r.section)
 		}
+	}
+}
+
+func TestHeroTabScrollsOnSmallScreens(t *testing.T) {
+	g := game.New(1, game.Mage)
+	g.Hero.Level = 20
+	var m tea.Model = New(g)
+	m, _ = m.Update(tea.WindowSizeMsg{Width: 60, Height: 14})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("3")})
+	records := lang.T("hero.records")
+	if strings.Contains(m.View(), records) {
+		t.Skip("screen not small enough to need scroll")
+	}
+	for range 30 {
+		m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})
+	}
+	if !strings.Contains(m.View(), records) {
+		t.Fatal("records never scrolled into view")
 	}
 }
