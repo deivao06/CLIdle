@@ -30,6 +30,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Legenda explicando cada caractere de entidade.
 - Monstros por letra (`r`, `g`, `o`...); chefes em letra maiúscula com cor própria. ~8–10 tipos na v1.
 - Raridade de itens por cor: Comum (branco), Raro (azul), Mágico (verde), Épico (roxo), Lendário (laranja).
+- **Efeitos:** épico tem 1 efeito, lendário 2 (diferentes): roubo de vida, crítico (dano dobrado), HP extra, ouro extra, cura de poção extra, XP extra. Valores em `EffectRange`.
 
 ## Expedições
 

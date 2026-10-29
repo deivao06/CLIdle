@@ -174,7 +174,7 @@ func (g *Game) step() {
 		case g.secondWind(r):
 		case g.lowHP() && g.healSpell(r):
 		case g.needsPotion():
-			heal := min(h.MaxHP()*PotionHealPct/100, h.MaxHP()-h.HP)
+			heal := min(h.MaxHP()*(PotionHealPct+h.Effect(PotionBoost))/100, h.MaxHP()-h.HP)
 			h.HP += heal
 			h.Potions--
 			r.hero = lang.T("log.drink", heal)
@@ -328,8 +328,9 @@ func (g *Game) pickup(r *round) {
 	}
 	switch {
 	case f.Gold > 0:
-		e.Gold += f.Gold
-		add(LogLoot, "log.pick_gold", f.Gold)
+		gold := boosted(f.Gold, h.Effect(GoldFind))
+		e.Gold += gold
+		add(LogLoot, "log.pick_gold", gold)
 	case f.Potion:
 		h.Potions++
 		add(LogLoot, "log.pick_potion")
@@ -337,6 +338,7 @@ func (g *Game) pickup(r *round) {
 		it := f.Item
 		old := h.Equip[it.Slot]
 		h.Equip[it.Slot] = it
+		h.HP = min(h.HP, h.MaxHP())
 		add(it.Rarity.LogKind(), "log.equip", it.Title(), it.Rarity.Name(), it.StatLabel())
 		if old != nil && len(e.Bag) < BagSize {
 			e.Bag = append(e.Bag, old)
@@ -447,6 +449,10 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	}
 	d := damage(e.RNG, h.Atk(), m.Def)
 	key := "combat.hero_hit"
+	if c := h.Effect(Crit); c > 0 && e.RNG.Chance(float64(c)/100) {
+		d *= 2
+		key = "combat.hero_crit"
+	}
 	if sneak {
 		d *= SneakMult
 		key = "ability.sneak_attack.log"
@@ -468,18 +474,20 @@ func (g *Game) hurt(m *Monster, d int, r *round) bool {
 	name := lang.T(m.Info().Name)
 	m.HP -= d
 	m.Asleep = 0
+	h.HP = min(h.MaxHP(), h.HP+d*h.Effect(LifeSteal)/100)
 	if m.HP > 0 {
 		return false
 	}
-	gold := GoldPerKill(m.XP)
+	gold := boosted(GoldPerKill(m.XP), h.Effect(GoldFind))
+	xp := boosted(m.XP, h.Effect(XPBoost))
 	e.Gold += gold
 	g.Kills++
-	r.after = append(r.after, LogEntry{Text: lang.T("log.kill", name, m.XP, gold), Kind: LogGood})
+	r.after = append(r.after, LogEntry{Text: lang.T("log.kill", name, xp, gold), Kind: LogGood})
 	if m.Boss {
 		g.killBoss(m, r)
 	}
 	e.Level.removeMonster(m)
-	if h.gainXP(m.XP) {
+	if h.gainXP(xp) {
 		r.after = append(r.after, LogEntry{Text: lang.T("log.level_up", h.Level), Kind: LogGood})
 	}
 	return true

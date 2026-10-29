@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"clidle/internal/lang"
@@ -49,6 +50,27 @@ func (r Rarity) LogKind() LogKind {
 	return [...]LogKind{LogLoot, LogRare, LogMagic, LogEpic, LogLegendary}[r]
 }
 
+type Effect int
+
+const (
+	LifeSteal Effect = iota
+	Crit
+	Vigor
+	GoldFind
+	PotionBoost
+	XPBoost
+	NumEffects
+)
+
+type ItemEffect struct {
+	Kind  Effect
+	Value int
+}
+
+func (f ItemEffect) Label() string {
+	return lang.T([...]string{"effect.life_steal", "effect.crit", "effect.vigor", "effect.gold_find", "effect.potion_boost", "effect.xp_boost"}[f.Kind], f.Value)
+}
+
 type Item struct {
 	ID      uint64
 	Slot    Slot
@@ -57,6 +79,7 @@ type Item struct {
 	Name    string
 	Base    int
 	Upgrade int
+	Effects []ItemEffect
 }
 
 func (it *Item) Bonus() int { return it.Base + it.Upgrade*max(1, it.Base/UpgradeDivisor) }
@@ -89,7 +112,11 @@ func (it *Item) Title() string {
 }
 
 func (it *Item) StatLabel() string {
-	return fmt.Sprintf("%s +%d", lang.T([...]string{"stat.atk", "stat.def", "stat.spd", "stat.def", "stat.def"}[it.Slot]), it.Bonus())
+	s := fmt.Sprintf("%s +%d", lang.T([...]string{"stat.atk", "stat.def", "stat.spd", "stat.def", "stat.def"}[it.Slot]), it.Bonus())
+	for _, f := range it.Effects {
+		s += ", " + f.Label()
+	}
+	return s
 }
 
 func (s Slot) Glyph() rune { return [...]rune{')', '[', ']', '^', '}'}[s] }
@@ -135,7 +162,14 @@ func newItemOf(rng *RNG, depth int, rarity Rarity) *Item {
 			name = n.name
 		}
 	}
-	return &Item{ID: rng.Uint64(), Slot: slot, Kind: kind, Rarity: rarity, Name: name, Base: max(1, int(base+0.5))}
+	it := &Item{ID: rng.Uint64(), Slot: slot, Kind: kind, Rarity: rarity, Name: name, Base: max(1, int(base+0.5))}
+	for len(it.Effects) < EffectCount[rarity] {
+		k := Effect(rng.Intn(int(NumEffects)))
+		if !slices.ContainsFunc(it.Effects, func(f ItemEffect) bool { return f.Kind == k }) {
+			it.Effects = append(it.Effects, ItemEffect{k, rng.Range(EffectRange[k][0], EffectRange[k][1])})
+		}
+	}
+	return it
 }
 
 func (l *Level) placeLoot(rng *RNG, startRoom int, nose bool) {

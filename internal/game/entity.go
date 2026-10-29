@@ -102,8 +102,25 @@ func NewHero(c Class) *Hero {
 
 func (h *Hero) MaxHP() int {
 	c := ClassHP[h.Class]
-	return c.Base + (h.Level-1)*c.PerLevel + h.Attr(Con)*TrainHP
+	return (c.Base + (h.Level-1)*c.PerLevel + h.Attr(Con)*TrainHP) * (100 + h.Effect(Vigor)) / 100
 }
+
+func (h *Hero) Effect(k Effect) int {
+	n := 0
+	for _, it := range h.Equip {
+		if it == nil {
+			continue
+		}
+		for _, f := range it.Effects {
+			if f.Kind == k {
+				n += f.Value
+			}
+		}
+	}
+	return n
+}
+
+func boosted(n, pct int) int { return n * (100 + pct) / 100 }
 
 func (h *Hero) MaxMP() int {
 	if ClassMana[h.Class] == 0 {

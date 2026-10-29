@@ -63,6 +63,7 @@ internal/ui/            Bubble Tea
 - **IA do herói** (`chooseStep`): uma BFS com prioridade: monstro visível > item desejado > escada (modo descer direto) > fronteira inexplorada > chefe ou escada.
 - **Config da expedição** é copiada em `Expedition.Config` ao partir; a IA lê dela, não de `Game.Config`.
 - **Compras com o herói fora:** loja e ferreiro vão para `Pending`/`Upgrades` e são aplicados em `arriveInTown` (que roda tanto na volta quanto na morte). Treino vale na hora.
+- **Efeitos de item:** `Item.Effects` (só épico e lendário), somados por `Hero.Effect`. Aparecem no `StatLabel`. Crítico só gasta RNG se o herói tiver o efeito, para não mudar a sequência de quem não tem.
 - **Baú:** `Game.Stash`. Só enche com `Config.ManualEquip` (auto-equipar desligado): `better()` devolve falso e `returnToTown` guarda a mochila no baú em vez de vender.
 - **Morte:** restaura `StartEquip`, perde ouro e mochila da expedição; mantém poções e XP.
 - **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item épico e libera atalho para `andar+1`.

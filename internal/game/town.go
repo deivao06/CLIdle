@@ -95,6 +95,7 @@ func (g *Game) equipBought(it *Item) {
 		msg += lang.T("log.sold_old", old.Title(), old.Value())
 	}
 	h.Equip[it.Slot] = it
+	h.HP = min(h.HP, h.MaxHP())
 	g.logf(it.Rarity.LogKind(), "%s", msg)
 }
 
@@ -194,6 +195,7 @@ func (g *Game) EquipStash(i int) {
 		g.Stash = slices.Delete(g.Stash, i, i+1)
 	}
 	g.Hero.Equip[it.Slot] = it
+	g.Hero.HP = min(g.Hero.HP, g.Hero.MaxHP())
 	g.logf(it.Rarity.LogKind(), "%s", lang.T("log.hero_equips", it.Title(), it.StatLabel()))
 }
 
@@ -203,6 +205,7 @@ func (g *Game) Unequip(s Slot) {
 		return
 	}
 	g.Hero.Equip[s] = nil
+	g.Hero.HP = min(g.Hero.HP, g.Hero.MaxHP())
 	g.Stash = append(g.Stash, it)
 	g.logf(LogInfo, "%s", lang.T("log.unequip", it.Title()))
 }
