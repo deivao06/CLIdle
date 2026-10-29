@@ -38,9 +38,10 @@ func (m Model) prepRows() []prepRow {
 		rows = append(rows, prepRow{section: nextSection, text: lang.T("prep.depart_now"), style: sTitle, enter: g.Depart,
 			confirm: lang.T("confirm.depart")})
 	}
+	section := nextSection
 	cfg := func(label, value string, adjust func(int)) {
 		rows = append(rows, prepRow{
-			section: nextSection,
+			section: section,
 			text:    fmt.Sprintf("%-22s %s", lang.T(label), value),
 			style:   sPlain,
 			adjust:  adjust,
@@ -75,11 +76,6 @@ func (m Model) prepRows() []prepRow {
 	at := max(0, slices.Index(floors, c.StartFloor))
 	cfg("prep.start_floor", lang.T("prep.start_floor_value", floors[at], len(floors)-1), func(d int) {
 		c.StartFloor = floors[(at+d+len(floors))%len(floors)]
-	})
-	cfg("prep.bell", onOff(g.Bell), func(int) { g.Bell = !g.Bell })
-	cfg("prep.language", lang.T("lang.name"), func(int) {
-		g.Lang = lang.Next(lang.Current())
-		lang.Set(g.Lang)
 	})
 
 	for i, it := range g.Shop {
@@ -124,6 +120,13 @@ func (m Model) prepRows() []prepRow {
 		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.priced(sPlain, cost),
 			enter: func() { g.Train(t) }})
 	}
+
+	section = lang.T("prep.section.game")
+	cfg("prep.bell", onOff(g.Bell), func(int) { g.Bell = !g.Bell })
+	cfg("prep.language", lang.T("lang.name"), func(int) {
+		g.Lang = lang.Next(lang.Current())
+		lang.Set(g.Lang)
+	})
 	return rows
 }
 
