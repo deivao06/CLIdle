@@ -105,7 +105,7 @@ Quase não há testes de UI (só `internal/ui/model_test.go`). Para ver telas:
 
 ## Estado atual
 
-Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline. Depois vieram idioma (inglês padrão, português opcional) e classes (4 classes, atributos FOR/DES/INT/CON, capacete/escudo, habilidades, mana e magias).
+Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline. Depois vieram idioma (inglês padrão, português opcional) e classes (4 classes, atributos FOR/DES/INT/CON, capacete/escudo, habilidades, mana e magias). Por último: balanceamento (menos poções, monstros mais fortes), raridades mágico e lendário, efeitos em épicos/lendários, auto-equipar opcional com baú, limite de mortes e a tela Config (bip, idioma, resetar save).
 
 **Problemas conhecidos / ajustes pendentes:**
 - Com a config padrão, a mochila (8 vagas) enche por volta do andar 6–8, o herói volta e recomeça do andar 1, e a progressão trava até o jogador mudar a config ou usar atalhos.

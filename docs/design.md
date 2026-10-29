@@ -18,9 +18,10 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
   - **Médio:** + log.
   - **Grande:** + stats/inventário e legenda em painel lateral.
 - Abaixo de **40×10**: aviso "janela muito pequena".
-- Telas: `1` Principal · `2` Preparação · `3` Herói · `?` legenda/ajuda · `q` sair.
+- Telas: `1` Principal · `2` Preparação · `3` Herói · `4` Config · `?` legenda/ajuda · `q` sair.
 - **Principal** muda sozinha: mostra a dungeon durante a expedição e a cidade quando o herói volta.
 - **Preparação** fica sempre disponível: configura a próxima expedição e gasta o ouro guardado. Mudanças valem a partir da próxima expedição; compras de equipamento entram quando o herói voltar.
+- **Config** guarda as opções do jogo (bip, idioma) e **Resetar save**, que pede confirmação, apaga o save e volta para a escolha de classe.
 
 ## Visual
 
@@ -85,7 +86,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - RNG com seed por expedição (testes e reprodução de bugs).
 - Testes automatizados na lógica (geração, combate, simulação); sem testar a UI.
 - Bip do terminal (morte/chefe) desligado por padrão, com opção para ligar.
-- **Idioma:** inglês por padrão, português como opção na Preparação. Fica no save. Ao trocar, nomes de itens mudam junto; linhas antigas do log ficam no idioma em que foram escritas.
+- **Idioma:** inglês por padrão, português como opção na tela Config. Fica no save. Ao trocar, nomes de itens mudam junto; linhas antigas do log ficam no idioma em que foram escritas.
 
 ## Marcos
 
