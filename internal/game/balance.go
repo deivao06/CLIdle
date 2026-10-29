@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	HeroBaseAtk = 5
-	HeroBaseDef = 1
-	HeroBaseSpd = 4
+	HeroBaseAtk   = 5
+	HeroBaseDef   = 1
+	HeroBaseSpd   = 4
+	ExploreDexDiv = 2
 
 	MissChance    = 0.1
 	CombatRoundMs = 1000
@@ -210,7 +211,7 @@ type classStats struct{ Start, Growth [NumTraits]int }
 var ClassStats = [NumClasses]classStats{
 	Warrior: {Growth: [NumTraits]int{Str: 3}},
 	Mage:    {Start: [NumTraits]int{Int: 2}, Growth: [NumTraits]int{Int: 3}},
-	Rogue:   {Start: [NumTraits]int{Dex: 1}, Growth: [NumTraits]int{Dex: 2}},
+	Rogue:   {Start: [NumTraits]int{Dex: 1}, Growth: [NumTraits]int{Dex: 1}},
 	Cleric:  {Growth: [NumTraits]int{Str: 2, Int: 1}},
 }
 

@@ -85,7 +85,7 @@ func (g *Game) StepMs() int64 {
 	if g.Exp != nil && (g.adjacentMonster() != nil || g.ready(MagicMissile) && g.castTarget() != nil) {
 		return CombatRoundMs
 	}
-	return int64(1000 / StepsPerSec(g.Hero.Spd()))
+	return int64(1000 / StepsPerSec(g.Hero.Spd()-g.Hero.Attr(Dex)/ExploreDexDiv))
 }
 
 // Advance runs the simulation for ms milliseconds of game time.

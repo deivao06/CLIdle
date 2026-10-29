@@ -44,3 +44,10 @@ func TestMageMeleeIgnoresInt(t *testing.T) {
 		t.Fatalf("mage melee %d uses INT", h.Atk())
 	}
 }
+
+func TestRogueExploresAtMostTwiceWarriorPace(t *testing.T) {
+	w, r := heroAt(Warrior, 17, 1), heroAt(Rogue, 17, 1)
+	if r.StepMs()*2 < w.StepMs() {
+		t.Fatalf("rogue %dms warrior %dms", r.StepMs(), w.StepMs())
+	}
+}

@@ -59,7 +59,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 
 - Um herói, com **classe escolhida no jogo novo**: Guerreiro, Mago, Ladino ou Clérigo. Save antigo vira Guerreiro. Trocar de classe fica para o prestígio.
 - Atributos: **FOR** (dano corpo a corpo), **DES** (velocidade), **INT** (magia e mana), **CON** (vida). Cada classe tem valores iniciais e ganho por nível próprios. O treino da cidade sobe esses quatro.
-- Derivados: Ataque = arma + atributo de dano da classe; Defesa = armadura + capacete + escudo + nível; Velocidade = DES + botas; Mana só para Mago e Clérigo, recupera um pouco por passo.
+- Derivados: Ataque = arma + atributo de dano da classe; Defesa = armadura + capacete + escudo + nível; Velocidade = DES + botas (explorando, a DES conta só metade); Mana só para Mago e Clérigo, recupera um pouco por passo.
 - Fontes de poder: nível/XP, equipamento (achado ou comprado), melhorias permanentes na cidade.
 - Equipamento: arma, armadura, botas, capacete, escudo. Armas por classe (Guerreiro espadas/machados, Mago cajados, Ladino adagas, Clérigo maças). Armadura leve/média/pesada (mais pesada = mais Defesa).
   - Guerreiro: qualquer armadura e escudo. Mago: leve, sem escudo. Ladino: leve/média, sem escudo. Clérigo: média/pesada e escudo.

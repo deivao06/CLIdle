@@ -10,7 +10,7 @@ Idle game de terminal em Go: um herói (`@`) explora sozinho uma dungeon estilo 
 
 ```sh
 go build -o clidle .     # binário (ignorado pelo git)
-go test ./...            # todos os testes; inclui ~10s do teste de 12h offline
+go test ./...            # todos os testes; inclui ~5s do teste de 12h offline
 go test -short ./...     # pula o teste de desempenho
 go vet ./...
 gofmt -l .               # precisa sair vazio
@@ -110,7 +110,7 @@ Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cida
 - O herói quase não usa poções: 0 mortes em 12h com a config padrão. O excesso acima de 10 é vendido na cidade.
 - Com "descer direto" e sem recuar com mochila cheia, ele chega ao andar 30 em ~1h. O ritmo geral ainda não foi ajustado jogando.
 - Os andares iniciais parecem parecidos (mesma grade 3×3, só rato e morcego no andar 1).
-- Números das classes não-guerreiro são provisórios. O ladino é rápido demais (12h offline levam ~10s e ele faz ~3× mais expedições).
+- Números das classes não-guerreiro são provisórios. O ladino ainda faz ~1,7× mais expedições que as outras classes.
 - DES ainda não afeta acerto nem crítico; o respingo da bola de fogo ignora paredes; segundo fôlego quase nunca dispara (a poção vem antes).
 
 **Ideias já combinadas para depois** (ver `docs/design.md` → "Para depois"):
