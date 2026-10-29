@@ -107,7 +107,7 @@ Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cida
 
 **Problemas conhecidos / ajustes pendentes:**
 - Com a config padrão, a mochila (8 vagas) enche por volta do andar 6–8, o herói volta e recomeça do andar 1, e a progressão trava até o jogador mudar a config ou usar atalhos.
-- Poções se acumulam demais (dezenas em poucas horas).
+- Poções ainda se acumulam (~140 em 12h) porque o herói quase não precisa delas: 0 mortes em 12h com a config padrão.
 - Com "descer direto" e sem recuar com mochila cheia, ele chega ao andar 30 em ~1h. O ritmo geral ainda não foi ajustado jogando.
 - Os andares iniciais parecem parecidos (mesma grade 3×3, só rato e morcego no andar 1).
 - Números das classes não-guerreiro são provisórios. O ladino é rápido demais (12h offline levam ~10s e ele faz ~3× mais expedições).

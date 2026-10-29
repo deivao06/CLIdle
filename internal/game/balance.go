@@ -59,11 +59,11 @@ var MonsterKinds = []MonsterKind{
 const (
 	BagSize           = 8
 	StartPotions      = 2
-	PotionHealPct     = 50
-	PotionChance      = 0.5
+	PotionHealPct     = 35
+	PotionChance      = 0.2
 	GoldPilesMin      = 2
 	GoldPilesMax      = 4
-	ItemsMin          = 1
+	ItemsMin          = 0
 	ItemsMax          = 2
 	RareChance        = 0.2
 	EpicChance        = 0.05
