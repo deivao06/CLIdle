@@ -39,7 +39,7 @@ Você equipa Espada Curta (raro, Atq +8).
 ```sh
 git clone git@github.com:deivao06/CLIdle.git
 cd CLIdle
-go build -o clidle .
+CGO_ENABLED=0 go build -ldflags="-s -w" -o clidle .   # binário estático, roda em qualquer Linux x86-64
 ./clidle
 ```
 
