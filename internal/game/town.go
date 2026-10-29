@@ -1,6 +1,8 @@
 package game
 
 import (
+	"slices"
+
 	"fmt"
 
 	"clidle/internal/lang"
@@ -175,4 +177,42 @@ func (g *Game) arriveInTown() {
 	}
 	g.Upgrades = [NumSlots]int{}
 	g.refreshShop()
+}
+
+func (g *Game) EquipStash(i int) {
+	if !g.InTown() || i < 0 || i >= len(g.Stash) {
+		return
+	}
+	it := g.Stash[i]
+	if !g.Hero.Class.CanUse(it) {
+		g.logf(LogInfo, "%s", lang.T("log.cannot_use", it.Title()))
+		return
+	}
+	if old := g.Hero.Equip[it.Slot]; old != nil {
+		g.Stash[i] = old
+	} else {
+		g.Stash = slices.Delete(g.Stash, i, i+1)
+	}
+	g.Hero.Equip[it.Slot] = it
+	g.logf(it.Rarity.LogKind(), "%s", lang.T("log.hero_equips", it.Title(), it.StatLabel()))
+}
+
+func (g *Game) Unequip(s Slot) {
+	it := g.Hero.Equip[s]
+	if !g.InTown() || it == nil || len(g.Stash) >= StashSize {
+		return
+	}
+	g.Hero.Equip[s] = nil
+	g.Stash = append(g.Stash, it)
+	g.logf(LogInfo, "%s", lang.T("log.unequip", it.Title()))
+}
+
+func (g *Game) SellStash(i int) {
+	if i < 0 || i >= len(g.Stash) {
+		return
+	}
+	it := g.Stash[i]
+	g.Stash = slices.Delete(g.Stash, i, i+1)
+	g.Gold += it.Value()
+	g.logf(LogInfo, "%s", lang.T("log.sell_item", it.Title(), it.Value()))
 }

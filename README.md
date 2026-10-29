@@ -24,6 +24,7 @@ Você equipa Espada Curta (raro, Atq +8).
 - **Tudo automático:** ele explora, luta, pega itens, equipa o que for melhor e bebe poções sozinho.
 - **Retirada automática:** você define quando ele volta (HP baixo sem poções, mochila cheia, último andar).
 - **Cidade:** loja, ferreiro e treino permanente, pagos com o ouro das expedições.
+- **Baú:** com auto-equipar desligado, o que ele acha vai para o baú e você escolhe o que equipar ou vender.
 - **Chefes a cada 10 andares:** guardam a escada, deixam cair um item épico e liberam um atalho (começar no andar 11, 21...).
 - **Progresso offline:** ao reabrir, o jogo simula o tempo em que ficou fechado (até 12h) e mostra um resumo.
 - **Layout adaptável:** funciona de 40×10 até telas grandes; a câmera segue o `@` quando o mapa não cabe.

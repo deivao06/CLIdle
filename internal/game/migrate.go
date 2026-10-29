@@ -25,7 +25,7 @@ func migrateV2(g *Game) {
 }
 
 func savedItems(g *Game) []*Item {
-	items := append(append(g.Hero.Equip[:], g.Shop...), g.Pending...)
+	items := append(append(append(g.Hero.Equip[:], g.Shop...), g.Pending...), g.Stash...)
 	if e := g.Exp; e != nil {
 		items = append(append(items, e.StartEquip[:]...), e.Bag...)
 		for _, f := range e.Level.Items {

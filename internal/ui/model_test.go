@@ -48,3 +48,29 @@ func TestHeroTabScrollsOnSmallScreens(t *testing.T) {
 		t.Fatal("records never scrolled into view")
 	}
 }
+
+func TestChestRowsEquipAndSell(t *testing.T) {
+	g := game.New(1, game.Warrior)
+	g.Stash = []*game.Item{{Slot: game.Weapon, Kind: game.Blade, Base: 5}, {Slot: game.Armor, Base: 3}}
+	m := New(g)
+	m.tab = tabPrep
+	for i, r := range m.prepRows() {
+		if r.sell != nil {
+			m.cursor = i
+			break
+		}
+	}
+	m.prepKey("enter")
+	if g.Hero.Equip[game.Weapon] == nil || len(g.Stash) != 1 {
+		t.Fatalf("enter did not equip: stash %d", len(g.Stash))
+	}
+	for i, r := range m.prepRows() {
+		if r.sell != nil {
+			m.cursor = i
+		}
+	}
+	m.prepKey("x")
+	if len(g.Stash) != 0 || g.Gold == 0 {
+		t.Fatalf("x did not sell: stash %d gold %d", len(g.Stash), g.Gold)
+	}
+}

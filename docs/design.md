@@ -40,6 +40,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Início:** o jogo começa na cidade; a expedição parte com `e` ou "Partir agora" na Preparação.
 - **Auto-expedição:** liga/desliga (desligada por padrão). Ao terminar, inicia outra com a mesma configuração.
 - Mandar o herói voltar manualmente desliga a auto-expedição; a retirada automática não.
+- **Auto-equipar:** ligado por padrão. Desligado, o herói não troca equipamento na dungeon; na volta, a mochila vai para o **baú** (20 vagas, o que sobra é vendido). Na Preparação o jogador equipa (enter), desequipa e vende (`x`) itens do baú, só com o herói na cidade.
 - **Limite de mortes:** configurável (padrão sem limite). Depois de N mortes desde que a auto-expedição foi ligada, ela desliga e o herói fica na cidade. Religar zera a contagem.
 - Antes de partir, o herói compra poções até completar o número configurado (se tiver ouro).
 - **Poções:** bebidas automaticamente abaixo de um limite de HP configurável. O herói guarda no máximo 10; o que passar disso é vendido ao chegar na cidade (metade do preço).
@@ -99,7 +100,6 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Prestígio (reset com bônus permanente).
 - Itens lendários (únicos).
 - Cavernas e outras variações de andar.
-- Baú (stash) na cidade para guardar itens de outras classes.
 - Magias por loot (livros/pergaminhos).
 - Materiais, outros prédios.
 - Herói autônomo o bastante para explorar sem preocupação (regras de retirada mais elaboradas).

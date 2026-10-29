@@ -227,6 +227,10 @@ func (m *Model) prepKey(key string) {
 		if r.adjust != nil {
 			r.adjust(1)
 		}
+	case "x":
+		if r.sell != nil {
+			r.sell()
+		}
 	case "enter", " ":
 		switch {
 		case r.confirm != "":

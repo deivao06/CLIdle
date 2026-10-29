@@ -41,6 +41,7 @@ type Config struct {
 	PotionsToBring int
 	StartFloor     int
 	DeathLimit     int
+	ManualEquip    bool
 }
 
 func DefaultConfig() Config {
@@ -67,6 +68,7 @@ type Game struct {
 	Kills      int
 	BossKills  int
 	AutoDeaths int
+	Stash      []*Item
 	Bell       bool
 	Lang       string
 }
@@ -245,16 +247,24 @@ func (g *Game) startRetreat(why string) {
 
 func (g *Game) returnToTown() {
 	e := g.Exp
-	sold := 0
+	sold, kept := 0, 0
 	for _, it := range e.Bag {
+		if e.Config.ManualEquip && len(g.Stash) < StashSize {
+			g.Stash = append(g.Stash, it)
+			kept++
+			continue
+		}
 		sold += it.Value()
 	}
 	g.Gold += e.Gold + sold
 	g.Returns++
-	if len(e.Bag) == 0 {
+	if len(e.Bag) == kept {
 		g.logf(LogGood, "%s", lang.T("log.return", e.Num, e.Gold))
 	} else {
-		g.logf(LogGood, "%s", lang.T("log.return_sold", e.Num, e.Gold+sold, e.Gold, len(e.Bag), sold))
+		g.logf(LogGood, "%s", lang.T("log.return_sold", e.Num, e.Gold+sold, e.Gold, len(e.Bag)-kept, sold))
+	}
+	if kept > 0 {
+		g.logf(LogLoot, "%s", lang.T("log.chest_kept", kept))
 	}
 	g.Exp = nil
 	g.arriveInTown()
@@ -268,6 +278,9 @@ func (g *Game) wants(f *FloorItem) bool {
 }
 
 func (g *Game) better(it *Item) bool {
+	if g.Exp != nil && g.Exp.Config.ManualEquip {
+		return false
+	}
 	cur := g.Hero.Equip[it.Slot]
 	return g.Hero.Class.CanUse(it) && (cur == nil || it.Bonus() > cur.Bonus())
 }

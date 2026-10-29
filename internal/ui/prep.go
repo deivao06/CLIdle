@@ -17,6 +17,7 @@ type prepRow struct {
 	style   lipgloss.Style
 	adjust  func(delta int)
 	enter   func()
+	sell    func()
 	confirm string
 }
 
@@ -71,6 +72,7 @@ func (m Model) prepRows() []prepRow {
 		retreat = fmt.Sprintf("%d%%", c.RetreatHPPct)
 	}
 	cfg("prep.retreat_hp", retreat, func(d int) { step(&c.RetreatHPPct, d, 5, 0, 90) })
+	cfg("prep.auto_equip", onOff(!c.ManualEquip), func(int) { c.ManualEquip = !c.ManualEquip })
 	cfg("prep.retreat_bag", onOff(c.RetreatBagFull), func(int) { c.RetreatBagFull = !c.RetreatBagFull })
 	last := lang.T("prep.no_limit")
 	if c.LastFloor > 0 {
@@ -116,6 +118,27 @@ func (m Model) prepRows() []prepRow {
 		}
 		rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: m.priced(sPlain, cost),
 			enter: func() { g.Upgrade(s) }})
+	}
+
+	if c.ManualEquip || len(g.Stash) > 0 {
+		chest := lang.T("prep.section.chest", len(g.Stash), game.StashSize)
+		for s, it := range g.Hero.Equip {
+			if it == nil {
+				continue
+			}
+			rows = append(rows, prepRow{section: chest, text: lang.T("prep.equipped_row", it.Slot.Glyph(), it.Title(), it.StatLabel()),
+				style: rarityStyle(it.Rarity), enter: func() { g.Unequip(game.Slot(s)) }})
+		}
+		for i, it := range g.Stash {
+			text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.Value(), m.compare(it))
+			st := rarityStyle(it.Rarity)
+			if !g.Hero.Class.CanUse(it) {
+				text += lang.T("prep.other_class")
+				st = sMuted
+			}
+			rows = append(rows, prepRow{section: chest, text: text, style: st,
+				enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }})
+		}
 	}
 
 	for t := range game.NumTraits {
