@@ -4,6 +4,7 @@
   "main.load_error": "could not read the save %s: %v\n",
 
   "confirm.retreat": "Retreat the hero from the dungeon?",
+  "confirm.reset": "Erase the save and start over?",
   "confirm.depart": "Set out on the expedition?",
 
   "ui.too_small": "Window too small",
@@ -14,6 +15,10 @@
 
   "tab.main": "Main",
   "tab.prep": "Preparation",
+  "tab.settings": "Settings",
+  "settings.section.save": "Save",
+  "settings.reset": "Reset save",
+  "settings.keys": "↑↓ choose · ←→ adjust · enter toggle",
   "tab.hero": "Hero",
 
   "status.town": "town",
@@ -21,8 +26,8 @@
   "status.level": " · lv %d · %s · ",
   "status.gold": "%d gold ",
 
-  "footer.dungeon": "1-3 screens · r retreat · a auto · ? legend · q quit",
-  "footer.town": "1-3 screens · e depart · a auto · ? legend · q quit",
+  "footer.dungeon": "1-4 screens · r retreat · a auto · ? legend · q quit",
+  "footer.town": "1-4 screens · e depart · a auto · ? legend · q quit",
   "footer.confirm": "y/enter confirm · n/esc cancel",
   "footer.save_error": "save error: %s",
 

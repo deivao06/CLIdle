@@ -17,6 +17,7 @@ type prepRow struct {
 	style   lipgloss.Style
 	adjust  func(delta int)
 	enter   func()
+	do      func(*Model)
 	sell    func()
 	confirm string
 }
@@ -30,6 +31,37 @@ func onOff(b bool) string {
 
 func step(v *int, delta, by, lo, hi int) { *v = clamp(*v+delta*by, lo, hi) }
 
+func cfgRow(section, label, value string, adjust func(int)) prepRow {
+	return prepRow{
+		section: section,
+		text:    fmt.Sprintf("%-22s %s", lang.T(label), value),
+		style:   sPlain,
+		adjust:  adjust,
+		enter:   func() { adjust(1) },
+	}
+}
+
+func (m Model) rows() []prepRow {
+	if m.tab == tabSettings {
+		return m.settingsRows()
+	}
+	return m.prepRows()
+}
+
+func (m Model) settingsRows() []prepRow {
+	g := m.g
+	sec := lang.T("prep.section.game")
+	return []prepRow{
+		cfgRow(sec, "prep.bell", onOff(g.Bell), func(int) { g.Bell = !g.Bell }),
+		cfgRow(sec, "prep.language", lang.T("lang.name"), func(int) {
+			g.Lang = lang.Next(lang.Current())
+			lang.Set(g.Lang)
+		}),
+		{section: lang.T("settings.section.save"), text: lang.T("settings.reset"), style: sWarn,
+			confirm: lang.T("confirm.reset"), do: (*Model).resetSave},
+	}
+}
+
 func (m Model) prepRows() []prepRow {
 	g := m.g
 	c := &g.Config
@@ -39,15 +71,8 @@ func (m Model) prepRows() []prepRow {
 		rows = append(rows, prepRow{section: nextSection, text: lang.T("prep.depart_now"), style: sTitle, enter: g.Depart,
 			confirm: lang.T("confirm.depart")})
 	}
-	section := nextSection
 	cfg := func(label, value string, adjust func(int)) {
-		rows = append(rows, prepRow{
-			section: section,
-			text:    fmt.Sprintf("%-22s %s", lang.T(label), value),
-			style:   sPlain,
-			adjust:  adjust,
-			enter:   func() { adjust(1) },
-		})
+		rows = append(rows, cfgRow(nextSection, label, value, adjust))
 	}
 	auto := lang.T("prep.off")
 	if g.Auto {
@@ -148,13 +173,6 @@ func (m Model) prepRows() []prepRow {
 		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.priced(sPlain, cost),
 			enter: func() { g.Train(t) }})
 	}
-
-	section = lang.T("prep.section.game")
-	cfg("prep.bell", onOff(g.Bell), func(int) { g.Bell = !g.Bell })
-	cfg("prep.language", lang.T("lang.name"), func(int) {
-		g.Lang = lang.Next(lang.Current())
-		lang.Set(g.Lang)
-	})
 	return rows
 }
 
@@ -191,6 +209,14 @@ func (m Model) viewPrep(h int) string {
 			sMuted.Render(lang.T("prep.away_shop")))
 	}
 	head = append(head, sMuted.Render(lang.T("prep.keys")))
+	return m.viewRows(head, rows, h)
+}
+
+func (m Model) viewSettings(h int) string {
+	return m.viewRows([]string{sMuted.Render(lang.T("settings.keys"))}, m.settingsRows(), h)
+}
+
+func (m Model) viewRows(head []string, rows []prepRow, h int) string {
 	for i := range head {
 		head[i] = truncate(head[i], m.w)
 	}

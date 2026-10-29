@@ -21,13 +21,40 @@ func TestQuitOnClassScreenDoesNotSave(t *testing.T) {
 	}
 }
 
-func TestGameSettingsComeLastInTheirOwnSection(t *testing.T) {
+func TestGameOptionsMovedToSettingsTab(t *testing.T) {
 	m := New(game.New(1, game.Warrior))
-	rows := m.prepRows()
-	for _, r := range rows[len(rows)-2:] {
-		if r.section != lang.T("prep.section.game") {
-			t.Fatalf("%q in section %q", r.text, r.section)
+	for _, r := range m.prepRows() {
+		if r.section == lang.T("prep.section.game") {
+			t.Fatalf("%q still in preparation", r.text)
 		}
+	}
+	m.tab = tabSettings
+	if len(m.settingsRows()) < 3 {
+		t.Fatal("settings tab is missing options")
+	}
+}
+
+func TestResetSaveAsksThenStartsOver(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := game.New(1, game.Mage)
+	g.Gold = 500
+	var tm tea.Model = NewWithSave(g, path, 0, false)
+	tm, _ = tm.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("4")})
+	m := tm.(Model)
+	m.cursor = len(m.settingsRows()) - 1
+	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	if m = tm.(Model); m.confirmDo == nil || m.g.Gold != 500 {
+		t.Fatal("reset did not ask for confirmation first")
+	}
+	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	m = tm.(Model)
+	if m.g.Gold != 0 || !m.choosing {
+		t.Fatalf("game not reset: gold %d choosing %v", m.g.Gold, m.choosing)
+	}
+	if _, err := os.Stat(path); err == nil {
+		t.Fatal("old save still on disk")
 	}
 }
 

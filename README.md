@@ -48,8 +48,9 @@ CGO_ENABLED=0 go build -ldflags="-s -w" -o clidle .   # binário estático, roda
 | Tecla | Ação |
 |---|---|
 | `1` | Tela principal (dungeon ou cidade) |
-| `2` | Preparação (config, loja, ferreiro, treino) |
+| `2` | Preparação (expedição, loja, ferreiro, baú, treino) |
 | `3` | Herói (atributos, equipamento, mochila, recordes) |
+| `4` | Config (bip, idioma, resetar save) |
 | `e` | Partir para a expedição (na cidade) |
 | `r` | Mandar o herói voltar (na dungeon) |
 | `a` | Ligar/desligar a auto-expedição |
@@ -80,8 +81,8 @@ Cor do item = raridade: branco comum, azul raro, verde mágico, roxo épico, lar
 
 - Fica em `~/.local/share/clidle/save.json` (ou `$XDG_DATA_HOME/clidle/save.json`).
 - Salva a cada 30 segundos e ao sair.
-- Para recomeçar do zero, apague o arquivo.
-- O jogo abre em inglês; o idioma muda na Preparação (`2`).
+- Para recomeçar do zero, use **Resetar save** na tela Config (`4`).
+- O jogo abre em inglês; o idioma muda na tela Config (`4`).
 
 ## Desenvolvimento
 

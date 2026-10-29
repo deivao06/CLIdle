@@ -51,6 +51,8 @@ func (m Model) View() string {
 		body = m.viewDungeon(bodyH)
 	case m.tab == tabPrep:
 		body = m.viewPrep(bodyH)
+	case m.tab == tabSettings:
+		body = m.viewSettings(bodyH)
 	case m.tab == tabHero:
 		lines := m.heroLines()
 		top := clamp(m.heroTop, 0, max(0, len(lines)-bodyH))
@@ -64,7 +66,7 @@ func (m Model) View() string {
 
 func (m Model) viewHeader() string {
 	right := m.statusLine()
-	for _, tabs := range [][]string{{"1 " + lang.T("tab.main"), "2 " + lang.T("tab.prep"), "3 " + lang.T("tab.hero")}, {"1", "2", "3"}} {
+	for _, tabs := range [][]string{{"1 " + lang.T("tab.main"), "2 " + lang.T("tab.prep"), "3 " + lang.T("tab.hero"), "4 " + lang.T("tab.settings")}, {"1", "2", "3", "4"}} {
 		var parts []string
 		for i, t := range tabs {
 			if i == m.tab && !m.help {

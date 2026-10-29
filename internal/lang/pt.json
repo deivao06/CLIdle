@@ -4,6 +4,7 @@
   "main.load_error": "não consegui ler o save %s: %v\n",
 
   "confirm.retreat": "Retirar o herói da dungeon?",
+  "confirm.reset": "Apagar o save e começar do zero?",
   "confirm.depart": "Partir para a expedição?",
 
   "ui.too_small": "Janela muito pequena",
@@ -14,6 +15,10 @@
 
   "tab.main": "Principal",
   "tab.prep": "Preparação",
+  "tab.settings": "Config",
+  "settings.section.save": "Save",
+  "settings.reset": "Resetar save",
+  "settings.keys": "↑↓ escolher · ←→ ajustar · enter alternar",
   "tab.hero": "Herói",
 
   "status.town": "cidade",
@@ -21,8 +26,8 @@
   "status.level": " · nv %d · %s · ",
   "status.gold": "%d ouro ",
 
-  "footer.dungeon": "1-3 telas · r retirar · a auto · ? legenda · q sair",
-  "footer.town": "1-3 telas · e partir · a auto · ? legenda · q sair",
+  "footer.dungeon": "1-4 telas · r retirar · a auto · ? legenda · q sair",
+  "footer.town": "1-4 telas · e partir · a auto · ? legenda · q sair",
   "footer.confirm": "s/enter confirmar · n/esc cancelar",
   "footer.save_error": "erro ao salvar: %s",
 

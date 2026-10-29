@@ -15,6 +15,7 @@ const (
 	tabDungeon = iota
 	tabPrep
 	tabHero
+	tabSettings
 )
 
 const (
@@ -47,12 +48,12 @@ type Model struct {
 	lastBosses int
 
 	confirmText string
-	confirmDo   func()
+	confirmDo   func(*Model)
 
 	choosing bool
 }
 
-func (m *Model) ask(text string, do func()) {
+func (m *Model) ask(text string, do func(*Model)) {
 	m.confirmText, m.confirmDo = text, do
 }
 
@@ -86,6 +87,18 @@ func (m *Model) save(now time.Time) {
 	}
 	m.saveErr = m.g.Save(m.savePath, now)
 	m.lastSave = now
+}
+
+// resetSave erases the save and starts a fresh game at the class screen.
+func (m *Model) resetSave() {
+	if m.savePath != "" {
+		os.Remove(m.savePath)
+	}
+	g := game.New(uint64(time.Now().UnixNano()), game.Warrior)
+	g.Lang = lang.Current()
+	w, h := m.w, m.h
+	*m = NewWithSave(g, m.savePath, 0, true)
+	m.w, m.h = w, h
 }
 
 func tick() tea.Cmd {
@@ -149,8 +162,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.confirmDo != nil {
 			switch msg.String() {
 			case "s", "S", "y", "Y", "enter":
-				m.confirmDo()
+				do := m.confirmDo
 				m.confirmDo = nil
+				do(&m)
 			case "n", "N", "esc":
 				m.confirmDo = nil
 			}
@@ -165,23 +179,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "1":
 			m.tab, m.help = tabDungeon, false
 		case "2":
-			m.tab, m.help = tabPrep, false
+			m.tab, m.help, m.cursor = tabPrep, false, 0
 		case "3":
 			m.tab, m.help = tabHero, false
+		case "4":
+			m.tab, m.help, m.cursor = tabSettings, false, 0
 		case "r":
 			if e := m.g.Exp; e != nil && !e.Retreating {
-				m.ask(lang.T("confirm.retreat"), m.g.Retreat)
+				m.ask(lang.T("confirm.retreat"), func(m *Model) { m.g.Retreat() })
 			}
 		case "a":
 			m.g.ToggleAuto()
 		case "e":
 			if m.g.InTown() {
-				m.ask(lang.T("confirm.depart"), m.g.Depart)
+				m.ask(lang.T("confirm.depart"), func(m *Model) { m.g.Depart() })
 			}
 		case "?":
 			m.help = !m.help
 		default:
-			if m.tab == tabPrep && !m.help {
+			if (m.tab == tabPrep || m.tab == tabSettings) && !m.help {
 				m.prepKey(msg.String())
 			}
 			if m.tab == tabHero && !m.help {
@@ -211,7 +227,7 @@ func (m *Model) heroKey(key string) {
 }
 
 func (m *Model) prepKey(key string) {
-	rows := m.prepRows()
+	rows := m.rows()
 	m.cursor = clamp(m.cursor, 0, len(rows)-1)
 	r := rows[m.cursor]
 	switch key {
@@ -234,10 +250,15 @@ func (m *Model) prepKey(key string) {
 	case "enter", " ":
 		switch {
 		case r.confirm != "":
-			m.ask(r.confirm, r.enter)
+			do := r.do
+			if do == nil {
+				enter := r.enter
+				do = func(*Model) { enter() }
+			}
+			m.ask(r.confirm, do)
 		case r.enter != nil:
 			r.enter()
 		}
 	}
-	m.cursor = clamp(m.cursor, 0, len(m.prepRows())-1)
+	m.cursor = clamp(m.cursor, 0, len(m.rows())-1)
 }

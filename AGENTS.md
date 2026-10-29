@@ -40,7 +40,7 @@ internal/lang/          textos do jogo (en.json, pt.json embutidos), lang.T/Set
 internal/ui/            Bubble Tea
   model.go              Model, ticks, teclas, autosave, catch-up em goroutine, confirmações
   view.go               layout adaptável, mapa, log, painel do herói, legenda, cidade, resumo
-  prep.go               aba Preparação (linhas navegáveis)
+  prep.go               abas Preparação e Config (linhas navegáveis), resetar save
   style.go              estilos/cores
 ```
 
