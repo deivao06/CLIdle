@@ -53,6 +53,11 @@ func (m Model) prepRows() []prepRow {
 		auto = lang.T("prep.on")
 	}
 	cfg("prep.auto", auto, func(int) { g.ToggleAuto() })
+	limit := lang.T("prep.no_limit")
+	if c.DeathLimit > 0 {
+		limit = lang.T("prep.deaths_value", g.AutoDeaths, c.DeathLimit)
+	}
+	cfg("prep.death_limit", limit, func(d int) { step(&c.DeathLimit, d, 1, 0, 99) })
 	mode := lang.T("prep.mode.explore")
 	if c.Mode == game.DescendFast {
 		mode = lang.T("prep.mode.descend")

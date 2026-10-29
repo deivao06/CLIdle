@@ -124,3 +124,22 @@ func TestExtraPotionsSoldInTown(t *testing.T) {
 		t.Fatalf("potions %d gold %d", g.Hero.Potions, g.Gold)
 	}
 }
+
+func TestAutoStopsAfterDeathLimit(t *testing.T) {
+	g := townGame()
+	g.Config.DeathLimit = 2
+	g.ToggleAuto()
+	for range 2 {
+		g.Depart()
+		g.die()
+	}
+	if g.Auto {
+		t.Fatal("auto still on after the death limit")
+	}
+	g.ToggleAuto()
+	g.Depart()
+	g.die()
+	if !g.Auto {
+		t.Fatal("turning auto back on did not reset the count")
+	}
+}

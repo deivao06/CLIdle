@@ -40,6 +40,7 @@ type Config struct {
 	LastFloor      int
 	PotionsToBring int
 	StartFloor     int
+	DeathLimit     int
 }
 
 func DefaultConfig() Config {
@@ -47,26 +48,27 @@ func DefaultConfig() Config {
 }
 
 type Game struct {
-	RNG       *RNG
-	Hero      *Hero
-	Exp       *Expedition
-	Config    Config
-	Log       []LogEntry
-	Gold      int
-	ExpNum    int
-	AccMs     int64
-	MaxDepth  int
-	Deaths    int
-	Returns   int
-	Auto      bool
-	Shop      []*Item
-	Pending   []*Item
-	Upgrades  [NumSlots]int
-	Shortcuts []int
-	Kills     int
-	BossKills int
-	Bell      bool
-	Lang      string
+	RNG        *RNG
+	Hero       *Hero
+	Exp        *Expedition
+	Config     Config
+	Log        []LogEntry
+	Gold       int
+	ExpNum     int
+	AccMs      int64
+	MaxDepth   int
+	Deaths     int
+	Returns    int
+	Auto       bool
+	Shop       []*Item
+	Pending    []*Item
+	Upgrades   [NumSlots]int
+	Shortcuts  []int
+	Kills      int
+	BossKills  int
+	AutoDeaths int
+	Bell       bool
+	Lang       string
 }
 
 func New(seed uint64, c Class) *Game {
@@ -606,6 +608,13 @@ func (g *Game) die() {
 	g.Hero.Equip = g.Exp.StartEquip
 	g.Exp = nil
 	g.Deaths++
+	if g.Auto && g.Config.DeathLimit > 0 {
+		g.AutoDeaths++
+		if g.AutoDeaths >= g.Config.DeathLimit {
+			g.Auto = false
+			g.logf(LogBad, "%s", lang.T("log.auto_death_limit", g.AutoDeaths))
+		}
+	}
 	g.arriveInTown()
 }
 

@@ -39,6 +39,7 @@ func (g *Game) Depart() {
 func (g *Game) ToggleAuto() {
 	g.Auto = !g.Auto
 	if g.Auto {
+		g.AutoDeaths = 0
 		g.logf(LogInfo, "%s", lang.T("log.auto_on"))
 	} else {
 		g.logf(LogInfo, "%s", lang.T("log.auto_off"))
