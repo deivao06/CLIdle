@@ -41,7 +41,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Auto-expedição:** liga/desliga (desligada por padrão). Ao terminar, inicia outra com a mesma configuração.
 - Mandar o herói voltar manualmente desliga a auto-expedição; a retirada automática não.
 - Antes de partir, o herói compra poções até completar o número configurado (se tiver ouro).
-- **Poções:** bebidas automaticamente abaixo de um limite de HP configurável.
+- **Poções:** bebidas automaticamente abaixo de um limite de HP configurável. O herói guarda no máximo 10; o que passar disso é vendido ao chegar na cidade (metade do preço).
 
 ## Dungeon
 

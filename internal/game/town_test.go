@@ -115,3 +115,12 @@ func TestShopRefusesOtherClassItem(t *testing.T) {
 		t.Fatal("bought a shield as mage")
 	}
 }
+
+func TestExtraPotionsSoldInTown(t *testing.T) {
+	g := townGame()
+	g.Hero.Potions = MaxPotions + 3
+	g.arriveInTown()
+	if g.Hero.Potions != MaxPotions || g.Gold != 100000+3*PotionSellPrice {
+		t.Fatalf("potions %d gold %d", g.Hero.Potions, g.Gold)
+	}
+}

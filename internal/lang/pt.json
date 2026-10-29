@@ -231,6 +231,8 @@
   "log.trained": "Treino de %s: nível %d (%s).",
   "log.buy_potion": "Compra %d poção (%d ouro).",
   "log.buy_potions": "Compra %d poções (%d ouro).",
+  "log.sell_potion": "Vende %d poção a mais (%d ouro).",
+  "log.sell_potions": "Vende %d poções a mais (%d ouro).",
 
   "retreat.floor_done": "andar %d concluído",
   "retreat.bag_full": "mochila cheia",

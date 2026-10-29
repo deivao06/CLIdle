@@ -58,7 +58,7 @@ func (m Model) prepRows() []prepRow {
 	}
 	cfg("prep.mode", mode, func(int) { c.Mode = 1 - c.Mode })
 	cfg("prep.potions", lang.T("prep.potions_value", c.PotionsToBring, game.PotionPrice),
-		func(d int) { step(&c.PotionsToBring, d, 1, 0, 30) })
+		func(d int) { step(&c.PotionsToBring, d, 1, 0, game.MaxPotions) })
 	cfg("prep.potion_at", fmt.Sprintf("%d%%", c.PotionAtPct), func(d int) { step(&c.PotionAtPct, d, 5, 5, 90) })
 	retreat := lang.T("prep.never")
 	if c.RetreatHPPct > 0 {

@@ -178,10 +178,12 @@ var ItemNames = [NumSlots][][]itemName{
 }
 
 const (
-	ShopSize    = 3
-	ShopMarkup  = 3
-	PotionPrice = 10
-	TrainHP     = 5
+	ShopSize        = 3
+	ShopMarkup      = 3
+	PotionPrice     = 10
+	PotionSellPrice = 5
+	MaxPotions      = 10
+	TrainHP         = 5
 )
 
 func UpgradeCost(it *Item, level int) int {

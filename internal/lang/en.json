@@ -231,6 +231,8 @@
   "log.trained": "%s training: level %d (%s).",
   "log.buy_potion": "Buys %d potion (%d gold).",
   "log.buy_potions": "Buys %d potions (%d gold).",
+  "log.sell_potion": "Sells %d extra potion (%d gold).",
+  "log.sell_potions": "Sells %d extra potions (%d gold).",
 
   "retreat.floor_done": "floor %d cleared",
   "retreat.bag_full": "bag full",

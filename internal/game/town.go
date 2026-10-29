@@ -153,6 +153,15 @@ func (g *Game) buyPotions() {
 
 func (g *Game) arriveInTown() {
 	g.Hero.HP = g.Hero.MaxHP()
+	if n := g.Hero.Potions - MaxPotions; n > 0 {
+		g.Hero.Potions = MaxPotions
+		g.Gold += n * PotionSellPrice
+		key := "log.sell_potions"
+		if n == 1 {
+			key = "log.sell_potion"
+		}
+		g.logf(LogInfo, "%s", lang.T(key, n, n*PotionSellPrice))
+	}
 	for _, it := range g.Pending {
 		g.equipBought(it)
 	}
