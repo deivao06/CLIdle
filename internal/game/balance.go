@@ -67,8 +67,6 @@ const (
 	GoldPilesMax      = 4
 	ItemsMin          = 0
 	ItemsMax          = 2
-	RareChance        = 0.2
-	EpicChance        = 0.05
 	UpgradeDivisor    = 10
 	ItemValuePerBonus = 4
 )
@@ -77,7 +75,9 @@ func GoldPerPile(depth int) float64 { return 5 * math.Pow(1.12, float64(depth-1)
 
 func GoldPerKill(xp int) int { return max(1, xp/2) }
 
-var rarityMult = [...]float64{1, 1.5, 2.2}
+var RarityChance = [...]float64{Rare: 0.2, Magic: 0.08, Epic: 0.03, Legendary: 0.01}
+
+var rarityMult = [...]float64{1, 1.5, 1.85, 2.2, 2.8}
 
 var armorWeightMult = [...]float64{Light: 0.8, Medium: 1, Heavy: 1.25}
 

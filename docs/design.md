@@ -29,7 +29,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Névoa de guerra.
 - Legenda explicando cada caractere de entidade.
 - Monstros por letra (`r`, `g`, `o`...); chefes em letra maiúscula com cor própria. ~8–10 tipos na v1.
-- Raridade de itens por cor: Comum (branco), Raro (azul), Épico (roxo).
+- Raridade de itens por cor: Comum (branco), Raro (azul), Mágico (verde), Épico (roxo), Lendário (laranja).
 
 ## Expedições
 

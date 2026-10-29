@@ -78,7 +78,7 @@
   "help.unknown": "not found yet",
   "help.unknown_boss": "boss (every 10 floors)",
   "help.boss": "%s (boss)",
-  "help.footer": "? close · items: white common, blue rare, purple epic",
+  "help.footer": "? closes · items: white common, blue rare, green magic, purple epic, orange legendary",
 
   "slot.weapon": "weapon",
   "slot.armor": "armor",
@@ -127,6 +127,8 @@
 
   "rarity.common": "common",
   "rarity.rare": "rare",
+  "rarity.magic": "magic",
+  "rarity.legendary": "legendary",
   "rarity.epic": "epic",
 
   "stat.atk": "Atk",

@@ -35,7 +35,9 @@ var (
 var rarityStyles = [...]lipgloss.Style{
 	lipgloss.NewStyle().Foreground(lipgloss.Color("255")),
 	lipgloss.NewStyle().Foreground(lipgloss.Color("75")),
+	lipgloss.NewStyle().Foreground(lipgloss.Color("42")),
 	lipgloss.NewStyle().Foreground(lipgloss.Color("177")),
+	lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Bold(true),
 }
 
 func rarityStyle(r game.Rarity) lipgloss.Style { return rarityStyles[r] }
@@ -72,12 +74,14 @@ func hpStyle(hp, maxHP int) lipgloss.Style {
 }
 
 var logStyles = map[game.LogKind]lipgloss.Style{
-	game.LogInfo: lipgloss.NewStyle().Foreground(lipgloss.Color("250")),
-	game.LogGood: lipgloss.NewStyle().Foreground(lipgloss.Color("114")),
-	game.LogBad:  lipgloss.NewStyle().Foreground(lipgloss.Color("203")),
-	game.LogLoot: lipgloss.NewStyle().Foreground(lipgloss.Color("220")),
-	game.LogRare: lipgloss.NewStyle().Foreground(lipgloss.Color("75")),
-	game.LogEpic: lipgloss.NewStyle().Foreground(lipgloss.Color("177")),
+	game.LogInfo:      lipgloss.NewStyle().Foreground(lipgloss.Color("250")),
+	game.LogGood:      lipgloss.NewStyle().Foreground(lipgloss.Color("114")),
+	game.LogBad:       lipgloss.NewStyle().Foreground(lipgloss.Color("203")),
+	game.LogLoot:      lipgloss.NewStyle().Foreground(lipgloss.Color("220")),
+	game.LogRare:      lipgloss.NewStyle().Foreground(lipgloss.Color("75")),
+	game.LogEpic:      lipgloss.NewStyle().Foreground(lipgloss.Color("177")),
+	game.LogMagic:     lipgloss.NewStyle().Foreground(lipgloss.Color("42")),
+	game.LogLegendary: lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Bold(true),
 }
 
 func tileStyle(t game.Tile) *lipgloss.Style {

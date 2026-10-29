@@ -118,3 +118,16 @@ func TestMageStashesSword(t *testing.T) {
 		t.Fatal("mage should bag, not equip, a sword")
 	}
 }
+
+func TestEveryRarityDrops(t *testing.T) {
+	rng := NewRNG(1)
+	seen := map[Rarity]bool{}
+	for range 5000 {
+		seen[newItem(rng, 5).Rarity] = true
+	}
+	for r := Common; r <= Legendary; r++ {
+		if !seen[r] {
+			t.Fatalf("%v never drops", r)
+		}
+	}
+}

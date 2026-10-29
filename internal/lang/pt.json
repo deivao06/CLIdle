@@ -78,7 +78,7 @@
   "help.unknown": "ainda não encontrado",
   "help.unknown_boss": "chefe (a cada 10 andares)",
   "help.boss": "%s (chefe)",
-  "help.footer": "? fecha · itens: branco comum, azul raro, roxo épico",
+  "help.footer": "? fecha · itens: branco comum, azul raro, verde mágico, roxo épico, laranja lendário",
 
   "slot.weapon": "arma",
   "slot.armor": "armadura",
@@ -127,6 +127,8 @@
 
   "rarity.common": "comum",
   "rarity.rare": "raro",
+  "rarity.magic": "mágico",
+  "rarity.legendary": "lendário",
   "rarity.epic": "épico",
 
   "stat.atk": "Atq",

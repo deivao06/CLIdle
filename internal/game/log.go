@@ -11,6 +11,8 @@ const (
 	LogLoot
 	LogRare
 	LogEpic
+	LogMagic
+	LogLegendary
 )
 
 type LogEntry struct {

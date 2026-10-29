@@ -66,3 +66,15 @@ func TestV1SaveMigratesItemKind(t *testing.T) {
 		t.Fatalf("kinds not migrated: %v", err)
 	}
 }
+
+func TestV2SaveKeepsEpicItemsEpic(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := New(1, Warrior)
+	g.Hero.Equip[Weapon] = &Item{Slot: Weapon, Rarity: 2, Name: "item.mace", Base: 3}
+	data, _ := json.Marshal(saveFile{2, time.Now(), g})
+	os.WriteFile(path, data, 0o644)
+	got, _, err := Load(path)
+	if err != nil || got.Hero.Equip[Weapon].Rarity != Epic {
+		t.Fatalf("rarity %v err %v", got.Hero.Equip[Weapon].Rarity, err)
+	}
+}

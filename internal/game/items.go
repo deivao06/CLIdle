@@ -36,15 +36,17 @@ type Rarity int
 const (
 	Common Rarity = iota
 	Rare
+	Magic
 	Epic
+	Legendary
 )
 
 func (r Rarity) Name() string {
-	return lang.T([...]string{"rarity.common", "rarity.rare", "rarity.epic"}[r])
+	return lang.T([...]string{"rarity.common", "rarity.rare", "rarity.magic", "rarity.epic", "rarity.legendary"}[r])
 }
 
 func (r Rarity) LogKind() LogKind {
-	return [...]LogKind{LogLoot, LogRare, LogEpic}[r]
+	return [...]LogKind{LogLoot, LogRare, LogMagic, LogEpic, LogLegendary}[r]
 }
 
 type Item struct {
@@ -111,11 +113,13 @@ func (f *FloorItem) Glyph() rune {
 
 func newItem(rng *RNG, depth int) *Item {
 	rarity := Common
-	switch roll := rng.Float(); {
-	case roll < EpicChance:
-		rarity = Epic
-	case roll < EpicChance+RareChance:
-		rarity = Rare
+	roll := rng.Float()
+	for r := Legendary; r > Common; r-- {
+		if roll < RarityChance[r] {
+			rarity = r
+			break
+		}
+		roll -= RarityChance[r]
 	}
 	return newItemOf(rng, depth, rarity)
 }
