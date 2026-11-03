@@ -27,7 +27,7 @@ func XPToNext(level int) int { return int(20 * math.Pow(1.5, float64(level-1))) 
 
 func MonsterScale(depthsAboveMin int) float64 { return math.Pow(1.15, float64(depthsAboveMin)) }
 
-func MonstersPerLevel(depth int) int { return min(3+depth/2, 12) }
+func MonstersPerLevel(depth int) int { return min(max(5, 3+depth/2), 12) }
 
 const (
 	BossEvery   = 10
@@ -53,7 +53,7 @@ var BossKinds = []MonsterKind{
 var MonsterKinds = []MonsterKind{
 	{'r', "monster.rat", "180", 6, 3, 0, 4, 3, 1, false},
 	{'b', "monster.bat", "137", 5, 3, 0, 7, 4, 1, false},
-	{'k', "monster.kobold", "172", 10, 4, 1, 4, 6, 2, false},
+	{'k', "monster.kobold", "172", 10, 4, 1, 4, 6, 1, false},
 	{'g', "monster.goblin", "70", 14, 6, 2, 4, 9, 4, false},
 	{'w', "monster.wolf", "247", 16, 7, 1, 6, 12, 6, false},
 	{'z', "monster.zombie", "107", 28, 8, 3, 2, 15, 8, true},
