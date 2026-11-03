@@ -3,10 +3,10 @@ package ui
 import (
 	"strconv"
 	"strings"
-)
 
-// crtRamp is a phosphor-green ramp of xterm colors, from dark to bright.
-var crtRamp = []int{22, 28, 34, 40, 46, 83, 120, 157}
+	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
+)
 
 var ansi16 = [16][3]int{
 	{0, 0, 0}, {205, 0, 0}, {0, 205, 0}, {205, 205, 0}, {0, 0, 238}, {205, 0, 205}, {0, 205, 205}, {229, 229, 229},
@@ -28,11 +28,27 @@ func xtermRGB(n int) (int, int, int) {
 	}
 }
 
-// crtShade maps a color to the green of similar brightness; dim darkens it by whole steps.
+// crtShade tints a color slightly toward phosphor green; dim darkens it a little per step.
 func crtShade(r, g, b, dim int) string {
-	l := (299*r + 587*g + 114*b) / 1000
-	i := l * l * len(crtRamp) / (256 * 256)
-	return strconv.Itoa(crtRamp[clamp(i-dim, 0, len(crtRamp)-1)])
+	f := 1 - crtDimStep*float64(dim)
+	r = int(float64(r) * (1 - crtTint) * f)
+	g = int(min(255, float64(g)+crtGreenLift) * f)
+	b = int(float64(b) * (1 - crtTint) * f)
+	if lipgloss.ColorProfile() == termenv.TrueColor {
+		return "2;" + strconv.Itoa(r) + ";" + strconv.Itoa(g) + ";" + strconv.Itoa(b)
+	}
+	return "5;" + strconv.Itoa(nearestXterm(r, g, b))
+}
+
+func nearestXterm(r, g, b int) int {
+	best, bestD := 16, 1<<30
+	for n := 16; n < 256; n++ {
+		xr, xg, xb := xtermRGB(n)
+		if d := (xr-r)*(xr-r) + (xg-g)*(xg-g) + (xb-b)*(xb-b); d < bestD {
+			best, bestD = n, d
+		}
+	}
+	return best
 }
 
 var crtCache = map[string]string{}
@@ -43,7 +59,7 @@ func crtSGR(params string, dim int) string {
 	if s, ok := crtCache[key]; ok {
 		return s
 	}
-	base := "38;5;" + crtShade(crtDefaultFg, crtDefaultFg, crtDefaultFg, dim)
+	base := "38;" + crtShade(crtDefaultFg, crtDefaultFg, crtDefaultFg, dim)
 	p := strings.Split(params, ";")
 	var out []string
 	num := func(i int) int {
@@ -62,17 +78,17 @@ func crtSGR(params string, dim int) string {
 			out = append(out, base)
 		case (n == 38 || n == 48) && num(i+1) == 5:
 			r, g, b := xtermRGB(num(i + 2))
-			out = append(out, strconv.Itoa(n)+";5;"+crtShade(r, g, b, dim))
+			out = append(out, strconv.Itoa(n)+";"+crtShade(r, g, b, dim))
 			i += 2
 		case (n == 38 || n == 48) && num(i+1) == 2:
-			out = append(out, strconv.Itoa(n)+";5;"+crtShade(num(i+2), num(i+3), num(i+4), dim))
+			out = append(out, strconv.Itoa(n)+";"+crtShade(num(i+2), num(i+3), num(i+4), dim))
 			i += 4
 		case n >= 30 && n <= 37, n >= 90 && n <= 97:
 			r, g, b := xtermRGB(n%10 + 8*(n/90))
-			out = append(out, "38;5;"+crtShade(r, g, b, dim))
+			out = append(out, "38;"+crtShade(r, g, b, dim))
 		case n >= 40 && n <= 47, n >= 100 && n <= 107:
 			r, g, b := xtermRGB(n%10 + 8*(n/100))
-			out = append(out, "48;5;"+crtShade(r, g, b, dim))
+			out = append(out, "48;"+crtShade(r, g, b, dim))
 		default:
 			out = append(out, p[i])
 		}
@@ -82,8 +98,8 @@ func crtSGR(params string, dim int) string {
 	return s
 }
 
-// crt tints a rendered frame phosphor green, dims every other line like scanlines and,
-// on rare frames, dims everything one step as a flicker.
+// crt tints a rendered frame slightly green, dims every other line a little like scanlines and,
+// on rare frames, dims everything a little as a flicker.
 func crt(s string, frame int64) string {
 	flick := 0
 	if flicker(frame, crtFlickerSalt) < crtFlickerChance {

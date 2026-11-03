@@ -23,6 +23,9 @@ const (
 	crtFlickerChance = 0.015
 	crtFlickerSalt   = 7
 	crtDefaultFg     = 200
+	crtTint          = 0.08
+	crtGreenLift     = 10.0
+	crtDimStep       = 0.06
 )
 
 func (m Model) View() string {
