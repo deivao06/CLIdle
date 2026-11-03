@@ -23,8 +23,9 @@ func TestCRTKeepsTextAndLayout(t *testing.T) {
 			t.Fatalf("frame %d changed the text: %q", frame, out)
 		}
 	}
-	if plain := "no colors here"; crt(plain, 0) != plain {
-		t.Fatal("text in the terminal's default color should be left alone")
+	plain := "no colors here"
+	if out := crt(plain, 0); out == plain || sgr.ReplaceAllString(out, "") != plain {
+		t.Fatalf("default-color text should be tinted but keep its text: %q", out)
 	}
 }
 

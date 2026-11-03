@@ -25,6 +25,9 @@ const (
 	crtFlickerDim    = 0.12
 	crtDimStep       = 0.05
 	crtDesat         = 0.15
+	crtTint          = 0.18
+	crtGreenLift     = 22.0
+	crtDefaultFg     = 204
 	crtGrayDiff      = 24
 	crtGlitchChance  = 0.01
 	crtGlitchSalt    = 11

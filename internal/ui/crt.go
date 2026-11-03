@@ -28,7 +28,7 @@ func xtermRGB(n int) (int, int, int) {
 	}
 }
 
-// crtShade ages a color: a bit less saturated, a bit darker on scanlines and, when flicker is on,
+// crtShade ages a color: tinted phosphor green, a bit less saturated, a bit darker on scanlines and, when flicker is on,
 // darker still if it is a gray (secondary text, walls, borders).
 func crtShade(r, g, b, dim int, flick bool) string {
 	l := (299*r + 587*g + 114*b) / 1000
@@ -37,16 +37,16 @@ func crtShade(r, g, b, dim int, flick bool) string {
 	if flick && gray {
 		f -= crtFlickerDim
 	}
-	age := func(c int) string {
-		v := float64(c) + float64(l-c)*crtDesat
+	age := func(c int, mul, add float64) string {
+		v := (float64(c)+float64(l-c)*crtDesat)*mul + add
 		return strconv.Itoa(clamp(int(v*f), 0, 255))
 	}
 	if lipgloss.ColorProfile() == termenv.TrueColor {
-		return "2;" + age(r) + ";" + age(g) + ";" + age(b)
+		return "2;" + age(r, 1-crtTint, 0) + ";" + age(g, 1, crtGreenLift) + ";" + age(b, 1-crtTint, 0)
 	}
-	ar, _ := strconv.Atoi(age(r))
-	ag, _ := strconv.Atoi(age(g))
-	ab, _ := strconv.Atoi(age(b))
+	ar, _ := strconv.Atoi(age(r, 1-crtTint, 0))
+	ag, _ := strconv.Atoi(age(g, 1, crtGreenLift))
+	ab, _ := strconv.Atoi(age(b, 1-crtTint, 0))
 	return "5;" + strconv.Itoa(nearestXterm(ar, ag, ab))
 }
 
@@ -64,7 +64,7 @@ func nearestXterm(r, g, b int) int {
 var crtCache = map[string]string{}
 
 // crtSGR rewrites the colors of one SGR sequence (the part between "\x1b[" and "m");
-// the terminal's default colors are left alone.
+// text in the terminal's default color gets the tint of a light gray.
 func crtSGR(params string, dim int, flick bool) string {
 	key := params + "|" + strconv.Itoa(dim) + strconv.FormatBool(flick)
 	if s, ok := crtCache[key]; ok {
@@ -79,9 +79,14 @@ func crtSGR(params string, dim int, flick bool) string {
 		n, _ := strconv.Atoi(p[i])
 		return n
 	}
+	base := "38;" + crtShade(crtDefaultFg, crtDefaultFg, crtDefaultFg, dim, flick)
 	for i := 0; i < len(p); i++ {
 		n := num(i)
 		switch {
+		case p[i] == "" || n == 0:
+			out = append(out, "0", base)
+		case n == 39:
+			out = append(out, base)
 		case (n == 38 || n == 48) && num(i+1) == 5:
 			r, g, b := xtermRGB(num(i + 2))
 			out = append(out, strconv.Itoa(n)+";"+crtShade(r, g, b, dim, flick))
@@ -126,6 +131,7 @@ func crt(s string, frame int64) string {
 			line = crtTear.Replace(line)
 		}
 		dim := y % 2
+		b.WriteString(crtSGR("", dim, flick))
 		for {
 			i := strings.Index(line, "\x1b[")
 			j := -1
@@ -140,6 +146,7 @@ func crt(s string, frame int64) string {
 			b.WriteString(crtSGR(line[i+2:i+j], dim, flick))
 			line = line[i+j+1:]
 		}
+		b.WriteString("\x1b[0m")
 	}
 	return b.String()
 }
