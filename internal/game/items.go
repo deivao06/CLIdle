@@ -40,6 +40,7 @@ const (
 	Magic
 	Epic
 	Legendary
+	NumRarities
 )
 
 func (r Rarity) Name() string {

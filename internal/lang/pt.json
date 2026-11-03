@@ -116,6 +116,8 @@
   "prep.potion_at": "Beber poção com HP <",
   "prep.never": "nunca",
   "prep.retreat_hp": "Recuar sem poção, HP <",
+  "prep.min_rarity": "Pegar itens",
+  "prep.min_rarity_value": "%s+",
   "prep.retreat_bag": "Recuar mochila cheia",
   "prep.last_floor": "Último andar",
   "prep.no_limit": "sem limite",

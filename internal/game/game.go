@@ -42,6 +42,7 @@ type Config struct {
 	StartFloor     int
 	DeathLimit     int
 	ManualEquip    bool
+	MinRarity      Rarity
 }
 
 func DefaultConfig() Config {
@@ -274,7 +275,7 @@ func (g *Game) wants(f *FloorItem) bool {
 	if f.Item == nil {
 		return true
 	}
-	return g.better(f.Item) || len(g.Exp.Bag) < BagSize
+	return g.better(f.Item) || f.Item.Rarity >= g.Exp.Config.MinRarity && len(g.Exp.Bag) < BagSize
 }
 
 func (g *Game) better(it *Item) bool {

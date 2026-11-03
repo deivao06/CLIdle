@@ -116,6 +116,8 @@
   "prep.potion_at": "Drink potion at HP <",
   "prep.never": "never",
   "prep.retreat_hp": "Retreat w/o potions <",
+  "prep.min_rarity": "Pick up",
+  "prep.min_rarity_value": "%s+",
   "prep.retreat_bag": "Retreat on full bag",
   "prep.last_floor": "Last floor",
   "prep.no_limit": "no limit",

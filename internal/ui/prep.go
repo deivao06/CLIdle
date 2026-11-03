@@ -98,6 +98,9 @@ func (m Model) prepRows() []prepRow {
 	}
 	cfg("prep.retreat_hp", retreat, func(d int) { step(&c.RetreatHPPct, d, 5, 0, 90) })
 	cfg("prep.auto_equip", onOff(!c.ManualEquip), func(int) { c.ManualEquip = !c.ManualEquip })
+	cfg("prep.min_rarity", lang.T("prep.min_rarity_value", c.MinRarity.Name()), func(d int) {
+		c.MinRarity = (c.MinRarity + game.Rarity(d) + game.NumRarities) % game.NumRarities
+	})
 	cfg("prep.retreat_bag", onOff(c.RetreatBagFull), func(int) { c.RetreatBagFull = !c.RetreatBagFull })
 	last := lang.T("prep.no_limit")
 	if c.LastFloor > 0 {
