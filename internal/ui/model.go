@@ -204,6 +204,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "?":
 			m.help = !m.help
+		case "esc":
+			m.help = false
 		default:
 			if (m.tab == tabPrep || m.tab == tabSettings) && !m.help {
 				m.prepKey(msg.String())
