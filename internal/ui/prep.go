@@ -29,6 +29,13 @@ func onOff(b bool) string {
 	return lang.T("prep.no")
 }
 
+func crtLabel(on bool) string {
+	if on {
+		return lang.T("prep.crt_on")
+	}
+	return lang.T("prep.crt_off")
+}
+
 func step(v *int, delta, by, lo, hi int) { *v = clamp(*v+delta*by, lo, hi) }
 
 func cfgRow(section, label, value string, adjust func(int)) prepRow {
@@ -56,6 +63,7 @@ func (m Model) settingsRows() []prepRow {
 	sec := lang.T("prep.section.game")
 	return []prepRow{
 		cfgRow(sec, "prep.bell", onOff(g.Bell), func(int) { g.Bell = !g.Bell }),
+		cfgRow(sec, "prep.crt", crtLabel(!g.NoCRT), func(int) { g.NoCRT = !g.NoCRT }),
 		cfgRow(sec, "prep.language", lang.T("lang.name"), func(int) {
 			g.Lang = lang.Next(lang.Current())
 			lang.Set(g.Lang)

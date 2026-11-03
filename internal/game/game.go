@@ -72,6 +72,7 @@ type Game struct {
 	AutoDeaths int
 	Stash      []*Item
 	Bell       bool
+	NoCRT      bool
 	Lang       string
 	BagLevel   int
 	LastDeath  []LogEntry

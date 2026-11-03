@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"github.com/muesli/termenv"
 	"math"
 	"strings"
 	"time"
@@ -13,14 +14,26 @@ import (
 )
 
 const (
-	minW, minH      = 40, 10
-	sideW           = 28
-	townListW       = 70
-	townSceneMinW   = 30
-	campfireFrameMs = 150
+	minW, minH       = 40, 10
+	sideW            = 28
+	townListW        = 70
+	townSceneMinW    = 30
+	campfireFrameMs  = 150
+	crtFrameMs       = 100
+	crtFlickerChance = 0.015
+	crtFlickerSalt   = 7
+	crtDefaultFg     = 200
 )
 
 func (m Model) View() string {
+	s := m.view()
+	if m.crtOff || lipgloss.ColorProfile() == termenv.Ascii {
+		return s
+	}
+	return crt(s, m.lastTick.UnixMilli()/crtFrameMs)
+}
+
+func (m Model) view() string {
 	if m.w == 0 {
 		return ""
 	}
