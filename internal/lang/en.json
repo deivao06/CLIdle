@@ -263,6 +263,7 @@
 
   "retreat.floor_done": "floor %d cleared",
   "retreat.bag_full": "bag full",
+  "retreat.boss_strong": "boss too strong",
   "retreat.low_hp": "low HP and no potions",
   "retreat.order": "your order",
 

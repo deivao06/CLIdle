@@ -42,7 +42,7 @@ func (g *Game) castTarget() *Monster {
 	var best *Monster
 	for _, m := range l.Mons {
 		d := m.Pos.Dist(h)
-		if d > SpellRange || !l.Visible(h, m.Pos) {
+		if d > SpellRange || !l.Visible(h, m.Pos) || m.Boss && !m.Awake && !g.canBeat(m) {
 			continue
 		}
 		if best == nil || (m.Asleep == 0) != (best.Asleep == 0) && m.Asleep == 0 ||

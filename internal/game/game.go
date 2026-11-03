@@ -551,7 +551,7 @@ func (g *Game) monstersAct(r *round, fast bool) {
 			continue
 		}
 		if !m.Awake {
-			if !l.Visible(h.Pos, m.Pos) {
+			if !l.Visible(h.Pos, m.Pos) || m.Boss && m.Pos.Dist(h.Pos) > BossWakeDist {
 				continue
 			}
 			m.Awake = true
@@ -680,11 +680,12 @@ func (g *Game) chooseStep() (Pos, bool) {
 	if g.Exp.Retreating {
 		return l.pathStep(h.Pos, g.passable, to(l.Up))
 	}
+	boss := l.boss()
+	ready := boss == nil || g.canBeat(boss)
 	seenMonster := func(p Pos) bool {
 		m := l.MonsterAt(p)
-		return m != nil && l.Visible(h.Pos, p)
+		return m != nil && l.Visible(h.Pos, p) && (ready || !m.Boss)
 	}
-	boss := l.boss()
 	rush := func(p Pos) bool {
 		return g.Exp.Config.Mode == DescendFast && boss == nil && l.IsSeen(l.Down) && p == l.Down
 	}
@@ -693,5 +694,18 @@ func (g *Game) chooseStep() (Pos, bool) {
 		last = to(boss.Pos)
 	}
 	next, i := l.search(h.Pos, g.passable, seenMonster, g.wantedItem, rush, g.frontier, last)
+	if boss != nil && !ready && (i == 4 || l.Visible(h.Pos, boss.Pos)) {
+		g.startRetreat(lang.T("retreat.boss_strong"))
+		return l.pathStep(h.Pos, g.passable, to(l.Up))
+	}
 	return next, i >= 0
+}
+
+// canBeat estimates a straight fight with average damage, counting the potions the hero carries.
+func (g *Game) canBeat(m *Monster) bool {
+	h := g.Hero
+	heroHit := max(1, float64(max(h.Atk(), h.SpellAtk()))-float64(m.Def)*0.5)
+	monHit := max(1, float64(m.Atk)-float64(h.Def())*0.5) * float64(m.Spd) / float64(h.Spd())
+	pool := h.HP + h.Potions*h.MaxHP()*(PotionHealPct+h.Effect(PotionBoost))/100
+	return float64(m.HP)/heroHit < float64(pool)/monHit
 }

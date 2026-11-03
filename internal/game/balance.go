@@ -36,6 +36,8 @@ const (
 	BossDefMult = 1.3
 	BossXPMult  = 8
 	BossMinSpd  = 5
+
+	BossWakeDist = 3
 )
 
 var BossKinds = []MonsterKind{

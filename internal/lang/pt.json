@@ -263,6 +263,7 @@
 
   "retreat.floor_done": "andar %d concluído",
   "retreat.bag_full": "mochila cheia",
+  "retreat.boss_strong": "chefe forte demais",
   "retreat.low_hp": "HP baixo e sem poções",
   "retreat.order": "ordem sua",
 
