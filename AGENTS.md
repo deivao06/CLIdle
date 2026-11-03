@@ -65,6 +65,7 @@ internal/ui/            Bubble Tea
 - **Compras com o herói fora:** loja e ferreiro vão para `Pending`/`Upgrades` e são aplicados em `arriveInTown` (que roda tanto na volta quanto na morte). Treino vale na hora.
 - **Efeitos de item:** `Item.Effects` (só épico e lendário), somados por `Hero.Effect`. Aparecem no `StatLabel`. Crítico só gasta RNG se o herói tiver o efeito, para não mudar a sequência de quem não tem.
 - **Baú:** `Game.Stash`. Só enche com `Config.ManualEquip` (auto-equipar desligado): `better()` devolve falso e `returnToTown` guarda a mochila no baú em vez de vender.
+- **Mochila:** tamanho é `Game.BagCap()` (`BagSize` + `BagLevel`×2), nunca a constante `BagSize` direto. Upgrade com o herói fora vai para `BagQueued` e é aplicado em `arriveInTown`. `Config.MinRarity` filtra o que vai para a mochila em `wants`.
 - **Morte:** restaura `StartEquip`, perde ouro e mochila da expedição; mantém poções e XP.
 - **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item épico e libera atalho para `andar+1`.
 
@@ -105,10 +106,10 @@ Quase não há testes de UI (só `internal/ui/model_test.go`). Para ver telas:
 
 ## Estado atual
 
-Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline. Depois vieram idioma (inglês padrão, português opcional) e classes (4 classes, atributos FOR/DES/INT/CON, capacete/escudo, habilidades, mana e magias). Por último: balanceamento (menos poções, monstros mais fortes), raridades mágico e lendário, efeitos em épicos/lendários, auto-equipar opcional com baú, limite de mortes e a tela Config (bip, idioma, resetar save).
+Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline. Depois vieram idioma (inglês padrão, português opcional) e classes (4 classes, atributos FOR/DES/INT/CON, capacete/escudo, habilidades, mana e magias). Por último: balanceamento (menos poções, monstros mais fortes), raridades mágico e lendário, efeitos em épicos/lendários, auto-equipar opcional com baú, limite de mortes e a tela Config (bip, idioma, resetar save). Depois: filtro de raridade para pegar itens, motivo da retirada na linha de volta e upgrade da mochila na cidade.
 
 **Problemas conhecidos / ajustes pendentes:**
-- Com a config padrão, a mochila (8 vagas) enche por volta do andar 6–8, o herói volta e recomeça do andar 1, e a progressão trava até o jogador mudar a config ou usar atalhos.
+- Com a config padrão, a mochila (8 vagas) enche por volta do andar 6–8, o herói volta e recomeça do andar 1. O jogador destrava com o filtro de raridade, o upgrade da mochila (até 24) ou atalhos; o dono preferiu deixar o filtro em comum por padrão.
 - O herói quase não usa poções: 0 mortes em 12h com a config padrão. O excesso acima de 10 é vendido na cidade.
 - Com "descer direto" e sem recuar com mochila cheia, ele chega ao andar 30 em ~1h. O ritmo geral ainda não foi ajustado jogando.
 - Os andares iniciais parecem parecidos (mesma grade 3×3, só rato e morcego no andar 1).
