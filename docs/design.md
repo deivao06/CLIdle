@@ -91,7 +91,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - RNG com seed por expedição (testes e reprodução de bugs).
 - Testes automatizados na lógica (geração, combate, simulação); sem testar a UI.
 - Bip do terminal (morte/chefe) desligado por padrão, com opção para ligar.
-- **Efeito CRT** ligado por padrão (opção na tela Config): clima de terminal antigo (Fallout), mas colorido: as cores originais ganham um leve tom verde-fósforo, linhas alternadas ficam um pouco mais escuras (scanlines), uma faixa mais clara desce devagar pela tela, pontinhos de chuvisco piscam só em espaços vazios, há um flicker raro e, de vez em quando, uma linha pula 1–2 colunas por um instante. Sem curvatura.
+- **Efeito CRT** ligado por padrão (opção na tela Config): camada estética de terminal antigo (Fallout), sem virar monocromático. As cores originais são mantidas, só um pouco desbotadas; linhas alternadas ficam um pouco mais escuras (scanlines); de vez em quando os elementos cinzas (texto secundário, paredes, bordas) oscilam de brilho; raramente uma borda da interface aparece "rasgada" (`│` → `╎`) por um instante. Texto na cor padrão do terminal fica intocado; nada muda texto nem layout.
 - **Idioma:** inglês por padrão, português como opção na tela Config. Fica no save. Ao trocar, nomes de itens mudam junto; linhas antigas do log ficam no idioma em que foram escritas.
 
 ## Marcos

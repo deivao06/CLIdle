@@ -42,7 +42,7 @@ internal/ui/            Bubble Tea
   view.go               layout adaptável, mapa, log, painel do herói, legenda, cidade, resumo
   prep.go               Preparação (só config), lista da cidade (`townRows`), Config, resetar save
   style.go              estilos/cores
-  crt.go                efeito CRT: puxa levemente para o verde as cores ANSI da saída da View (Game.NoCRT, zero = ligado)
+  crt.go                efeito CRT: envelhece as cores ANSI da saída da View (desbota, scanlines, flicker dos cinzas, borda rasgada) (Game.NoCRT, zero = ligado)
 ```
 
 ## Invariantes que não podem quebrar

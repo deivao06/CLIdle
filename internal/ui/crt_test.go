@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -13,23 +14,28 @@ import (
 
 var sgr = regexp.MustCompile("\x1b\\[[0-9;]*m")
 
-func TestCRTKeepsText(t *testing.T) {
-	in := "\x1b[1;38;5;208mfire\x1b[0m plain    text\n\x1b[93m@\x1b[0m and \x1b[48;5;214mtab\x1b[0m"
-	plain := func(s string) string {
-		var lines []string
-		for _, l := range strings.Split(sgr.ReplaceAllString(s, ""), "\n") {
-			lines = append(lines, strings.TrimLeft(strings.ReplaceAll(l, "·", " "), " "))
-		}
-		return strings.Join(lines, "\n")
-	}
+func TestCRTKeepsTextAndLayout(t *testing.T) {
+	in := "\x1b[1;38;5;208mfire\x1b[0m plain │ text\n\x1b[93m@\x1b[0m and \x1b[48;5;214mtab\x1b[0m ───"
+	untear := strings.NewReplacer("╎", "│", "╌", "─")
 	for frame := range int64(500) {
 		out := crt(in, frame)
-		if plain(out) != plain(in) {
+		if untear.Replace(sgr.ReplaceAllString(out, "")) != sgr.ReplaceAllString(in, "") {
 			t.Fatalf("frame %d changed the text: %q", frame, out)
 		}
-		if !strings.Contains(out, "\x1b[0;38;") {
-			t.Fatalf("reset does not restore the CRT tint: %q", out)
-		}
+	}
+	if plain := "no colors here"; crt(plain, 0) != plain {
+		t.Fatal("text in the terminal's default color should be left alone")
+	}
+}
+
+func TestCRTKeepsHue(t *testing.T) {
+	out := crtSGR("38;2;220;30;30", 1, true)
+	var n int
+	if _, err := fmt.Sscanf(out, "\x1b[38;5;%dm", &n); err != nil {
+		t.Fatalf("unexpected %q", out)
+	}
+	if r, g, b := xtermRGB(n); r <= g || r <= b {
+		t.Fatalf("red became %d,%d,%d", r, g, b)
 	}
 }
 
