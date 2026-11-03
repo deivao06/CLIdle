@@ -36,19 +36,19 @@ type Rarity int
 
 const (
 	Common Rarity = iota
-	Rare
 	Magic
+	Rare
 	Epic
 	Legendary
 	NumRarities
 )
 
 func (r Rarity) Name() string {
-	return lang.T([...]string{"rarity.common", "rarity.rare", "rarity.magic", "rarity.epic", "rarity.legendary"}[r])
+	return lang.T([...]string{"rarity.common", "rarity.magic", "rarity.rare", "rarity.epic", "rarity.legendary"}[r])
 }
 
 func (r Rarity) LogKind() LogKind {
-	return [...]LogKind{LogLoot, LogRare, LogMagic, LogEpic, LogLegendary}[r]
+	return [...]LogKind{LogLoot, LogMagic, LogRare, LogEpic, LogLegendary}[r]
 }
 
 type Effect int

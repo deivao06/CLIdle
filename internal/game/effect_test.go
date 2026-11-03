@@ -10,7 +10,7 @@ import (
 func TestOnlyEpicAndAboveRollEffects(t *testing.T) {
 	rng := NewRNG(1)
 	for range 50 {
-		if n := len(newItemOf(rng, 5, Magic).Effects); n != 0 {
+		if n := len(newItemOf(rng, 5, Rare).Effects); n != 0 {
 			t.Fatalf("magic item with %d effects", n)
 		}
 		if n := len(newItemOf(rng, 5, Epic).Effects); n != 1 {

@@ -92,7 +92,7 @@ var EffectRange = [NumEffects][2]int{
 	XPBoost:     {5, 15},
 }
 
-var RarityChance = [...]float64{Rare: 0.2, Magic: 0.08, Epic: 0.03, Legendary: 0.01}
+var RarityChance = [...]float64{Magic: 0.2, Rare: 0.08, Epic: 0.03, Legendary: 0.01}
 
 var rarityMult = [...]float64{1, 1.5, 1.85, 2.2, 2.8}
 

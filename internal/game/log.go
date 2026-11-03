@@ -9,9 +9,9 @@ const (
 	LogGood
 	LogBad
 	LogLoot
-	LogRare
-	LogEpic
 	LogMagic
+	LogEpic
+	LogRare
 	LogLegendary
 )
 

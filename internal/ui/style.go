@@ -78,9 +78,9 @@ var logStyles = map[game.LogKind]lipgloss.Style{
 	game.LogGood:      lipgloss.NewStyle().Foreground(lipgloss.Color("114")),
 	game.LogBad:       lipgloss.NewStyle().Foreground(lipgloss.Color("203")),
 	game.LogLoot:      lipgloss.NewStyle().Foreground(lipgloss.Color("220")),
-	game.LogRare:      lipgloss.NewStyle().Foreground(lipgloss.Color("75")),
+	game.LogMagic:     lipgloss.NewStyle().Foreground(lipgloss.Color("75")),
 	game.LogEpic:      lipgloss.NewStyle().Foreground(lipgloss.Color("177")),
-	game.LogMagic:     lipgloss.NewStyle().Foreground(lipgloss.Color("42")),
+	game.LogRare:      lipgloss.NewStyle().Foreground(lipgloss.Color("42")),
 	game.LogLegendary: lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Bold(true),
 }
 

@@ -75,7 +75,7 @@ Nas **confirmações**: `s`, `y` ou `enter` confirmam; `n` ou `esc` cancelam.
 | `r` `b` `k` `g`... | monstros (letra minúscula) |
 | `G` `O` `L` `D` | chefes (letra maiúscula) |
 
-Cor do item = raridade: branco comum, azul raro, verde mágico, roxo épico, laranja lendário.
+Cor do item = raridade: branco comum, azul mágico, verde raro, roxo épico, laranja lendário.
 
 ## Save
 
