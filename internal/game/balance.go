@@ -40,6 +40,7 @@ const (
 	BossWakeDist = 3
 
 	DeathKeepGoldPct = 50
+	DeathLogLines    = 6
 )
 
 var BossKinds = []MonsterKind{

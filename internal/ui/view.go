@@ -274,7 +274,15 @@ func (m Model) renderLog(w, h int) string {
 }
 
 func (m Model) heroLines() []string {
-	return strings.Split(m.heroPanel(min(48, m.w-4), math.MaxInt/2), "\n")
+	w := min(48, m.w-4)
+	s := m.heroPanel(w, math.MaxInt/2)
+	if d := m.g.LastDeath; len(d) > 0 {
+		s += "\n\n" + sSection.Render(lang.T("hero.last_death")) + "\n"
+		for _, e := range d {
+			s += logStyles[e.Kind].Width(w).Render(e.Text) + "\n"
+		}
+	}
+	return strings.Split(s, "\n")
 }
 
 func (m Model) heroPanel(w, maxH int) string {

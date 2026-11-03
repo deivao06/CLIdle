@@ -75,6 +75,7 @@ type Game struct {
 	Lang       string
 	BagLevel   int
 	BagQueued  int
+	LastDeath  []LogEntry
 }
 
 func New(seed uint64, c Class) *Game {
@@ -195,8 +196,9 @@ func (g *Game) step() {
 		}
 		g.monstersAct(r, false)
 	}
-	g.flush(r)
+	lines := g.flush(r)
 	if g.Exp == nil {
+		g.LastDeath = append(g.LastDeath, lines...)
 		return
 	}
 	switch {
@@ -401,7 +403,8 @@ func (mr *monsterRound) String() string {
 	return s
 }
 
-func (g *Game) flush(r *round) {
+func (g *Game) flush(r *round) []LogEntry {
+	var out []LogEntry
 	var parts []string
 	if r.hero != "" {
 		parts = append(parts, r.hero)
@@ -415,11 +418,13 @@ func (g *Game) flush(r *round) {
 		if r.hurt {
 			kind = LogBad
 		}
-		g.logf(kind, "%s", strings.ToUpper(line[:1])+line[1:])
+		out = append(out, LogEntry{strings.ToUpper(line[:1]) + line[1:], kind, 1})
 	}
-	for _, e := range r.after {
+	out = append(out, r.after...)
+	for _, e := range out {
 		g.logf(e.Kind, "%s", e.Text)
 	}
+	return out
 }
 
 func (g *Game) adjacentMonster() *Monster {
@@ -633,6 +638,7 @@ func (g *Game) foundEquipped() int {
 func (e *Expedition) deathKeep() int { return e.Gold * DeathKeepGoldPct / 100 }
 
 func (g *Game) die() {
+	g.LastDeath = slices.Clone(g.Log[max(0, len(g.Log)-DeathLogLines):])
 	g.Hero.Equip = g.Exp.StartEquip
 	g.Gold += g.Exp.deathKeep()
 	g.Exp = nil

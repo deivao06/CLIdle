@@ -68,6 +68,7 @@
   "hero.exp_floor": "#%d · andar %d\n",
   "hero.exp_loot": "Ouro achado %d\nMochila %d/%d\n",
   "hero.retreating": "Retirando-se",
+  "hero.last_death": "Última morte",
   "hero.records": "Recordes",
   "hero.records_line": "Andar máx. %d · Chefes %d\nVoltas %d · Mortes %d\n",
   "hero.bag_item": "%c %s (%s) · %d ouro",

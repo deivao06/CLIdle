@@ -68,6 +68,7 @@
   "hero.exp_floor": "#%d · floor %d\n",
   "hero.exp_loot": "Gold found %d\nBag %d/%d\n",
   "hero.retreating": "Retreating",
+  "hero.last_death": "Last death",
   "hero.records": "Records",
   "hero.records_line": "Max floor %d · Bosses %d\nReturns %d · Deaths %d\n",
   "hero.bag_item": "%c %s (%s) · %d gold",
