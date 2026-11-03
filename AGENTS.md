@@ -36,12 +36,14 @@ internal/game/          lógica pura, sem I/O de terminal
   balance.go            TODOS os números de balanceamento e tabelas (monstros, chefes, nomes de itens)
   log.go                log do jogo (com contador ×N)
   rng.go                RNG PCG serializável
+internal/update/         releases do GitHub: Check, Install (checksum + troca do binário), Restart; Version via -ldflags
 internal/lang/          textos do jogo (en.json, pt.json embutidos), lang.T/Set
 internal/ui/            Bubble Tea
   model.go              Model, ticks, teclas, autosave, catch-up em goroutine, confirmações
   view.go               layout adaptável, mapa, log, painel do herói, legenda, cidade, resumo
   prep.go               Preparação (só config), lista da cidade (`townRows`), Config, resetar save
   style.go              estilos/cores
+  updater.go            aviso de versão nova, tecla u, confirmação e reinício (checa ao chegar na cidade, máx. 1×/hora)
   crt.go                efeito CRT: envelhece as cores ANSI da saída da View (tom verde-fósforo, desbota, scanlines, flicker dos cinzas, borda rasgada) (Game.CRT, zero = desligado)
 ```
 

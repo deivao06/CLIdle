@@ -33,10 +33,24 @@ Você equipa Espada Curta (raro, Atq +8).
 
 ## Requisitos
 
-- Go 1.25 ou mais novo
+- Linux ou Windows (x86-64)
 - Terminal com suporte a cores (256 cores recomendado)
+- Para compilar: Go 1.25 ou mais novo
 
-## Instalar e rodar
+## Instalar
+
+Baixe o binário do seu sistema na página de [Releases](https://github.com/deivao06/CLIdle/releases/latest):
+
+- **Linux:** `clidle-linux-amd64`
+  ```sh
+  chmod +x clidle-linux-amd64
+  ./clidle-linux-amd64
+  ```
+- **Windows:** `clidle-windows-amd64.exe` (rode pelo Windows Terminal)
+
+O jogo **avisa sozinho** quando sai uma versão nova: ao voltar à cidade, ele consulta as releases (no máximo 1 vez por hora). Aparece "Nova versão vX · u atualizar" no topo. Com `u` e a confirmação, ele baixa, confere o checksum, troca o binário e reinicia com o save intacto. A versão atual aparece no canto inferior direito da tela 4.
+
+## Compilar do código
 
 ```sh
 git clone git@github.com:deivao06/CLIdle.git
@@ -45,21 +59,26 @@ CGO_ENABLED=0 go build -ldflags="-s -w" -o clidle .   # binário estático, roda
 ./clidle
 ```
 
+Builds locais mostram a versão `dev` e não procuram atualizações.
+
 ## Controles
 
 | Tecla | Ação |
 |---|---|
-| `1` | Tela principal (dungeon ou cidade) |
-| `2` | Preparação (expedição, loja, ferreiro, baú, treino) |
-| `3` | Herói (atributos, equipamento, mochila, recordes) |
-| `4` | Config (bip, idioma, resetar save) |
+| `1` | Tela principal (dungeon; na cidade: fogueira, ferreiro, treino, loja e baú) |
+| `2` | Preparação (config da próxima expedição) |
+| `3` | Herói (atributos, equipamento, mochila, recordes, última morte) |
+| `4` | Config (bip, efeito CRT, idioma, resetar save, versão) |
 | `e` | Partir para a expedição (na cidade) |
 | `r` | Mandar o herói voltar (na dungeon) |
 | `a` | Ligar/desligar a auto-expedição |
+| `u` | Atualizar (quando há versão nova) |
 | `?` | Legenda dos símbolos |
 | `q` | Salvar e sair |
 
-Na **Preparação**: `↑↓` ou `j/k` escolhem, `←→` ou `h/l` ajustam, `enter` compra ou alterna.
+Na **Preparação**: `↑↓` ou `j/k` escolhem, `←→` ou `h/l` ajustam, `enter` alterna.
+
+Na **cidade** (tela 1): `↑↓` escolhem, `enter` compra ou equipa, `x` vende do baú.
 
 No **Herói**: `↑↓` ou `j/k` rolam a tela quando ela não cabe.
 
@@ -101,3 +120,12 @@ go vet ./...
 - **Balanceamento:** todos os números ficam em `internal/game/balance.go`.
 - **Design:** decisões de design em [`docs/design.md`](docs/design.md).
 - **Para agentes de IA:** veja [`AGENTS.md`](AGENTS.md).
+
+### Releases
+
+```sh
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+O GitHub Actions (`.github/workflows/release.yml`) roda os testes, compila os binários de Linux e Windows com a versão embutida, gera o `SHA256SUMS` e publica a release. As notas são montadas a partir dos commits desde a tag anterior: `feat:` vira **Novidades** e `fix:` vira **Correções**.
