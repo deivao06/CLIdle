@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -180,7 +181,7 @@ func (g *Game) step() {
 		case g.secondWind(r):
 		case g.lowHP() && g.healSpell(r):
 		case g.needsPotion():
-			heal := min(h.MaxHP()*(PotionHealPct+h.Effect(PotionBoost))/100, h.MaxHP()-h.HP)
+			heal := min(g.potionHeal(), h.MaxHP()-h.HP)
 			h.HP += heal
 			h.Potions--
 			r.hero = lang.T("log.drink", heal)
@@ -216,7 +217,35 @@ func (g *Game) step() {
 
 func (g *Game) needsPotion() bool {
 	h := g.Hero
-	return h.Potions > 0 && g.lowHP()
+	if h.Potions == 0 {
+		return false
+	}
+	if g.lowHP() {
+		return true
+	}
+	worst, avg := g.incoming()
+	heal := g.potionHeal()
+	return (h.MaxHP()-h.HP)*2 >= heal && worst >= h.HP && avg < heal
+}
+
+func (g *Game) potionHeal() int {
+	h := g.Hero
+	return h.MaxHP() * (PotionHealPct + h.Effect(PotionBoost)) / 100
+}
+
+// incoming is the worst and the average damage the adjacent awake monsters deal before the hero acts again.
+func (g *Game) incoming() (worst, avg int) {
+	h := g.Hero
+	var w, a float64
+	for _, m := range g.adjacentMonsters() {
+		if m.Asleep > 0 {
+			continue
+		}
+		rate := float64(m.Spd) / float64(h.Spd())
+		w += max(1, float64(m.Atk)*1.2-float64(h.Def())*0.5) * math.Ceil(rate)
+		a += max(1, float64(m.Atk)-float64(h.Def())*0.5) * rate
+	}
+	return int(w + 0.5), int(a + 0.5)
 }
 
 func (g *Game) lowHP() bool {

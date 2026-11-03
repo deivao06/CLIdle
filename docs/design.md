@@ -47,7 +47,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Itens de outra classe:** desligado por padrão; o herói só pega o que a classe dele usa.
 - **Limite de mortes:** configurável (padrão sem limite). Depois de N mortes desde que a auto-expedição foi ligada, ela desliga e o herói fica na cidade. Religar zera a contagem.
 - Antes de partir, o herói compra poções até completar o número configurado (se tiver ouro).
-- **Poções:** bebidas automaticamente abaixo de um limite de HP configurável. O herói guarda no máximo 10; o que passar disso é vendido ao chegar na cidade (metade do preço).
+- **Poções:** bebidas automaticamente abaixo de um limite de HP configurável. Também bebe quando o golpe máximo dos monstros ao lado pode matar, se a poção curar mais que o dano médio da rodada e não for desperdiçada (falta ao menos metade da cura). O herói guarda no máximo 10; o que passar disso é vendido ao chegar na cidade (metade do preço).
 
 ## Dungeon
 
