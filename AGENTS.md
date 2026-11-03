@@ -30,7 +30,7 @@ internal/game/          lógica pura, sem I/O de terminal
   path.go               BFS do herói (search, multi-objetivo) e mapa de distância dos monstros
   entity.go             Hero, Monster, spawn de monstros e chefes, dano
   items.go              Item, raridade, FloorItem, geração de loot
-  town.go               loja, ferreiro, treino, poções, fila de compras, chegada na cidade
+  town.go               loja, ferreiro, treino, mochila, baú, poções, chegada na cidade (tudo só na cidade)
   offline.go            CatchUp (simulação do tempo fora) e Summary
   save.go               save/load JSON atômico
   balance.go            TODOS os números de balanceamento e tabelas (monstros, chefes, nomes de itens)
@@ -40,7 +40,7 @@ internal/lang/          textos do jogo (en.json, pt.json embutidos), lang.T/Set
 internal/ui/            Bubble Tea
   model.go              Model, ticks, teclas, autosave, catch-up em goroutine, confirmações
   view.go               layout adaptável, mapa, log, painel do herói, legenda, cidade, resumo
-  prep.go               abas Preparação e Config (linhas navegáveis), resetar save
+  prep.go               Preparação (só config), lista da cidade (`townRows`), Config, resetar save
   style.go              estilos/cores
 ```
 
@@ -50,7 +50,7 @@ internal/ui/            Bubble Tea
 2. **`Advance` é independente do fatiamento.** `Advance(120000)` precisa dar o mesmo estado que 2400× `Advance(50)`. O tempo é contado em milissegundos inteiros (`AccMs`). Não zere nem arredonde `AccMs` no meio do loop. Há testes para isso (`TestAdvanceChunkingIsDeterministic`, `TestCatchUpMatchesOnlinePlay`).
 3. **Offline usa a mesma lógica do jogo ao vivo.** `CatchUp` só chama `Advance`. Não crie atalhos estatísticos.
 4. **Save/load preserva a simulação.** `TestSaveLoadRoundTripKeepsSimulationIdentical` garante que carregar e continuar dá o mesmo resultado. Ponteiros não sobrevivem ao JSON: identidade de item é por `Item.ID`, não por ponteiro.
-5. **Compatibilidade do save.** `saveVersion = 3`. Campos novos devem funcionar com valor zero (ex.: `Shortcuts` vazio vira `ShortcutList() == [1]`). O que valor zero não resolve ganha um passo em `migrate.go`; nunca edite um passo já publicado. Não renomeie campos exportados de structs salvas sem migração.
+5. **Compatibilidade do save.** `saveVersion = 4`. Campos novos devem funcionar com valor zero (ex.: `Shortcuts` vazio vira `ShortcutList() == [1]`). O que valor zero não resolve ganha um passo em `migrate.go`; nunca edite um passo já publicado. Não renomeie campos exportados de structs salvas sem migração.
 6. **Concorrência.** `path.go` usa um buffer global (`scratch`) e o jogo não é thread-safe. Enquanto `Model.catching` for verdadeiro, a UI não pode tocar em `m.g` (a goroutine do `CatchUp` está rodando). `View` retorna cedo nesse estado.
 7. **Desempenho.** 12h offline devem simular em poucos segundos (`TestTwelveHoursIsFastEnough`, limite de 15s). O custo está no `search` por passo. Evite BFS extras por passo.
 8. **Bubble Tea:** `Init` tem receiver por valor; mudanças no model feitas ali se perdem. Configure o estado no construtor (`NewWithSave`).
@@ -62,10 +62,10 @@ internal/ui/            Bubble Tea
 - **Ritmo:** explorar segue `StepsPerSec(Velocidade)`; combate é fixo em `CombatRoundMs` (também quando o mago tem alvo e mana para atacar de longe). Velocidade em combate = iniciativa e ataques extras (sistema de energia).
 - **IA do herói** (`chooseStep`): uma BFS com prioridade: monstro visível > item desejado > escada (modo descer direto) > fronteira inexplorada > chefe ou escada.
 - **Config da expedição** é copiada em `Expedition.Config` ao partir; a IA lê dela, não de `Game.Config`.
-- **Compras com o herói fora:** loja e ferreiro vão para `Pending`/`Upgrades` e são aplicados em `arriveInTown` (que roda tanto na volta quanto na morte). Treino vale na hora.
+- **Compras só na cidade:** loja, ferreiro, treino, mochila e baú não fazem nada com o herói fora; não há fila. Na tela 1, com o herói na cidade, `viewTownScreen` mostra a fogueira (`campfire`, animada pelo relógio da UI, nunca pelo `RNG`) e a lista `townRows`. O passo v4 de `migrate.go` devolve o ouro da antiga fila (`queueV3`).
 - **Efeitos de item:** `Item.Effects` (só épico e lendário), somados por `Hero.Effect`. Aparecem no `StatLabel`. Crítico só gasta RNG se o herói tiver o efeito, para não mudar a sequência de quem não tem.
 - **Baú:** `Game.Stash`. Só enche com `Config.ManualEquip` (auto-equipar desligado): `better()` devolve falso e `returnToTown` guarda a mochila no baú em vez de vender.
-- **Mochila:** tamanho é `Game.BagCap()` (`BagSize` + `BagLevel`×2), nunca a constante `BagSize` direto. Upgrade com o herói fora vai para `BagQueued` e é aplicado em `arriveInTown`. `Config.MinRarity` filtra o que vai para a mochila em `wants`.
+- **Mochila:** tamanho é `Game.BagCap()` (`BagSize` + `BagLevel`×2), nunca a constante `BagSize` direto. `Config.MinRarity` filtra o que vai para a mochila em `wants`.
 - **Morte:** restaura `StartEquip`, perde ouro e mochila da expedição; mantém poções e XP.
 - **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item épico e libera atalho para `andar+1`. Dorme até o herói encostar (`BossWakeDist`). `checkRetreat` recua se o chefe está visível e `canBeat` (estimativa por dano médio, HP e poções) diz que não vence. Recuando, o herói só usa magia com monstro ao lado.
 - **Poção:** além do limite de HP, `needsPotion` bebe se o golpe máximo dos vizinhos (`incoming`) pode matar, desde que a cura supere o dano médio e não seja desperdiçada.

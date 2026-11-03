@@ -20,7 +20,8 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Abaixo de **40×10**: aviso "janela muito pequena".
 - Telas: `1` Principal · `2` Preparação · `3` Herói · `4` Config · `?` legenda/ajuda · `q` sair.
 - **Principal** muda sozinha: mostra a dungeon durante a expedição e a cidade quando o herói volta.
-- **Preparação** fica sempre disponível: configura a próxima expedição e gasta o ouro guardado. Mudanças valem a partir da próxima expedição; compras de equipamento entram quando o herói voltar.
+- **Preparação** fica sempre disponível e só configura a próxima expedição. Mudanças valem a partir da próxima expedição.
+- **Cidade (tela 1 com o herói na cidade):** à esquerda, o `@` descansa junto a uma fogueira animada numa salinha no estilo do mapa; à direita, a lista navegável: Partir agora, Ferreiro, Treino, Loja (com a mochila) e Baú. Ferreiro, treino, loja, mochila e baú **só funcionam na cidade**; não há fila. Para comprar no meio de uma expedição, o jogador força a volta (`r`). A auto-expedição não espera o jogador.
 - **Config** guarda as opções do jogo (bip, idioma) e **Resetar save**, que pede confirmação, apaga o save e volta para a escolha de classe.
 
 ## Visual
@@ -39,10 +40,10 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Morte:** perde metade do ouro e os itens achados na expedição; mantém nível/XP, poções e o equipamento que saiu da cidade. Volta para a cidade.
 - **Volta:** o herói sai pela escada `<` do andar atual; o ouro é guardado e a mochila é vendida automaticamente.
 - **Retirada automática:** 2–3 regras simples configuráveis (ex: HP < X% sem poções, mochila cheia, chegou ao andar X).
-- **Início:** o jogo começa na cidade; a expedição parte com `e` ou "Partir agora" na Preparação.
+- **Início:** o jogo começa na cidade; a expedição parte com `e` ou "Partir agora" na lista da cidade.
 - **Auto-expedição:** liga/desliga (desligada por padrão). Ao terminar, inicia outra com a mesma configuração.
 - Mandar o herói voltar manualmente desliga a auto-expedição; a retirada automática não.
-- **Auto-equipar:** ligado por padrão. Desligado, o herói não troca equipamento na dungeon; na volta, a mochila vai para o **baú** (20 vagas, o que sobra é vendido). Na Preparação o jogador equipa (enter), desequipa e vende (`x`) itens do baú, só com o herói na cidade.
+- **Auto-equipar:** ligado por padrão. Desligado, o herói não troca equipamento na dungeon; na volta, a mochila vai para o **baú** (20 vagas, o que sobra é vendido). Na lista da cidade o jogador equipa (enter), desequipa e vende (`x`) itens do baú.
 - **Filtro de loot:** "Pegar itens" (comum+ por padrão) define a raridade mínima que vai para a mochila. Item que o herói vai equipar é pego sempre.
 - **Itens de outra classe:** desligado por padrão; o herói só pega o que a classe dele usa.
 - **Limite de mortes:** configurável (padrão sem limite). Depois de N mortes desde que a auto-expedição foi ligada, ela desliga e o herói fica na cidade. Religar zera a contagem.
@@ -81,7 +82,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 
 - Loja: poções e equipamento básico.
 - Ferreiro: melhora equipamento.
-- Mochila: começa com 8 vagas; cada upgrade dá +2, até 24. Com o herói fora, vai para a fila e vale na volta, como o ferreiro.
+- Mochila: começa com 8 vagas; cada upgrade dá +2, até 24. Fica na loja.
 - Moeda única: ouro.
 
 ## Técnico
