@@ -36,7 +36,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 ## Expedições
 
 - O herói entra na dungeon, sai quando quiser e guarda o loot.
-- **Morte:** perde ouro e itens achados na expedição; mantém nível/XP, poções e o equipamento que saiu da cidade. Volta para a cidade.
+- **Morte:** perde metade do ouro e os itens achados na expedição; mantém nível/XP, poções e o equipamento que saiu da cidade. Volta para a cidade.
 - **Volta:** o herói sai pela escada `<` do andar atual; o ouro é guardado e a mochila é vendida automaticamente.
 - **Retirada automática:** 2–3 regras simples configuráveis (ex: HP < X% sem poções, mochila cheia, chegou ao andar X).
 - **Início:** o jogo começa na cidade; a expedição parte com `e` ou "Partir agora" na Preparação.

@@ -241,7 +241,7 @@
   "log.level_up": "You reach level %d!",
   "log.boss_dead": "%s is defeated! It dropped %s.",
   "log.shortcut": " Shortcut to floor %d unlocked.",
-  "log.death": "You were killed by the %s on floor %d. Lost %d gold and %d items.",
+  "log.death": "You were killed by the %s on floor %d. Lost %d gold and %d items, kept %d gold.",
   "log.auto_on": "Auto-expedition on.",
   "log.auto_off": "Auto-expedition off: the hero stays in town on return.",
   "log.no_gold": "Not enough gold (need %d).",

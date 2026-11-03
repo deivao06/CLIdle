@@ -615,7 +615,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	if h.HP <= 0 {
 		h.HP = 0
 		r.after = append(r.after, LogEntry{Text: lang.T("log.death",
-			mr.name, e.Level.Depth, e.Gold, len(e.Bag)+g.foundEquipped()), Kind: LogBad})
+			mr.name, e.Level.Depth, e.Gold-e.deathKeep(), len(e.Bag)+g.foundEquipped(), e.deathKeep()), Kind: LogBad})
 		g.die()
 	}
 }
@@ -630,8 +630,11 @@ func (g *Game) foundEquipped() int {
 	return n
 }
 
+func (e *Expedition) deathKeep() int { return e.Gold * DeathKeepGoldPct / 100 }
+
 func (g *Game) die() {
 	g.Hero.Equip = g.Exp.StartEquip
+	g.Gold += g.Exp.deathKeep()
 	g.Exp = nil
 	g.Deaths++
 	if g.Auto && g.Config.DeathLimit > 0 {

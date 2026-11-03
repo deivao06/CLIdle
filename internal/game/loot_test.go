@@ -23,7 +23,7 @@ func TestDeathLosesFoundLootButKeepsStartEquip(t *testing.T) {
 	g.Hero.HP = 1
 	m := &Monster{HP: 9, Atk: 100, Spd: 4}
 	g.monsterAttack(m, &round{})
-	if g.Exp != nil || g.Gold != 0 || g.Hero.Equip[Weapon] != start {
+	if g.Exp != nil || g.Gold != 50*DeathKeepGoldPct/100 || g.Hero.Equip[Weapon] != start {
 		t.Fatalf("gold %d, weapon %+v", g.Gold, g.Hero.Equip[Weapon])
 	}
 }
