@@ -67,7 +67,9 @@ internal/ui/            Bubble Tea
 - **Baú:** `Game.Stash`. Só enche com `Config.ManualEquip` (auto-equipar desligado): `better()` devolve falso e `returnToTown` guarda a mochila no baú em vez de vender.
 - **Mochila:** tamanho é `Game.BagCap()` (`BagSize` + `BagLevel`×2), nunca a constante `BagSize` direto. Upgrade com o herói fora vai para `BagQueued` e é aplicado em `arriveInTown`. `Config.MinRarity` filtra o que vai para a mochila em `wants`.
 - **Morte:** restaura `StartEquip`, perde ouro e mochila da expedição; mantém poções e XP.
-- **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item épico e libera atalho para `andar+1`.
+- **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item épico e libera atalho para `andar+1`. Dorme até o herói encostar (`BossWakeDist`). `checkRetreat` recua se o chefe está visível e `canBeat` (estimativa por dano médio, HP e poções) diz que não vence. Recuando, o herói só usa magia com monstro ao lado.
+- **Poção:** além do limite de HP, `needsPotion` bebe se o golpe máximo dos vizinhos (`incoming`) pode matar, desde que a cura supere o dano médio e não seja desperdiçada.
+- **Morte:** `LastDeath` guarda as últimas linhas do log (aba Herói); metade do ouro da expedição fica (`DeathKeepGoldPct`).
 
 ## Testando a UI
 
@@ -106,11 +108,11 @@ Quase não há testes de UI (só `internal/ui/model_test.go`). Para ver telas:
 
 ## Estado atual
 
-Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline. Depois vieram idioma (inglês padrão, português opcional) e classes (4 classes, atributos FOR/DES/INT/CON, capacete/escudo, habilidades, mana e magias). Por último: balanceamento (menos poções, monstros mais fortes), raridades mágico e lendário, efeitos em épicos/lendários, auto-equipar opcional com baú, limite de mortes e a tela Config (bip, idioma, resetar save). Depois: filtro de raridade para pegar itens, motivo da retirada na linha de volta e upgrade da mochila na cidade.
+Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline. Depois vieram idioma (inglês padrão, português opcional) e classes (4 classes, atributos FOR/DES/INT/CON, capacete/escudo, habilidades, mana e magias). Por último: balanceamento (menos poções, monstros mais fortes), raridades mágico e lendário, efeitos em épicos/lendários, auto-equipar opcional com baú, limite de mortes e a tela Config (bip, idioma, resetar save). Depois: filtro de raridade para pegar itens, motivo da retirada na linha de volta e upgrade da mochila na cidade. Por fim, uma rodada de correções do teste do dono: painel que quebra linha, teclas `a`/`esc`, ataque mágico no painel, avaliação do chefe, poção contra golpe letal, última morte na aba Herói, itens de outra classe, mais monstros nos andares iniciais e ordem comum < mágico < raro.
 
 **Problemas conhecidos / ajustes pendentes:**
 - Com a config padrão, a mochila (8 vagas) enche por volta do andar 6–8, o herói volta e recomeça do andar 1. O jogador destrava com o filtro de raridade, o upgrade da mochila (até 24) ou atalhos; o dono preferiu deixar o filtro em comum por padrão.
-- O herói quase não usa poções: 0 mortes em 12h com a config padrão. O excesso acima de 10 é vendido na cidade.
+- O andar 1 ainda leva ~110 s: o tempo é de exploração (ritmo de passos), não de luta.
 - Com "descer direto" e sem recuar com mochila cheia, ele chega ao andar 30 em ~1h. O ritmo geral ainda não foi ajustado jogando.
 - Os andares iniciais parecem parecidos (mesma grade 3×3, só rato e morcego no andar 1).
 - Números das classes não-guerreiro são provisórios. O ladino ainda faz ~1,7× mais expedições que as outras classes.
