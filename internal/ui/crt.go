@@ -31,9 +31,9 @@ func xtermRGB(n int) (int, int, int) {
 // crtShade tints a color slightly toward phosphor green; dim darkens it a little per step.
 func crtShade(r, g, b, dim int) string {
 	f := 1 - crtDimStep*float64(dim)
-	r = int(float64(r) * (1 - crtTint) * f)
-	g = int(min(255, float64(g)+crtGreenLift) * f)
-	b = int(float64(b) * (1 - crtTint) * f)
+	r = min(255, int(float64(r)*(1-crtTint)*f))
+	g = min(255, int((float64(g)+crtGreenLift)*f))
+	b = min(255, int(float64(b)*(1-crtTint)*f))
 	if lipgloss.ColorProfile() == termenv.TrueColor {
 		return "2;" + strconv.Itoa(r) + ";" + strconv.Itoa(g) + ";" + strconv.Itoa(b)
 	}
@@ -51,7 +51,10 @@ func nearestXterm(r, g, b int) int {
 	return best
 }
 
-var crtCache = map[string]string{}
+var (
+	crtCache = map[string]string{}
+	crtNoise = "\x1b[0;38;5;" + crtNoiseColor + "m"
+)
 
 // crtSGR rewrites the colors of one SGR sequence (the part between "\x1b[" and "m").
 func crtSGR(params string, dim int) string {
@@ -98,21 +101,46 @@ func crtSGR(params string, dim int) string {
 	return s
 }
 
-// crt tints a rendered frame slightly green, dims every other line a little like scanlines and,
-// on rare frames, dims everything a little as a flicker.
+// crt tints a rendered frame slightly green and adds CRT noise without touching the text:
+// scanlines, a slow rolling bright band, rare flicker, static dots on blank cells and,
+// on rare frames, one line jumping sideways.
 func crt(s string, frame int64) string {
+	lines := strings.Split(s, "\n")
 	flick := 0
 	if flicker(frame, crtFlickerSalt) < crtFlickerChance {
 		flick = 1
 	}
+	roll := int(frame/crtRollFrames) % (len(lines) + crtRollGap)
+	glitchY := -1
+	if flicker(frame, crtGlitchSalt) < crtGlitchChance {
+		glitchY = int(flicker(frame, crtGlitchSalt+1) * float64(len(lines)))
+	}
 	var b strings.Builder
-	b.Grow(len(s) + len(s)/2)
-	for y, line := range strings.Split(s, "\n") {
+	b.Grow(len(s) * 2)
+	for y, line := range lines {
 		if y > 0 {
 			b.WriteByte('\n')
 		}
 		dim := flick + y%2
-		b.WriteString(crtSGR("", dim))
+		if y == roll || y == roll+1 {
+			dim--
+		}
+		cur := crtSGR("", dim)
+		b.WriteString(cur)
+		if y == glitchY {
+			b.WriteString(strings.Repeat(" ", 1+int(flicker(frame, crtGlitchSalt+2)*2)))
+		}
+		x := 0
+		text := func(t string) {
+			for _, r := range t {
+				if r == ' ' && flicker(frame, int64(y*1000+x)+crtNoiseSalt) < crtNoiseChance {
+					b.WriteString(crtNoise + "·" + cur)
+				} else {
+					b.WriteRune(r)
+				}
+				x++
+			}
+		}
 		for {
 			i := strings.Index(line, "\x1b[")
 			j := -1
@@ -120,11 +148,12 @@ func crt(s string, frame int64) string {
 				j = strings.IndexByte(line[i:], 'm')
 			}
 			if j < 0 {
-				b.WriteString(line)
+				text(line)
 				break
 			}
-			b.WriteString(line[:i])
-			b.WriteString(crtSGR(line[i+2:i+j], dim))
+			text(line[:i])
+			cur = crtSGR(line[i+2:i+j], dim)
+			b.WriteString(cur)
 			line = line[i+j+1:]
 		}
 		b.WriteString("\x1b[0m")

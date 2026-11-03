@@ -26,6 +26,13 @@ const (
 	crtTint          = 0.08
 	crtGreenLift     = 10.0
 	crtDimStep       = 0.06
+	crtRollFrames    = 2
+	crtRollGap       = 20
+	crtGlitchChance  = 0.008
+	crtGlitchSalt    = 11
+	crtNoiseChance   = 0.004
+	crtNoiseSalt     = 100
+	crtNoiseColor    = "238"
 )
 
 func (m Model) View() string {
