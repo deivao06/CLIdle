@@ -1,0 +1,47 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Test
+        run: go test -short ./...
+
+      - name: Build
+        run: |
+          ld="-s -w -X clidle/internal/update.Version=${GITHUB_REF_NAME}"
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$ld" -o dist/clidle-linux-amd64 .
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "$ld" -o dist/clidle-windows-amd64.exe .
+          cd dist && sha256sum clidle-* > SHA256SUMS
+
+      - name: Release notes
+        run: |
+          prev=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          range="${prev:+$prev..}${GITHUB_REF_NAME}"
+          feat=$(git log --pretty=%s "$range" | sed -n 's/^feat[^:]*: */- /p')
+          fix=$(git log --pretty=%s "$range" | sed -n 's/^fix[^:]*: */- /p')
+          : > notes.md
+          if [ -n "$feat" ]; then printf '## Novidades\n\n%s\n\n' "$feat" >> notes.md; fi
+          if [ -n "$fix" ]; then printf '## Correções\n\n%s\n\n' "$fix" >> notes.md; fi
+          if [ ! -s notes.md ]; then echo "Sem mudanças no jogo." > notes.md; fi
+          if [ -n "$prev" ]; then echo "**Commits:** https://github.com/${GITHUB_REPOSITORY}/compare/${prev}...${GITHUB_REF_NAME}" >> notes.md; fi
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --notes-file notes.md

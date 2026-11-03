@@ -7,6 +7,7 @@ import (
 
 	"clidle/internal/game"
 	"clidle/internal/lang"
+	"clidle/internal/update"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -231,7 +232,12 @@ func (m Model) viewTownList(w, h int) string {
 }
 
 func (m Model) viewSettings(h int) string {
-	return m.viewRows([]string{sMuted.Render(lang.T("settings.keys"))}, m.settingsRows(), m.w, h)
+	body := strings.Split(m.viewRows([]string{sMuted.Render(lang.T("settings.keys"))}, m.settingsRows(), m.w, h-1), "\n")
+	for len(body) < h-1 {
+		body = append(body, "")
+	}
+	version := lipgloss.PlaceHorizontal(m.w, lipgloss.Right, sMuted.Render(update.Version))
+	return strings.Join(append(body, version), "\n")
 }
 
 func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {

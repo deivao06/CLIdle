@@ -7,6 +7,7 @@ import (
 
 	"clidle/internal/game"
 	"clidle/internal/lang"
+	"clidle/internal/update"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -53,10 +54,21 @@ type Model struct {
 
 	choosing bool
 	crt      bool
+
+	confirmKeep bool
+	cmd         tea.Cmd
+	wasInTown   bool
+	checking    bool
+	lastCheck   time.Time
+	release     *update.Release
+	updating    bool
+	updateErr   string
+	updateErrAt time.Time
+	restart     bool
 }
 
 func (m *Model) ask(text string, do func(*Model)) {
-	m.confirmText, m.confirmDo, m.confirmTown = text, do, m.g.InTown()
+	m.confirmText, m.confirmDo, m.confirmTown, m.confirmKeep = text, do, m.g.InTown(), false
 }
 
 func New(g *game.Game) Model {
@@ -147,14 +159,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		ms := gap.Milliseconds()
 		m.g.Advance(ms)
 		m.lastTick = m.lastTick.Add(time.Duration(ms) * time.Millisecond)
-		if m.confirmDo != nil && m.g.InTown() != m.confirmTown {
+		if m.confirmDo != nil && !m.confirmKeep && m.g.InTown() != m.confirmTown {
 			m.confirmDo = nil
 		}
 		m.bell()
 		if now.Sub(m.lastSave) >= saveEvery {
 			m.save(now)
 		}
-		return m, tick()
+		return m, tea.Batch(tick(), m.townArrival(now))
+	case updateFoundMsg:
+		m.updateFound(msg.r)
+	case updateDoneMsg:
+		return m, m.updateDone(msg.err)
 	case tea.KeyMsg:
 		if m.catching {
 			return m, nil
@@ -173,6 +189,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				do := m.confirmDo
 				m.confirmDo = nil
 				do(&m)
+				cmd := m.cmd
+				m.cmd = nil
+				return m, cmd
 			case "n", "N", "esc":
 				m.confirmDo = nil
 			}
@@ -206,6 +225,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.g.InTown() {
 				m.ask(lang.T("confirm.depart"), func(m *Model) { m.g.Depart() })
 			}
+		case "u":
+			m.askUpdate()
 		case "?":
 			m.help = !m.help
 		case "esc":

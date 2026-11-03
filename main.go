@@ -8,11 +8,15 @@ import (
 	"clidle/internal/game"
 	"clidle/internal/lang"
 	"clidle/internal/ui"
+	"clidle/internal/update"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
+	if exe, err := update.Executable(); err == nil {
+		update.Cleanup(exe)
+	}
 	path := game.SavePath()
 	g, savedAt, err := game.Load(path)
 	if err != nil {
@@ -27,7 +31,16 @@ func main() {
 		away = time.Since(savedAt)
 	}
 	lang.Set(g.Lang)
-	if _, err := tea.NewProgram(ui.NewWithSave(g, path, away, fresh), tea.WithAltScreen()).Run(); err != nil {
+	final, err := tea.NewProgram(ui.NewWithSave(g, path, away, fresh), tea.WithAltScreen()).Run()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	if m, ok := final.(ui.Model); ok && m.Restarting() {
+		exe, err := update.Executable()
+		if err == nil {
+			err = update.Restart(exe)
+		}
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

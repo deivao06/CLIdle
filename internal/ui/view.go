@@ -89,7 +89,7 @@ func (m Model) view() string {
 }
 
 func (m Model) viewHeader() string {
-	right := m.statusLine()
+	right := m.updateNotice() + m.statusLine()
 	for _, tabs := range [][]string{{"1 " + lang.T("tab.main"), "2 " + lang.T("tab.prep"), "3 " + lang.T("tab.hero"), "4 " + lang.T("tab.settings")}, {"1", "2", "3", "4"}} {
 		var parts []string
 		for i, t := range tabs {
@@ -128,6 +128,9 @@ func (m Model) viewFooter() string {
 	}
 	if m.saveErr != nil {
 		return truncate(sWarn.Render(lang.T("footer.save_error", m.saveErr.Error())), m.w)
+	}
+	if m.updateErr != "" && time.Since(m.updateErrAt) < updateErrShow {
+		return truncate(sWarn.Render(m.updateErr), m.w)
 	}
 	return truncate(sMuted.Render(keys), m.w)
 }

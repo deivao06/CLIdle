@@ -6,6 +6,10 @@
   "confirm.retreat": "Retreat the hero from the dungeon?",
   "confirm.reset": "Erase the save and start over?",
   "confirm.auto": "Turn on auto-expedition and set out?",
+  "confirm.update": "New version %s available (current %s). Update now?",
+  "update.notice": "New version %s · u update",
+  "update.updating": "Updating...",
+  "update.failed": "Update failed: %s",
   "confirm.depart": "Set out on the expedition?",
 
   "ui.too_small": "Window too small",
