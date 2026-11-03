@@ -78,3 +78,27 @@ func TestV2SaveKeepsEpicItemsEpic(t *testing.T) {
 		t.Fatalf("rarity %v err %v", got.Hero.Equip[Weapon].Rarity, err)
 	}
 }
+
+func TestV3QueuedPurchasesAreRefunded(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := New(1, Warrior)
+	g.Depart()
+	g.Gold = 0
+	g.Hero.Equip[Armor] = &Item{Slot: Armor, Base: 3, Upgrade: 1}
+	boots := &Item{Slot: Boots, Base: 2}
+	raw, _ := json.Marshal(saveFile{3, time.Now(), g})
+	var f map[string]any
+	json.Unmarshal(raw, &f)
+	game := f["Game"].(map[string]any)
+	game["Pending"] = []*Item{boots}
+	game["Upgrades"] = [NumSlots]int{Armor: 2, Boots: 1}
+	game["BagQueued"] = 2
+	data, _ := json.Marshal(f)
+	os.WriteFile(path, data, 0o644)
+	got, _, err := Load(path)
+	armor := g.Hero.Equip[Armor]
+	want := ShopPrice(boots) + UpgradeCost(armor, 1) + UpgradeCost(armor, 2) + UpgradeCost(boots, 0) + BagCost(0) + BagCost(1)
+	if err != nil || got.Gold != want || got.Hero.Equip[Armor].Upgrade != 1 || got.BagLevel != 0 {
+		t.Fatalf("gold %d want %d err %v", got.Gold, want, err)
+	}
+}

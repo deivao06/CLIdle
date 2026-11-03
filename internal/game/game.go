@@ -66,8 +66,6 @@ type Game struct {
 	Returns    int
 	Auto       bool
 	Shop       []*Item
-	Pending    []*Item
-	Upgrades   [NumSlots]int
 	Shortcuts  []int
 	Kills      int
 	BossKills  int
@@ -76,7 +74,6 @@ type Game struct {
 	Bell       bool
 	Lang       string
 	BagLevel   int
-	BagQueued  int
 	LastDeath  []LogEntry
 }
 

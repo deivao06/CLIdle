@@ -80,8 +80,8 @@ func TestChestRowsEquipAndSell(t *testing.T) {
 	g := game.New(1, game.Warrior)
 	g.Stash = []*game.Item{{Slot: game.Weapon, Kind: game.Blade, Base: 5}, {Slot: game.Armor, Base: 3}}
 	m := New(g)
-	m.tab = tabPrep
-	for i, r := range m.prepRows() {
+	m.tab = tabDungeon
+	for i, r := range m.townRows() {
 		if r.sell != nil {
 			m.cursor = i
 			break
@@ -91,7 +91,7 @@ func TestChestRowsEquipAndSell(t *testing.T) {
 	if g.Hero.Equip[game.Weapon] == nil || len(g.Stash) != 1 {
 		t.Fatalf("enter did not equip: stash %d", len(g.Stash))
 	}
-	for i, r := range m.prepRows() {
+	for i, r := range m.townRows() {
 		if r.sell != nil {
 			m.cursor = i
 		}

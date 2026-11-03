@@ -181,7 +181,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, tea.Quit
 		case "1":
-			m.tab, m.help = tabDungeon, false
+			m.tab, m.help, m.cursor = tabDungeon, false, 0
 		case "2":
 			m.tab, m.help, m.cursor = tabPrep, false, 0
 		case "3":
@@ -207,7 +207,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			m.help = false
 		default:
-			if (m.tab == tabPrep || m.tab == tabSettings) && !m.help {
+			if (m.tab == tabPrep || m.tab == tabSettings || m.tab == tabDungeon && m.g.InTown()) && !m.help {
 				m.prepKey(msg.String())
 			}
 			if m.tab == tabHero && !m.help {

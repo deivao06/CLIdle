@@ -42,8 +42,11 @@ func cfgRow(section, label, value string, adjust func(int)) prepRow {
 }
 
 func (m Model) rows() []prepRow {
-	if m.tab == tabSettings {
+	switch m.tab {
+	case tabSettings:
 		return m.settingsRows()
+	case tabDungeon:
+		return m.townRows()
 	}
 	return m.prepRows()
 }
@@ -67,10 +70,6 @@ func (m Model) prepRows() []prepRow {
 	c := &g.Config
 	var rows []prepRow
 	nextSection := lang.T("prep.section.next")
-	if g.InTown() {
-		rows = append(rows, prepRow{section: nextSection, text: lang.T("prep.depart_now"), style: sTitle, enter: g.Depart,
-			confirm: lang.T("confirm.depart")})
-	}
 	cfg := func(label, value string, adjust func(int)) {
 		rows = append(rows, cfgRow(nextSection, label, value, adjust))
 	}
@@ -113,6 +112,34 @@ func (m Model) prepRows() []prepRow {
 	cfg("prep.start_floor", lang.T("prep.start_floor_value", floors[at], len(floors)-1), func(d int) {
 		c.StartFloor = floors[(at+d+len(floors))%len(floors)]
 	})
+	return rows
+}
+
+func (m Model) townRows() []prepRow {
+	g := m.g
+	rows := []prepRow{{text: lang.T("prep.depart_now"), style: sTitle, enter: g.Depart, confirm: lang.T("confirm.depart")}}
+
+	for s := range game.NumSlots {
+		it := g.Hero.Equip[s]
+		if it == nil {
+			rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: lang.T("hero.no_slot", s.Glyph(), lang.T(slotNames[s])), style: sMuted})
+			continue
+		}
+		next := *it
+		next.Upgrade++
+		cost := g.UpgradeCost(s)
+		text := lang.T("prep.smith_row", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade), next.StatLabel(), cost)
+		rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: m.priced(sPlain, cost),
+			enter: func() { g.Upgrade(s) }})
+	}
+
+	for t := range game.NumTraits {
+		lvl := g.Hero.Training[t]
+		cost := game.TrainCost(t, lvl)
+		text := lang.T("prep.train_row", t.Name(), lvl, t.Effect(), cost)
+		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.priced(sPlain, cost),
+			enter: func() { g.Train(t) }})
+	}
 
 	for i, it := range g.Shop {
 		price := game.ShopPrice(it)
@@ -128,28 +155,15 @@ func (m Model) prepRows() []prepRow {
 	if len(g.Shop) == 0 {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.sold_out"), style: sMuted})
 	}
-	for _, it := range g.Pending {
-		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.queued", it.Title(), it.StatLabel()), style: sMuted})
+	if size, cost, ok := g.NextBag(); ok {
+		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, cost)
+		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.priced(sPlain, cost),
+			enter: g.UpgradeBag})
+	} else {
+		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.bag_max", size-game.BagSlotsPerLevel), style: sMuted})
 	}
 
-	for s := range game.NumSlots {
-		it, queued := g.UpgradeTarget(s)
-		if it == nil {
-			rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: lang.T("hero.no_slot", s.Glyph(), lang.T(slotNames[s])), style: sMuted})
-			continue
-		}
-		next := *it
-		next.Upgrade += queued + 1
-		cost := g.UpgradeCost(s)
-		text := lang.T("prep.smith_row", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade+queued), next.StatLabel(), cost)
-		if queued > 0 {
-			text += lang.T("prep.smith_queued", queued)
-		}
-		rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: m.priced(sPlain, cost),
-			enter: func() { g.Upgrade(s) }})
-	}
-
-	if c.ManualEquip || len(g.Stash) > 0 {
+	if g.Config.ManualEquip || len(g.Stash) > 0 {
 		chest := lang.T("prep.section.chest", len(g.Stash), game.StashSize)
 		for s, it := range g.Hero.Equip {
 			if it == nil {
@@ -168,24 +182,6 @@ func (m Model) prepRows() []prepRow {
 			rows = append(rows, prepRow{section: chest, text: text, style: st,
 				enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }})
 		}
-	}
-
-	for t := range game.NumTraits {
-		lvl := g.Hero.Training[t]
-		cost := game.TrainCost(t, lvl)
-		text := lang.T("prep.train_row", t.Name(), lvl, t.Effect(), cost)
-		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.priced(sPlain, cost),
-			enter: func() { g.Train(t) }})
-	}
-	if size, cost, ok := g.NextBag(); ok {
-		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, cost)
-		if g.BagQueued > 0 {
-			text += lang.T("prep.smith_queued", g.BagQueued)
-		}
-		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.priced(sPlain, cost),
-			enter: g.UpgradeBag})
-	} else {
-		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: lang.T("prep.bag_max", size-game.BagSlotsPerLevel), style: sMuted})
 	}
 	return rows
 }
@@ -214,25 +210,25 @@ func (m Model) viewPrep(h int) string {
 	g := m.g
 	rows := m.prepRows()
 	head := []string{sGold.Render(lang.T("prep.gold", g.Gold))}
-	if g.InTown() {
-		head = append(head, sMuted.Render(lang.T("prep.in_town")))
-	} else {
-		head = append(head,
-			sMuted.Render(lang.T("prep.away")),
-			sMuted.Render(lang.T("prep.away_config")),
-			sMuted.Render(lang.T("prep.away_shop")))
+	if !g.InTown() {
+		head = append(head, sMuted.Render(lang.T("prep.away_config")))
 	}
 	head = append(head, sMuted.Render(lang.T("prep.keys")))
-	return m.viewRows(head, rows, h)
+	return m.viewRows(head, rows, m.w, h)
+}
+
+func (m Model) viewTownList(w, h int) string {
+	head := []string{sGold.Render(lang.T("prep.gold", m.g.Gold)), sMuted.Render(lang.T("town.keys"))}
+	return m.viewRows(head, m.townRows(), w, h)
 }
 
 func (m Model) viewSettings(h int) string {
-	return m.viewRows([]string{sMuted.Render(lang.T("settings.keys"))}, m.settingsRows(), h)
+	return m.viewRows([]string{sMuted.Render(lang.T("settings.keys"))}, m.settingsRows(), m.w, h)
 }
 
-func (m Model) viewRows(head []string, rows []prepRow, h int) string {
+func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {
 	for i := range head {
-		head[i] = truncate(head[i], m.w)
+		head[i] = truncate(head[i], w)
 	}
 	var lines []string
 	cursorLine := 0
@@ -242,7 +238,7 @@ func (m Model) viewRows(head []string, rows []prepRow, h int) string {
 			section = r.section
 			lines = append(lines, "", sSection.Render(section))
 		}
-		text := truncate(r.text, m.w-4)
+		text := truncate(r.text, w-4)
 		if i == m.cursor {
 			cursorLine = len(lines)
 			lines = append(lines, sTabOn.Render("›")+" "+r.style.Render(text))

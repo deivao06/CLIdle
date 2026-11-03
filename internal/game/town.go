@@ -67,7 +67,7 @@ func (g *Game) spend(cost int) bool {
 }
 
 func (g *Game) BuyShop(i int) {
-	if i < 0 || i >= len(g.Shop) {
+	if !g.InTown() || i < 0 || i >= len(g.Shop) {
 		return
 	}
 	if !g.Hero.Class.CanUse(g.Shop[i]) {
@@ -79,12 +79,7 @@ func (g *Game) BuyShop(i int) {
 	}
 	it := g.Shop[i]
 	g.Shop = append(g.Shop[:i], g.Shop[i+1:]...)
-	if g.InTown() {
-		g.equipBought(it)
-		return
-	}
-	g.Pending = append(g.Pending, it)
-	g.logf(LogInfo, "%s", lang.T("log.bought_later", it.Title()))
+	g.equipBought(it)
 }
 
 func (g *Game) equipBought(it *Item) {
@@ -99,63 +94,42 @@ func (g *Game) equipBought(it *Item) {
 	g.logf(it.Rarity.LogKind(), "%s", msg)
 }
 
-// UpgradeTarget is the item the smith will work on and how many upgrades are already queued for it.
-func (g *Game) UpgradeTarget(s Slot) (*Item, int) {
-	it := g.Hero.Equip[s]
-	for _, p := range g.Pending {
-		if p.Slot == s {
-			it = p
-		}
-	}
-	return it, g.Upgrades[s]
-}
-
 func (g *Game) UpgradeCost(s Slot) int {
-	it, queued := g.UpgradeTarget(s)
+	it := g.Hero.Equip[s]
 	if it == nil {
 		return 0
 	}
-	return UpgradeCost(it, it.Upgrade+queued)
+	return UpgradeCost(it, it.Upgrade)
 }
 
 func (g *Game) Upgrade(s Slot) {
-	it, _ := g.UpgradeTarget(s)
-	if it == nil || !g.spend(g.UpgradeCost(s)) {
+	it := g.Hero.Equip[s]
+	if !g.InTown() || it == nil || !g.spend(g.UpgradeCost(s)) {
 		return
 	}
-	if g.InTown() {
-		it.Upgrade++
-		g.logf(LogGood, "%s", lang.T("log.smith_done", it.Title(), it.StatLabel()))
-		return
-	}
-	g.Upgrades[s]++
-	g.logf(LogInfo, "%s", lang.T("log.smith_queued", it.Label()))
+	it.Upgrade++
+	g.logf(LogGood, "%s", lang.T("log.smith_done", it.Title(), it.StatLabel()))
 }
 
 func (g *Game) BagCap() int { return BagSize + g.BagLevel*BagSlotsPerLevel }
 
 // NextBag is the bag size after the next upgrade and its cost; ok is false at the maximum.
 func (g *Game) NextBag() (size, cost int, ok bool) {
-	lvl := g.BagLevel + g.BagQueued
+	lvl := g.BagLevel
 	return BagSize + (lvl+1)*BagSlotsPerLevel, BagCost(lvl), lvl < BagMaxLevel
 }
 
 func (g *Game) UpgradeBag() {
-	size, cost, ok := g.NextBag()
-	if !ok || !g.spend(cost) {
+	_, cost, ok := g.NextBag()
+	if !g.InTown() || !ok || !g.spend(cost) {
 		return
 	}
-	if g.InTown() {
-		g.BagLevel++
-		g.logf(LogGood, "%s", lang.T("log.bag_done", g.BagCap()))
-		return
-	}
-	g.BagQueued++
-	g.logf(LogInfo, "%s", lang.T("log.bag_queued", size))
+	g.BagLevel++
+	g.logf(LogGood, "%s", lang.T("log.bag_done", g.BagCap()))
 }
 
 func (g *Game) Train(t Trait) {
-	if !g.spend(TrainCost(t, g.Hero.Training[t])) {
+	if !g.InTown() || !g.spend(TrainCost(t, g.Hero.Training[t])) {
 		return
 	}
 	g.Hero.Training[t]++
@@ -187,22 +161,6 @@ func (g *Game) arriveInTown() {
 			key = "log.sell_potion"
 		}
 		g.logf(LogInfo, "%s", lang.T(key, n, n*PotionSellPrice))
-	}
-	for _, it := range g.Pending {
-		g.equipBought(it)
-	}
-	g.Pending = nil
-	for s, n := range g.Upgrades {
-		if it := g.Hero.Equip[s]; it != nil && n > 0 {
-			it.Upgrade += n
-			g.logf(LogGood, "%s", lang.T("log.smith_done", it.Title(), it.StatLabel()))
-		}
-	}
-	g.Upgrades = [NumSlots]int{}
-	if g.BagQueued > 0 {
-		g.BagLevel += g.BagQueued
-		g.BagQueued = 0
-		g.logf(LogGood, "%s", lang.T("log.bag_done", g.BagCap()))
 	}
 	g.refreshShop()
 }
@@ -238,7 +196,7 @@ func (g *Game) Unequip(s Slot) {
 }
 
 func (g *Game) SellStash(i int) {
-	if i < 0 || i >= len(g.Stash) {
+	if !g.InTown() || i < 0 || i >= len(g.Stash) {
 		return
 	}
 	it := g.Stash[i]

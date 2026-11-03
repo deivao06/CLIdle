@@ -20,32 +20,19 @@ func TestBuyInTownEquipsAndSellsOld(t *testing.T) {
 	}
 }
 
-func TestBuyAwayIsAppliedOnReturn(t *testing.T) {
+func TestTownActionsDoNothingAway(t *testing.T) {
 	g := departed(9)
 	g.Gold = 100000
-	g.Shop = []*Item{{Slot: Armor, Base: 10}}
-	g.BuyShop(0)
-	if g.Hero.Equip[Armor] != nil && g.Hero.Equip[Armor].Base == 10 {
-		t.Fatal("should not equip while away")
-	}
-	g.Upgrade(Armor)
-	g.returnToTown()
-	if a := g.Hero.Equip[Armor]; a == nil || a.Base != 10 || a.Upgrade != 1 {
-		t.Fatalf("armor %+v", a)
-	}
-}
-
-func TestPurchaseSurvivesDeath(t *testing.T) {
-	g := departed(9)
-	g.Gold = 100000
+	g.Hero.Equip[Armor] = &Item{Slot: Armor, Base: 3}
 	g.Shop = []*Item{{Slot: Boots, Base: 3}}
+	g.Stash = []*Item{{Slot: Weapon, Base: 3}}
 	g.BuyShop(0)
-	g.Hero.HP = 1
-	for g.Exp != nil {
-		g.monsterAttack(&Monster{Atk: 100}, &round{})
-	}
-	if b := g.Hero.Equip[Boots]; b == nil || b.Base != 3 {
-		t.Fatalf("boots %+v", b)
+	g.Upgrade(Armor)
+	g.Train(Con)
+	g.UpgradeBag()
+	g.SellStash(0)
+	if g.Gold != 100000 || len(g.Shop) != 1 || len(g.Stash) != 1 || g.Hero.Equip[Armor].Upgrade != 0 || g.Hero.Training[Con] != 0 || g.BagLevel != 0 {
+		t.Fatal("a town action worked in the dungeon")
 	}
 }
 

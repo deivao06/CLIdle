@@ -13,8 +13,10 @@ import (
 )
 
 const (
-	minW, minH = 40, 10
-	sideW      = 28
+	minW, minH    = 40, 10
+	sideW         = 28
+	townListW     = 70
+	townSceneMinW = 30
 )
 
 func (m Model) View() string {
@@ -110,6 +112,9 @@ func (m Model) viewFooter() string {
 
 func (m Model) viewDungeon(h int) string {
 	g := m.g
+	if g.Exp == nil {
+		return m.viewTownScreen(h)
+	}
 	side := m.w >= game.MapW+sideW
 	mapW := min(game.MapW, m.w)
 	if side {
@@ -119,12 +124,7 @@ func (m Model) viewDungeon(h int) string {
 	if logH < 3 {
 		mapH, logH = h-1, 1
 	}
-	var left string
-	if g.Exp == nil {
-		left = lipgloss.Place(mapW, mapH, lipgloss.Center, lipgloss.Center, m.viewTown())
-	} else {
-		left = m.renderMap(mapW, mapH)
-	}
+	left := m.renderMap(mapW, mapH)
 	if !side && logH >= 3 {
 		left = lipgloss.JoinVertical(lipgloss.Left, left, m.statsLine(mapW))
 		logH--
@@ -134,6 +134,22 @@ func (m Model) viewDungeon(h int) string {
 		return left
 	}
 	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(m.w-mapW-1).Height(h).Render(m.heroPanel(min(48, m.w-mapW-3), h)))
+}
+
+func (m Model) viewTownScreen(h int) string {
+	listW := min(townListW, m.w)
+	sceneW := m.w - listW
+	if sceneW < townSceneMinW {
+		return m.viewTownList(m.w, h)
+	}
+	sceneH, logH := game.MapH, h-game.MapH
+	if logH < 3 {
+		sceneH, logH = h-1, 1
+	}
+	left := lipgloss.JoinVertical(lipgloss.Left,
+		lipgloss.Place(sceneW, sceneH, lipgloss.Center, lipgloss.Center, m.viewTown()),
+		m.renderLog(sceneW, logH))
+	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(listW-1).Height(h).Render(m.viewTownList(listW-2, h)))
 }
 
 func (m Model) viewSummary() string {
