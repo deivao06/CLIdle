@@ -37,7 +37,7 @@ const (
 	BossXPMult  = 8
 	BossMinSpd  = 5
 
-	BossWakeDist = 3
+	BossWakeDist = 1
 
 	DeathKeepGoldPct = 50
 	DeathLogLines    = 6

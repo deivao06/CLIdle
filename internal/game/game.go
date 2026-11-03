@@ -184,7 +184,7 @@ func (g *Game) step() {
 			h.HP += heal
 			h.Potions--
 			r.hero = lang.T("log.drink", heal)
-		case g.cast(r):
+		case (m != nil || !g.Exp.Retreating) && g.cast(r):
 		case m != nil && g.bless(r):
 		case m != nil:
 			g.heroAttack(m, r)
@@ -233,6 +233,8 @@ func (g *Game) checkRetreat() {
 		g.startRetreat(lang.T("retreat.bag_full"))
 	case h.Potions == 0 && h.HP*100 < h.MaxHP()*g.Exp.Config.RetreatHPPct:
 		g.startRetreat(lang.T("retreat.low_hp"))
+	case g.bossTooStrong():
+		g.startRetreat(lang.T("retreat.boss_strong"))
 	}
 }
 
@@ -705,11 +707,13 @@ func (g *Game) chooseStep() (Pos, bool) {
 		last = to(boss.Pos)
 	}
 	next, i := l.search(h.Pos, g.passable, seenMonster, g.wantedItem, rush, g.frontier, last)
-	if boss != nil && !ready && (i == 4 || l.Visible(h.Pos, boss.Pos)) {
-		g.startRetreat(lang.T("retreat.boss_strong"))
-		return l.pathStep(h.Pos, g.passable, to(l.Up))
-	}
 	return next, i >= 0
+}
+
+func (g *Game) bossTooStrong() bool {
+	l := g.Exp.Level
+	b := l.boss()
+	return b != nil && l.Visible(g.Hero.Pos, b.Pos) && !g.canBeat(b)
 }
 
 // canBeat estimates a straight fight with average damage, counting the potions the hero carries.

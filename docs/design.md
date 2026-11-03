@@ -54,7 +54,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Andares infinitos, cada vez mais fundos. Chefe a cada 10 andares.
 - Geração estilo Rogue: salas retangulares + corredores, escada `>`.
 - O chefe fica na sala da escada `>`; só dá para descer depois de derrotá-lo. Ele deixa cair um item épico.
-- O chefe dorme até o herói chegar a 3 casas. Ao ver o chefe, o herói estima a luta (dano médio dos dois, HP e poções); se não vence, recua ("chefe forte demais").
+- O chefe dorme até o herói encostar nele. Ao ver o chefe, o herói estima a luta (dano médio dos dois, HP e poções); se não vence, recua ("chefe forte demais").
 - Matar um chefe desbloqueia atalho para o andar seguinte (começar no andar 11, 21...).
 - Comportamento por andar configurável: explorar tudo (padrão) ou descer direto ao achar `>`.
 - Combate roguelike: esbarra no monstro e ataca, por turnos, automático.
