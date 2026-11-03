@@ -279,7 +279,8 @@ func (m Model) heroPanel(w, maxH int) string {
 	h := g.Hero
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s %s\n", sSection.Render(h.Class.Name()), lang.T("hero.level", h.Level))
-	b.WriteString(truncate(lang.T("hero.attrs", h.Attr(game.Str), h.Attr(game.Dex), h.Attr(game.Int), h.Attr(game.Con)), w) + "\n")
+	wrap := lipgloss.NewStyle().Width(w)
+	b.WriteString(wrap.Render(lang.T("hero.attrs", h.Attr(game.Str), h.Attr(game.Dex), h.Attr(game.Int), h.Attr(game.Con))) + "\n")
 	fmt.Fprintf(&b, "HP  %s\n", bar(h.HP, h.MaxHP(), w-4, hpStyle(h.HP, h.MaxHP())))
 	if h.MaxMP() > 0 {
 		fmt.Fprintf(&b, "MP  %s\n", bar(h.MP, h.MaxMP(), w-4, sMP))
@@ -294,7 +295,7 @@ func (m Model) heroPanel(w, maxH int) string {
 			b.WriteString(sMuted.Render(truncate(lang.T("hero.no_slot", game.Slot(s).Glyph(), lang.T(slotNames[s])), w)) + "\n")
 			continue
 		}
-		b.WriteString(rarityStyle(it.Rarity).Render(truncate(fmt.Sprintf("%c %s (%s)", it.Slot.Glyph(), it.Title(), it.StatLabel()), w)) + "\n")
+		b.WriteString(rarityStyle(it.Rarity).Width(w).Render(fmt.Sprintf("%c %s (%s)", it.Slot.Glyph(), it.Title(), it.StatLabel())) + "\n")
 	}
 	var abilities []string
 	for a := range game.NumAbilities {
@@ -317,15 +318,21 @@ func (m Model) heroPanel(w, maxH int) string {
 		lang.T("hero.records_line", g.MaxDepth, g.BossKills, g.Returns, g.Deaths)
 	if e := g.Exp; e != nil {
 		avail := maxH - strings.Count(b.String(), "\n") - strings.Count(bottom, "\n")
-		bag := e.Bag
-		if len(bag) > avail {
-			bag = bag[:max(0, avail-1)]
+		shown, used := 0, 0
+		for i, it := range e.Bag {
+			line := rarityStyle(it.Rarity).Width(w).Render(lang.T("hero.bag_item", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.Value()))
+			need := lipgloss.Height(line)
+			if i < len(e.Bag)-1 {
+				need++
+			}
+			if used+need > avail {
+				break
+			}
+			b.WriteString(line + "\n")
+			used += lipgloss.Height(line)
+			shown++
 		}
-		for _, it := range bag {
-			line := lang.T("hero.bag_item", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.Value())
-			b.WriteString(rarityStyle(it.Rarity).Render(truncate(line, w)) + "\n")
-		}
-		if rest := len(e.Bag) - len(bag); rest > 0 {
+		if rest := len(e.Bag) - shown; rest > 0 {
 			b.WriteString(sMuted.Render(lang.T("hero.more_items", rest)) + "\n")
 		}
 	}
