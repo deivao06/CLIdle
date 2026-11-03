@@ -43,7 +43,7 @@
   "summary.any_key": "press any key",
 
   "town.title": "Town",
-  "town.rest": "The hero rests and prepares.",
+  "town.rest": "The hero rests by the campfire.",
   "town.press_e": "Press e to depart",
   "town.next_in": "Next expedition in %ds",
   "town.press_prep": "Press 2 to set up the expedition",

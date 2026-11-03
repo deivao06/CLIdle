@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	minW, minH    = 40, 10
-	sideW         = 28
-	townListW     = 70
-	townSceneMinW = 30
+	minW, minH      = 40, 10
+	sideW           = 28
+	townListW       = 70
+	townSceneMinW   = 30
+	campfireFrameMs = 150
 )
 
 func (m Model) View() string {
@@ -182,12 +183,7 @@ func fmtDuration(d time.Duration) string {
 
 func (m Model) viewTown() string {
 	g := m.g
-	art := sWall.Render(strings.Join([]string{
-		`   |>          |>   `,
-		`  /_\  ____   /_\  `,
-		`  |.| |.__.| |.|   `,
-		`__|_|_|_||_|_|_|__ `,
-	}, "\n"))
+	art := m.campfire()
 	next := sTitle.Render(lang.T("town.press_e"))
 	if g.Auto {
 		secs := (game.TownWaitMs - g.AccMs + 999) / 1000
@@ -195,6 +191,59 @@ func (m Model) viewTown() string {
 	}
 	return lipgloss.JoinVertical(lipgloss.Center, art, "", sTitle.Render(lang.T("town.title")),
 		lang.T("town.rest"), next, sMuted.Render(lang.T("town.press_prep")))
+}
+
+var (
+	fireColors  = []string{"226", "220", "214", "208", "202", "196"}
+	lightColors = []string{"222", "179", "137", "94", "58"}
+	sDark       = lipgloss.NewStyle().Foreground(lipgloss.Color("235"))
+)
+
+// flicker is a cheap hash of the animation frame, so the fire moves without touching the game RNG.
+func flicker(frame, salt int64) float64 {
+	x := uint64(frame)*2654435761 + uint64(salt)*40503
+	x ^= x >> 13
+	x *= 0x5bd1e995
+	x ^= x >> 15
+	return float64(x%1000) / 1000
+}
+
+// campfire draws a small dungeon room lit by the fire the hero rests beside.
+func (m Model) campfire() string {
+	const w, h = 23, 9
+	fx, fy := w/2, h/2
+	frame := m.lastTick.UnixMilli() / campfireFrameMs
+	radius := 5.5 + flicker(frame, 0)*1.5
+	var b strings.Builder
+	for y := range h {
+		for x := range w {
+			ch := '.'
+			switch {
+			case y == 0 || y == h-1:
+				ch = '-'
+			case x == 0 || x == w-1:
+				ch = '|'
+			}
+			dx, dy := float64(x-fx), float64(y-fy)*2
+			d := math.Sqrt(dx*dx + dy*dy)
+			switch {
+			case x == fx && y == fy:
+				c := fireColors[int(flicker(frame, 1)*float64(len(fireColors)))]
+				b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color(c)).Bold(true).Render("&"))
+			case x == fx-1 && y == fy:
+				b.WriteString(sHero.Render("@"))
+			case d > radius:
+				b.WriteString(sDark.Render(string(ch)))
+			default:
+				c := lightColors[min(len(lightColors)-1, int(d/radius*float64(len(lightColors))))]
+				b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color(c)).Render(string(ch)))
+			}
+		}
+		if y < h-1 {
+			b.WriteByte('\n')
+		}
+	}
+	return b.String()
 }
 
 func (m Model) statsLine(w int) string {
