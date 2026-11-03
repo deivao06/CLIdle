@@ -50,18 +50,18 @@ func TestCRTSettingTogglesAndPersists(t *testing.T) {
 		}
 	}
 	m.prepKey("enter")
-	if !g.NoCRT {
-		t.Fatal("enter did not turn CRT off")
+	if !g.CRT {
+		t.Fatal("enter did not turn CRT on")
 	}
 	path := filepath.Join(t.TempDir(), "save.json")
 	if err := g.Save(path, time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	got, _, err := game.Load(path)
-	if err != nil || !got.NoCRT {
-		t.Fatalf("CRT off not saved: %v", err)
+	if err != nil || !got.CRT {
+		t.Fatalf("CRT on not saved: %v", err)
 	}
-	if New(game.New(1, game.Warrior)).crtOff {
-		t.Fatal("CRT should be on by default")
+	if New(game.New(1, game.Warrior)).crt {
+		t.Fatal("CRT should be off by default")
 	}
 }

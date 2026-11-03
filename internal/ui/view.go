@@ -35,7 +35,7 @@ const (
 
 func (m Model) View() string {
 	s := m.view()
-	if m.crtOff || lipgloss.ColorProfile() == termenv.Ascii {
+	if !m.crt || lipgloss.ColorProfile() == termenv.Ascii {
 		return s
 	}
 	return crt(s, m.lastTick.UnixMilli()/crtFrameMs)

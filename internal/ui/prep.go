@@ -63,7 +63,7 @@ func (m Model) settingsRows() []prepRow {
 	sec := lang.T("prep.section.game")
 	return []prepRow{
 		cfgRow(sec, "prep.bell", onOff(g.Bell), func(int) { g.Bell = !g.Bell }),
-		cfgRow(sec, "prep.crt", crtLabel(!g.NoCRT), func(int) { g.NoCRT = !g.NoCRT }),
+		cfgRow(sec, "prep.crt", crtLabel(g.CRT), func(int) { g.CRT = !g.CRT }),
 		cfgRow(sec, "prep.language", lang.T("lang.name"), func(int) {
 			g.Lang = lang.Next(lang.Current())
 			lang.Set(g.Lang)

@@ -52,7 +52,7 @@ type Model struct {
 	confirmTown bool
 
 	choosing bool
-	crtOff   bool
+	crt      bool
 }
 
 func (m *Model) ask(text string, do func(*Model)) {
@@ -61,7 +61,7 @@ func (m *Model) ask(text string, do func(*Model)) {
 
 func New(g *game.Game) Model {
 	return Model{g: g, lastTick: time.Now(), lastSave: time.Now(), progress: &atomic.Int64{},
-		lastDeaths: g.Deaths, lastBosses: g.BossKills, crtOff: g.NoCRT}
+		lastDeaths: g.Deaths, lastBosses: g.BossKills, crt: g.CRT}
 }
 
 // NewWithSave catches up on the time spent away before resuming live play; a fresh game first asks for the class.
@@ -116,7 +116,7 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if !m.catching {
-		m.crtOff = m.g.NoCRT
+		m.crt = m.g.CRT
 	}
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
