@@ -17,6 +17,7 @@ type Expedition struct {
 	Bag        []*Item
 	StartEquip [NumSlots]*Item
 	Retreating bool
+	RetreatWhy string
 	Config     Config
 
 	Attacks        int
@@ -243,6 +244,7 @@ func (g *Game) Retreat() {
 
 func (g *Game) startRetreat(why string) {
 	g.Exp.Retreating = true
+	g.Exp.RetreatWhy = why
 	g.logf(LogInfo, "%s", lang.T("log.retreat", why))
 }
 
@@ -260,9 +262,9 @@ func (g *Game) returnToTown() {
 	g.Gold += e.Gold + sold
 	g.Returns++
 	if len(e.Bag) == kept {
-		g.logf(LogGood, "%s", lang.T("log.return", e.Num, e.Gold))
+		g.logf(LogGood, "%s", lang.T("log.return", e.Num, e.RetreatWhy, e.Gold))
 	} else {
-		g.logf(LogGood, "%s", lang.T("log.return_sold", e.Num, e.Gold+sold, e.Gold, len(e.Bag)-kept, sold))
+		g.logf(LogGood, "%s", lang.T("log.return_sold", e.Num, e.RetreatWhy, e.Gold+sold, e.Gold, len(e.Bag)-kept, sold))
 	}
 	if kept > 0 {
 		g.logf(LogLoot, "%s", lang.T("log.chest_kept", kept))
