@@ -73,6 +73,8 @@ type Game struct {
 	Stash      []*Item
 	Bell       bool
 	Lang       string
+	BagLevel   int
+	BagQueued  int
 }
 
 func New(seed uint64, c Class) *Game {
@@ -224,7 +226,7 @@ func (g *Game) checkRetreat() {
 	h := g.Hero
 	switch {
 	case e.Retreating:
-	case g.Exp.Config.RetreatBagFull && len(e.Bag) >= BagSize:
+	case g.Exp.Config.RetreatBagFull && len(e.Bag) >= g.BagCap():
 		g.startRetreat(lang.T("retreat.bag_full"))
 	case h.Potions == 0 && h.HP*100 < h.MaxHP()*g.Exp.Config.RetreatHPPct:
 		g.startRetreat(lang.T("retreat.low_hp"))
@@ -277,7 +279,7 @@ func (g *Game) wants(f *FloorItem) bool {
 	if f.Item == nil {
 		return true
 	}
-	return g.better(f.Item) || f.Item.Rarity >= g.Exp.Config.MinRarity && len(g.Exp.Bag) < BagSize
+	return g.better(f.Item) || f.Item.Rarity >= g.Exp.Config.MinRarity && len(g.Exp.Bag) < g.BagCap()
 }
 
 func (g *Game) better(it *Item) bool {
@@ -343,7 +345,7 @@ func (g *Game) pickup(r *round) {
 		h.Equip[it.Slot] = it
 		h.HP = min(h.HP, h.MaxHP())
 		add(it.Rarity.LogKind(), "log.equip", it.Title(), it.Rarity.Name(), it.StatLabel())
-		if old != nil && len(e.Bag) < BagSize {
+		if old != nil && len(e.Bag) < g.BagCap() {
 			e.Bag = append(e.Bag, old)
 		}
 	default:

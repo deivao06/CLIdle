@@ -79,6 +79,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 
 - Loja: poções e equipamento básico.
 - Ferreiro: melhora equipamento.
+- Mochila: começa com 8 vagas; cada upgrade dá +2, até 24. Com o herói fora, vai para a fila e vale na volta, como o ferreiro.
 - Moeda única: ouro.
 
 ## Técnico

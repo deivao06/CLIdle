@@ -198,6 +198,9 @@ const (
 	PotionSellPrice = 5
 	MaxPotions      = 10
 	TrainHP         = 5
+
+	BagSlotsPerLevel = 2
+	BagMaxLevel      = 8
 )
 
 func UpgradeCost(it *Item, level int) int {
@@ -226,6 +229,10 @@ var ClassStats = [NumClasses]classStats{
 	Mage:    {Start: [NumTraits]int{Int: 2}, Growth: [NumTraits]int{Int: 3}},
 	Rogue:   {Start: [NumTraits]int{Dex: 1}, Growth: [NumTraits]int{Dex: 1}},
 	Cleric:  {Growth: [NumTraits]int{Str: 2, Int: 1}},
+}
+
+func BagCost(level int) int {
+	return int(100 * math.Pow(1.8, float64(level)))
 }
 
 func TrainCost(t Trait, level int) int {

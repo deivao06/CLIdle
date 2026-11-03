@@ -176,6 +176,16 @@ func (m Model) prepRows() []prepRow {
 		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.priced(sPlain, cost),
 			enter: func() { g.Train(t) }})
 	}
+	if size, cost, ok := g.NextBag(); ok {
+		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, cost)
+		if g.BagQueued > 0 {
+			text += lang.T("prep.smith_queued", g.BagQueued)
+		}
+		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.priced(sPlain, cost),
+			enter: g.UpgradeBag})
+	} else {
+		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: lang.T("prep.bag_max", size-game.BagSlotsPerLevel), style: sMuted})
+	}
 	return rows
 }
 

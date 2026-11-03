@@ -132,6 +132,28 @@ func (g *Game) Upgrade(s Slot) {
 	g.logf(LogInfo, "%s", lang.T("log.smith_queued", it.Label()))
 }
 
+func (g *Game) BagCap() int { return BagSize + g.BagLevel*BagSlotsPerLevel }
+
+// NextBag is the bag size after the next upgrade and its cost; ok is false at the maximum.
+func (g *Game) NextBag() (size, cost int, ok bool) {
+	lvl := g.BagLevel + g.BagQueued
+	return BagSize + (lvl+1)*BagSlotsPerLevel, BagCost(lvl), lvl < BagMaxLevel
+}
+
+func (g *Game) UpgradeBag() {
+	size, cost, ok := g.NextBag()
+	if !ok || !g.spend(cost) {
+		return
+	}
+	if g.InTown() {
+		g.BagLevel++
+		g.logf(LogGood, "%s", lang.T("log.bag_done", g.BagCap()))
+		return
+	}
+	g.BagQueued++
+	g.logf(LogInfo, "%s", lang.T("log.bag_queued", size))
+}
+
 func (g *Game) Train(t Trait) {
 	if !g.spend(TrainCost(t, g.Hero.Training[t])) {
 		return
@@ -177,6 +199,11 @@ func (g *Game) arriveInTown() {
 		}
 	}
 	g.Upgrades = [NumSlots]int{}
+	if g.BagQueued > 0 {
+		g.BagLevel += g.BagQueued
+		g.BagQueued = 0
+		g.logf(LogGood, "%s", lang.T("log.bag_done", g.BagCap()))
+	}
 	g.refreshShop()
 }
 

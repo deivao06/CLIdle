@@ -189,7 +189,7 @@ func (m Model) statsLine(w int) string {
 		s += lang.T("stats.mp", h.MP, h.MaxMP())
 	}
 	if e := m.g.Exp; e != nil {
-		s += lang.T("stats.bag", len(e.Bag), game.BagSize)
+		s += lang.T("stats.bag", len(e.Bag), m.g.BagCap())
 	}
 	return sSection.Render(truncate(s, w))
 }
@@ -308,7 +308,7 @@ func (m Model) heroPanel(w, maxH int) string {
 	}
 	if e := g.Exp; e != nil {
 		fmt.Fprintf(&b, "\n%s %s", sSection.Render(lang.T("hero.expedition")), lang.T("hero.exp_floor", e.Num, e.Level.Depth))
-		b.WriteString(lang.T("hero.exp_loot", e.Gold, len(e.Bag), game.BagSize))
+		b.WriteString(lang.T("hero.exp_loot", e.Gold, len(e.Bag), g.BagCap()))
 		if e.Retreating {
 			b.WriteString(sWarn.Render(lang.T("hero.retreating")) + "\n")
 		}
