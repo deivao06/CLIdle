@@ -188,6 +188,9 @@ func (m Model) statsLine(w int) string {
 	if h.MaxMP() > 0 {
 		s += lang.T("stats.mp", h.MP, h.MaxMP())
 	}
+	if sp := h.SpellAtk(); sp > 0 {
+		s += lang.T("stats.spell", sp)
+	}
 	if e := m.g.Exp; e != nil {
 		s += lang.T("stats.bag", len(e.Bag), m.g.BagCap())
 	}
@@ -287,6 +290,9 @@ func (m Model) heroPanel(w, maxH int) string {
 	}
 	fmt.Fprintf(&b, "XP  %s\n", bar(h.XP, game.XPToNext(h.Level), w-4, sXP))
 	b.WriteString(lang.T("hero.atk_def", h.Atk(), h.Def()))
+	if sp := h.SpellAtk(); sp > 0 {
+		b.WriteString(lang.T("hero.spell", sp))
+	}
 	b.WriteString(lang.T("hero.speed", h.Spd(), game.StepsPerSec(h.Spd())))
 	b.WriteString(lang.T("hero.potions_gold", h.Potions, g.Gold))
 	b.WriteString("\n" + sSection.Render(lang.T("hero.equipment")) + "\n")

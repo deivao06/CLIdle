@@ -56,6 +56,8 @@
   "choose.title": "Escolha a classe do herói",
   "choose.keys": "↑↓ escolher · enter confirmar",
   "hero.attrs": "FOR %d · DES %d · INT %d · CON %d",
+  "hero.spell": "Ataque mágico %d\n",
+  "stats.spell": " · Mág %d",
   "hero.atk_def": "Ataque %d · Defesa %d\n",
   "hero.speed": "Velocidade %d (%.1f/s)\n",
   "hero.potions_gold": "Poções %d · Ouro %d\n",

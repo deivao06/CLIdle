@@ -97,9 +97,21 @@ func (g *Game) cast(r *round) bool {
 }
 
 func (g *Game) spellDamage(a Ability, m *Monster) int {
-	h := g.Hero
 	m.Awake = true
-	return damage(g.Exp.RNG, SpellPower[a]+h.Attr(Int)+h.bonus(Weapon), m.Def)
+	return damage(g.Exp.RNG, g.Hero.spellAtk(a), m.Def)
+}
+
+func (h *Hero) spellAtk(a Ability) int { return SpellPower[a] + h.Attr(Int) + h.bonus(Weapon) }
+
+// SpellAtk is the attack of the strongest damage spell the hero knows, or 0.
+func (h *Hero) SpellAtk() int {
+	best := 0
+	for a := range NumAbilities {
+		if SpellPower[a] > 0 && h.Has(a) {
+			best = max(best, h.spellAtk(a))
+		}
+	}
+	return best
 }
 
 func (g *Game) awakeInRange() int {
