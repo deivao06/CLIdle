@@ -14,6 +14,8 @@ go test ./...            # todos os testes; inclui ~8s do teste de 12h offline
 go test -short ./...     # pula o teste de desempenho
 go vet ./...
 gofmt -l .               # precisa sair vazio
+GOOS=windows go vet ./...   # o update tem código só de Windows
+git tag vX.Y.Z && git push origin vX.Y.Z   # publica uma release (pergunte ao dono antes)
 ```
 
 ## Arquitetura
@@ -111,13 +113,18 @@ Quase não há testes de UI (só `internal/ui/model_test.go`). Para ver telas:
 
 ## Estado atual
 
-Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline. Depois vieram idioma (inglês padrão, português opcional) e classes (4 classes, atributos FOR/DES/INT/CON, capacete/escudo, habilidades, mana e magias). Por último: balanceamento (menos poções, monstros mais fortes), raridades mágico e lendário, efeitos em épicos/lendários, auto-equipar opcional com baú, limite de mortes e a tela Config (bip, idioma, resetar save). Depois: filtro de raridade para pegar itens, motivo da retirada na linha de volta e upgrade da mochila na cidade. Por fim, uma rodada de correções do teste do dono: painel que quebra linha, teclas `a`/`esc`, ataque mágico no painel, avaliação do chefe, poção contra golpe letal, última morte na aba Herói, itens de outra classe, mais monstros nos andares iniciais e ordem comum < mágico < raro.
+Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cidade/save, chefes/atalhos/offline. Depois vieram idioma (inglês padrão, português opcional) e classes (4 classes, atributos FOR/DES/INT/CON, capacete/escudo, habilidades, mana e magias). Por último: balanceamento (menos poções, monstros mais fortes), raridades mágico e lendário, efeitos em épicos/lendários, auto-equipar opcional com baú, limite de mortes e a tela Config (bip, idioma, resetar save). Depois: filtro de raridade para pegar itens, motivo da retirada na linha de volta e upgrade da mochila na cidade. Por fim, uma rodada de correções do teste do dono: painel que quebra linha, teclas `a`/`esc`, ataque mágico no painel, avaliação do chefe, poção contra golpe letal, última morte na aba Herói, itens de outra classe, mais monstros nos andares iniciais e ordem comum < mágico < raro. Em seguida: a cidade virou a tela 1 com fogueira animada e lista (compras só na cidade, sem fila; save v4), efeito CRT opcional (desligado por padrão) e releases com auto-update.
+
+**Releases:** a **v0.1.0** está publicada (binários de Linux e Windows, `SHA256SUMS`, notas geradas dos commits `feat:`/`fix:`). Publicar versão é ação externa: confirme com o dono antes de criar e enviar a tag. Commits `feat:` e `fix:` viram as notas da release, então escreva a mensagem pensando no jogador.
 
 **Problemas conhecidos / ajustes pendentes:**
 - Com a config padrão, a mochila (8 vagas) enche por volta do andar 6–8, o herói volta e recomeça do andar 1. O jogador destrava com o filtro de raridade, o upgrade da mochila (até 24) ou atalhos; o dono preferiu deixar o filtro em comum por padrão.
 - O andar 1 ainda leva ~110 s: o tempo é de exploração (ritmo de passos), não de luta.
 - Com "descer direto" e sem recuar com mochila cheia, ele chega ao andar 30 em ~1h. O ritmo geral ainda não foi ajustado jogando.
-- Os andares iniciais parecem parecidos (mesma grade 3×3, só rato e morcego no andar 1).
+- Os andares iniciais parecem parecidos (mesma grade 3×3).
+- O auto-update foi testado de ponta a ponta só com um servidor falso local; a primeira atualização real (v0.1.0 → próxima) e o binário de Windows ainda não foram testados.
+- O binário passou de 3,7 para 7,2 MB por causa do `net/http`/TLS do auto-update.
+- Modo gráfico (Ebitengine + shader CRT) foi avaliado e descartado pelo dono: ~14 MB, cgo obrigatório e ~25% de CPU num teste mínimo.
 - Números das classes não-guerreiro são provisórios. O ladino ainda faz ~1,7× mais expedições que as outras classes.
 - DES ainda não afeta acerto nem crítico; o respingo da bola de fogo ignora paredes; segundo fôlego quase nunca dispara (a poção vem antes).
 
