@@ -5,6 +5,7 @@
 
   "confirm.retreat": "Retreat the hero from the dungeon?",
   "confirm.reset": "Erase the save and start over?",
+  "confirm.auto": "Turn on auto-expedition and set out?",
   "confirm.depart": "Set out on the expedition?",
 
   "ui.too_small": "Window too small",

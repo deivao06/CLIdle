@@ -5,6 +5,7 @@
 
   "confirm.retreat": "Retirar o herói da dungeon?",
   "confirm.reset": "Apagar o save e começar do zero?",
+  "confirm.auto": "Ligar a auto-expedição e partir?",
   "confirm.depart": "Partir para a expedição?",
 
   "ui.too_small": "Janela muito pequena",

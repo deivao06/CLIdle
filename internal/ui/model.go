@@ -49,12 +49,13 @@ type Model struct {
 
 	confirmText string
 	confirmDo   func(*Model)
+	confirmTown bool
 
 	choosing bool
 }
 
 func (m *Model) ask(text string, do func(*Model)) {
-	m.confirmText, m.confirmDo = text, do
+	m.confirmText, m.confirmDo, m.confirmTown = text, do, m.g.InTown()
 }
 
 func New(g *game.Game) Model {
@@ -142,6 +143,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		ms := gap.Milliseconds()
 		m.g.Advance(ms)
 		m.lastTick = m.lastTick.Add(time.Duration(ms) * time.Millisecond)
+		if m.confirmDo != nil && m.g.InTown() != m.confirmTown {
+			m.confirmDo = nil
+		}
 		m.bell()
 		if now.Sub(m.lastSave) >= saveEvery {
 			m.save(now)
@@ -189,7 +193,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.ask(lang.T("confirm.retreat"), func(m *Model) { m.g.Retreat() })
 			}
 		case "a":
-			m.g.ToggleAuto()
+			if !m.g.Auto && m.g.InTown() {
+				m.ask(lang.T("confirm.auto"), func(m *Model) { m.g.ToggleAuto(); m.g.Depart() })
+			} else {
+				m.g.ToggleAuto()
+			}
 		case "e":
 			if m.g.InTown() {
 				m.ask(lang.T("confirm.depart"), func(m *Model) { m.g.Depart() })
