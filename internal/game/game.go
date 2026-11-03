@@ -44,6 +44,7 @@ type Config struct {
 	DeathLimit     int
 	ManualEquip    bool
 	MinRarity      Rarity
+	AnyClass       bool
 }
 
 func DefaultConfig() Config {
@@ -281,7 +282,8 @@ func (g *Game) wants(f *FloorItem) bool {
 	if f.Item == nil {
 		return true
 	}
-	return g.better(f.Item) || f.Item.Rarity >= g.Exp.Config.MinRarity && len(g.Exp.Bag) < g.BagCap()
+	c := g.Exp.Config
+	return g.better(f.Item) || f.Item.Rarity >= c.MinRarity && (c.AnyClass || g.Hero.Class.CanUse(f.Item)) && len(g.Exp.Bag) < g.BagCap()
 }
 
 func (g *Game) better(it *Item) bool {
