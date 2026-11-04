@@ -122,16 +122,16 @@ func ItemRoll(slot Slot, kind, depth int, r Rarity, roll float64) int {
 }
 
 type classGear struct {
-	Weapon int
+	Weapon []int
 	Armor  []int
 	Shield bool
 }
 
 var ClassGear = [NumClasses]classGear{
-	Warrior: {Blade, []int{Light, Medium, Heavy}, true},
-	Mage:    {Staff, []int{Light}, false},
-	Rogue:   {Dagger, []int{Light, Medium}, false},
-	Cleric:  {Mace, []int{Medium, Heavy}, true},
+	Warrior: {[]int{Blade, Mace}, []int{Light, Medium, Heavy}, true},
+	Mage:    {[]int{Staff}, []int{Light}, false},
+	Rogue:   {[]int{Dagger}, []int{Light, Medium}, false},
+	Cleric:  {[]int{Mace, Blade}, []int{Medium, Heavy}, true},
 }
 
 type abilityInfo struct {

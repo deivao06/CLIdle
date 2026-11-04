@@ -31,7 +31,7 @@ func (c Class) CanUse(it *Item) bool {
 	gear := ClassGear[c]
 	switch it.Slot {
 	case Weapon:
-		return it.Kind == gear.Weapon
+		return slices.Contains(gear.Weapon, it.Kind)
 	case Armor:
 		return slices.Contains(gear.Armor, it.Kind)
 	case Shield:

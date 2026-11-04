@@ -62,3 +62,10 @@ func TestHeroStartsWithClassWeapon(t *testing.T) {
 		}
 	}
 }
+
+func TestWarriorAndClericShareWeapons(t *testing.T) {
+	sword, mace := &Item{Slot: Weapon, Kind: Blade}, &Item{Slot: Weapon, Kind: Mace}
+	if !Warrior.CanUse(mace) || !Cleric.CanUse(sword) || Mage.CanUse(sword) || Rogue.CanUse(mace) {
+		t.Fatal("only warrior and cleric share blades and maces")
+	}
+}
