@@ -21,6 +21,8 @@ const (
 	gapMinH          = 20
 	townSceneMinW    = 30
 	townListMinH     = 10
+	lampRadius       = 7.0
+	lampFlicker      = 1.2
 	campfireFrameMs  = 150
 	crtFrameMs       = 100
 	crtFlickerChance = 0.02
@@ -268,7 +270,14 @@ func (m Model) viewTown(w int) string {
 var (
 	fireColors  = []string{"226", "220", "214", "208", "202", "196"}
 	lightColors = []string{"222", "179", "137", "94", "58"}
-	sDark       = lipgloss.NewStyle().Foreground(lipgloss.Color("235"))
+	lampStyles  = func() []lipgloss.Style {
+		var s []lipgloss.Style
+		for _, c := range lightColors {
+			s = append(s, lipgloss.NewStyle().Foreground(lipgloss.Color(c)))
+		}
+		return s
+	}()
+	sDark = lipgloss.NewStyle().Foreground(lipgloss.Color("235"))
 )
 
 // flicker is a cheap hash of the animation frame, so the fire moves without touching the game RNG.
@@ -390,10 +399,29 @@ func (m Model) cell(l *game.Level, p game.Pos) (rune, *lipgloss.Style) {
 		return f.Glyph(), floorItemStyle(f)
 	}
 	t := l.At(p)
+	if lit := m.lampLight(l, p, visible); lit >= 0 && t != game.StairsDown && t != game.StairsUp {
+		return t.Glyph(), &lampStyles[lit]
+	}
 	if !visible {
 		return t.Glyph(), &sDim
 	}
 	return t.Glyph(), tileStyle(t)
+}
+
+// lampLight returns the warmth level of a tile lit by the hero's lamp, or -1 when it is dark.
+// It only lights what the hero sees or known corridors, so light never leaks into another room.
+func (m Model) lampLight(l *game.Level, p game.Pos, visible bool) int {
+	if !visible && l.RoomAt(p) >= 0 {
+		return -1
+	}
+	h := m.g.Hero.Pos
+	dx, dy := float64(p.X-h.X), float64(p.Y-h.Y)*2
+	radius := lampRadius + flicker(m.lastTick.UnixMilli()/campfireFrameMs, 2)*lampFlicker
+	d := math.Sqrt(dx*dx + dy*dy)
+	if d > radius {
+		return -1
+	}
+	return min(len(lampStyles)-1, int(d/radius*float64(len(lampStyles))))
 }
 
 func (m Model) renderLog(w, h int) string {

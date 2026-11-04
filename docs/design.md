@@ -30,6 +30,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Mapa ASCII estilo Rogue; o jogador vê o `@` explorando sozinho.
 - Andar de tamanho fixo (~80×21); a câmera segue o `@` em terminais menores.
 - Névoa de guerra.
+- **Lamparina:** um raio de luz quente com cintilação em volta do `@` (mesmo degradê da fogueira). Ilumina só o que o herói vê e corredores conhecidos, nunca outra sala através da parede. Só visual: usa o relógio da tela, nunca o RNG do jogo. Monstros, itens e escadas mantêm a cor própria.
 - **Linha de status** acima do log, em todos os tamanhos: o que o herói está fazendo (explorando, lutando com X, indo pegar item, indo para a escada, indo enfrentar o chefe, voltando para a cidade e o motivo).
 - **Ajuda (`?`)** é um manual com páginas (←→ troca, ↑↓ rola): **Símbolos** (legenda de cada caractere), **Como funciona** (expedição, ordem das ações do herói, retirada, cidade, morte, chefes, auto, offline) e **Atributos** (FOR/DES/INT/CON, números do herói, raridade, classes).
 - Monstros por letra (`r`, `g`, `o`...); chefes em letra maiúscula com cor própria. ~8–10 tipos na v1.
