@@ -39,13 +39,6 @@ func TestAssetName(t *testing.T) {
 	}
 }
 
-func TestNotesPicksBullets(t *testing.T) {
-	got := Notes("## Novidades\n\n- one\n- two\n\n## Correções\n\n- three\n")
-	if len(got) != 3 || got[0] != "one" || got[2] != "three" {
-		t.Fatalf("notes %q", got)
-	}
-}
-
 // fakeGitHub serves a release with a binary for this system and its checksum.
 func fakeGitHub(t *testing.T, tag string, bin []byte, sum string) {
 	name := AssetName(runtime.GOOS, runtime.GOARCH)
@@ -78,7 +71,7 @@ func TestCheckAndInstall(t *testing.T) {
 	h := sha256.Sum256(bin)
 	fakeGitHub(t, "v0.2.0", bin, hex.EncodeToString(h[:]))
 	r, err := Check(context.Background())
-	if err != nil || r == nil || r.Version != "v0.2.0" || len(r.Notes) != 1 {
+	if err != nil || r == nil || r.Version != "v0.2.0" {
 		t.Fatalf("check %+v %v", r, err)
 	}
 	exe := filepath.Join(t.TempDir(), "clidle")

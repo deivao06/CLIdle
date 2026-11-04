@@ -27,13 +27,11 @@ var API = "https://api.github.com/repos/deivao06/CLIdle/releases/latest"
 const (
 	Timeout   = 10 * time.Second
 	sumsName  = "SHA256SUMS"
-	maxNotes  = 5
 	userAgent = "clidle-updater"
 )
 
 type Release struct {
 	Version string
-	Notes   []string
 	Asset   string
 	Sums    string
 }
@@ -80,17 +78,6 @@ func Newer(a, b string) bool {
 	return false
 }
 
-// Notes picks the bullet items of a release body.
-func Notes(body string) []string {
-	var out []string
-	for _, l := range strings.Split(body, "\n") {
-		if l = strings.TrimSpace(l); strings.HasPrefix(l, "- ") && len(out) < maxNotes {
-			out = append(out, strings.TrimPrefix(l, "- "))
-		}
-	}
-	return out
-}
-
 func get(ctx context.Context, url string) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -117,7 +104,6 @@ func Latest(ctx context.Context) (*Release, error) {
 	defer resp.Body.Close()
 	var data struct {
 		Tag    string `json:"tag_name"`
-		Body   string `json:"body"`
 		Assets []struct {
 			Name string `json:"name"`
 			URL  string `json:"browser_download_url"`
@@ -126,7 +112,7 @@ func Latest(ctx context.Context) (*Release, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return nil, err
 	}
-	r := &Release{Version: data.Tag, Notes: Notes(data.Body)}
+	r := &Release{Version: data.Tag}
 	want := AssetName(runtime.GOOS, runtime.GOARCH)
 	for _, a := range data.Assets {
 		switch a.Name {

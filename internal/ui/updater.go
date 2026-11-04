@@ -82,11 +82,7 @@ func (m *Model) askUpdate() {
 	if m.release == nil || m.updating || m.confirmDo != nil || m.summary != nil || m.choosing {
 		return
 	}
-	text := lang.T("confirm.update", m.release.Version, update.Version)
-	for _, n := range m.release.Notes {
-		text += "\n• " + n
-	}
-	m.ask(text, func(m *Model) {
+	m.ask(lang.T("confirm.update", m.release.Version, update.Version), func(m *Model) {
 		m.updating = true
 		m.cmd = installUpdate(m.release)
 	})

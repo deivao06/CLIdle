@@ -24,13 +24,13 @@ func TestUpdateNoticeAndKey(t *testing.T) {
 	var tm tea.Model = New(game.New(1, game.Warrior))
 	m := tm.(Model)
 	m.w, m.h = 110, 30
-	m.release = &update.Release{Version: "v9.9.9", Notes: []string{"shiny"}}
+	m.release = &update.Release{Version: "v9.9.9"}
 	if !strings.Contains(m.View(), "v9.9.9") {
 		t.Fatal("no update notice in the header")
 	}
 	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("u")})
 	m = tm.(Model)
-	if m.confirmDo == nil || !strings.Contains(m.confirmText, "shiny") {
+	if m.confirmDo == nil || !strings.Contains(m.confirmText, "v9.9.9") {
 		t.Fatal("u did not ask to update")
 	}
 	m.g.Depart()
