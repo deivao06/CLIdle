@@ -2,13 +2,22 @@ package game
 
 import "testing"
 
-func TestManualEquipSendsFoundItemsToStash(t *testing.T) {
+func TestManualEquipDoesNotEquip(t *testing.T) {
 	g := New(1, Warrior)
 	g.Config.ManualEquip = true
 	g.Depart()
-	it := &Item{Slot: Weapon, Kind: Blade, Base: 99}
-	if g.better(it) {
+	if g.better(&Item{Slot: Weapon, Kind: Blade, Base: 99}) {
 		t.Fatal("hero equips by himself in manual mode")
+	}
+}
+
+func TestKeepLootSendsBagToStash(t *testing.T) {
+	g := New(1, Warrior)
+	g.Config.KeepLoot = true
+	g.Depart()
+	it := &Item{Slot: Weapon, Kind: Blade, Base: 99}
+	if !g.better(it) {
+		t.Fatal("keeping loot turned auto-equip off")
 	}
 	g.Exp.Bag = []*Item{it}
 	g.returnToTown()
@@ -17,9 +26,21 @@ func TestManualEquipSendsFoundItemsToStash(t *testing.T) {
 	}
 }
 
-func TestStashOverflowIsSold(t *testing.T) {
+func TestManualEquipStillSellsByDefault(t *testing.T) {
 	g := New(1, Warrior)
 	g.Config.ManualEquip = true
+	g.Depart()
+	it := &Item{Slot: Weapon, Base: 5}
+	g.Exp.Bag = []*Item{it}
+	g.returnToTown()
+	if len(g.Stash) != 0 || g.Gold != it.Value() {
+		t.Fatalf("stash %v gold %d", g.Stash, g.Gold)
+	}
+}
+
+func TestStashOverflowIsSold(t *testing.T) {
+	g := New(1, Warrior)
+	g.Config.KeepLoot = true
 	g.Stash = make([]*Item, StashSize)
 	g.Depart()
 	it := &Item{Slot: Weapon, Base: 5}

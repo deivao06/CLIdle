@@ -43,6 +43,7 @@ type Config struct {
 	StartFloor     int
 	DeathLimit     int
 	ManualEquip    bool
+	KeepLoot       bool
 	MinRarity      Rarity
 	AnyClass       bool
 }
@@ -291,7 +292,7 @@ func (g *Game) returnToTown() {
 	e := g.Exp
 	sold, kept := 0, 0
 	for _, it := range e.Bag {
-		if g.Config.ManualEquip && len(g.Stash) < StashSize {
+		if g.Config.KeepLoot && len(g.Stash) < StashSize {
 			g.Stash = append(g.Stash, it)
 			kept++
 			continue

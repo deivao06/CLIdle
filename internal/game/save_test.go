@@ -102,3 +102,15 @@ func TestV3QueuedPurchasesAreRefunded(t *testing.T) {
 		t.Fatalf("gold %d want %d err %v", got.Gold, want, err)
 	}
 }
+
+func TestV4ManualEquipKeepsLoot(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := New(1, Warrior)
+	g.Config.ManualEquip = true
+	data, _ := json.Marshal(saveFile{4, time.Now(), g})
+	os.WriteFile(path, data, 0o644)
+	got, _, err := Load(path)
+	if err != nil || !got.Config.KeepLoot {
+		t.Fatalf("keep loot %v err %v", got.Config.KeepLoot, err)
+	}
+}

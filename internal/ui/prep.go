@@ -7,7 +7,6 @@ import (
 
 	"clidle/internal/game"
 	"clidle/internal/lang"
-	"clidle/internal/update"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -125,6 +124,7 @@ func (m Model) prepRows() []prepRow {
 	cfg("prep.retreat_bag", onOff(c.RetreatBagFull), func(int) { c.RetreatBagFull = !c.RetreatBagFull })
 	section = lang.T("prep.section.loot")
 	cfg("prep.auto_equip", onOff(!c.ManualEquip), func(int) { c.ManualEquip = !c.ManualEquip })
+	cfg("prep.auto_sell", onOff(!c.KeepLoot), func(int) { c.KeepLoot = !c.KeepLoot })
 	cfg("prep.min_rarity", lang.T("prep.min_rarity_value", c.MinRarity.Name()), func(d int) {
 		c.MinRarity = (c.MinRarity + game.Rarity(d) + game.NumRarities) % game.NumRarities
 	})
@@ -146,7 +146,7 @@ func (m Model) townRows() []prepRow {
 		next.Upgrade++
 		cost := g.UpgradeCost(s)
 		text := lang.T("prep.smith_row", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade), next.StatLabel(), cost)
-		rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: m.priced(sPlain, cost),
+		rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: m.priced(rarityStyle(it.Rarity), cost),
 			enter: func() { g.Upgrade(s) }, desc: lang.T("town.smith.desc")})
 	}
 
@@ -180,25 +180,16 @@ func (m Model) townRows() []prepRow {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.bag_max", size-game.BagSlotsPerLevel), style: sMuted})
 	}
 
-	if g.Config.ManualEquip || len(g.Stash) > 0 {
-		chest := lang.T("prep.section.chest", len(g.Stash), game.StashSize)
-		for s, it := range g.Hero.Equip {
-			if it == nil {
-				continue
-			}
-			rows = append(rows, prepRow{section: chest, text: lang.T("prep.equipped_row", it.Slot.Glyph(), it.Title(), it.StatLabel()),
-				style: rarityStyle(it.Rarity), enter: func() { g.Unequip(game.Slot(s)) }, desc: lang.T("chest.equipped.desc")})
+	chest := lang.T("prep.section.chest", len(g.Stash), game.StashSize)
+	for i, it := range g.Stash {
+		text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.Value(), m.compare(it))
+		st := rarityStyle(it.Rarity)
+		if !g.Hero.Class.CanUse(it) {
+			text += lang.T("prep.other_class")
+			st = sMuted
 		}
-		for i, it := range g.Stash {
-			text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.Value(), m.compare(it))
-			st := rarityStyle(it.Rarity)
-			if !g.Hero.Class.CanUse(it) {
-				text += lang.T("prep.other_class")
-				st = sMuted
-			}
-			rows = append(rows, prepRow{section: chest, text: text, style: st,
-				enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }, desc: m.itemDesc(it) + " " + lang.T("chest.desc", it.Value())})
-		}
+		rows = append(rows, prepRow{section: chest, text: text, style: st,
+			enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }, desc: m.itemDesc(it) + " " + lang.T("chest.desc", it.Value())})
 	}
 	return rows
 }
@@ -242,7 +233,7 @@ func (m Model) itemDesc(it *game.Item) string {
 
 func (m Model) priced(st lipgloss.Style, cost int) lipgloss.Style {
 	if cost > m.g.Gold {
-		return sMuted
+		return st.Faint(true)
 	}
 	return st
 }
@@ -277,12 +268,7 @@ func (m Model) viewTownList(w, h int) string {
 }
 
 func (m Model) viewSettings(h int) string {
-	body := strings.Split(m.viewRows([]string{sMuted.Render(lang.T("settings.keys"))}, m.settingsRows(), m.w, h-1), "\n")
-	for len(body) < h-1 {
-		body = append(body, "")
-	}
-	version := lipgloss.PlaceHorizontal(m.w, lipgloss.Right, sMuted.Render(lang.T("settings.version", update.Version)))
-	return strings.Join(append(body, version), "\n")
+	return m.viewRows([]string{sMuted.Render(lang.T("settings.keys"))}, m.settingsRows(), m.w, h)
 }
 
 func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {

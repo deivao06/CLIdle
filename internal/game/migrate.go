@@ -25,6 +25,9 @@ func migrate(f *saveFile, q *queueV3) {
 	if f.Version < 4 {
 		migrateV4Refund(f.Game, q)
 	}
+	if f.Version < 5 {
+		f.Game.Config.KeepLoot = f.Game.Config.ManualEquip
+	}
 	f.Version = saveVersion
 }
 

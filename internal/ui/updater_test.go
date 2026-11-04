@@ -11,12 +11,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func TestSettingsShowVersion(t *testing.T) {
+func TestFooterShowsVersion(t *testing.T) {
 	m := New(game.New(1, game.Warrior))
-	m.w, m.h, m.tab = 100, 30, tabSettings
+	m.w, m.h = 100, 30
 	lines := strings.Split(m.View(), "\n")
-	if !strings.Contains(lines[len(lines)-2], update.Version) {
-		t.Fatalf("version not at the bottom of the settings tab: %q", lines[len(lines)-2])
+	if last := strings.TrimRight(lines[len(lines)-1], " "); !strings.HasSuffix(last, update.Version) {
+		t.Fatalf("version not at the end of the footer: %q", last)
 	}
 }
 

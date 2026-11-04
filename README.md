@@ -28,7 +28,7 @@ Você equipa Espada Curta (raro, Atq +8).
 - **Tudo automático:** ele explora, luta, pega itens, equipa o que for melhor e bebe poções sozinho.
 - **Retirada automática:** você define quando ele volta (HP baixo sem poções, mochila cheia, último andar).
 - **Cidade:** loja, ferreiro e treino permanente, pagos com o ouro das expedições.
-- **Baú:** com auto-equipar desligado, o que ele acha vai para o baú e você escolhe o que equipar ou vender.
+- **Baú:** com "Vender loot na volta" desligado, o que ele acha vai para o baú e você escolhe o que equipar ou vender. Com auto-equipar desligado, ele não troca de equipamento sozinho.
 - **Chefes a cada 10 andares:** guardam a escada, deixam cair um item épico e liberam um atalho (começar no andar 11, 21...).
 - **Progresso offline:** ao reabrir, o jogo simula o tempo em que ficou fechado (até 12h) e mostra um resumo.
 - **Layout adaptável:** funciona de 40×10 até telas grandes; a câmera segue o `@` quando o mapa não cabe.
@@ -52,7 +52,7 @@ Baixe o binário do seu sistema na página de [Releases](https://github.com/deiv
 
   Na primeira vez, o Windows pode mostrar **"Windows protected your PC"** (SmartScreen). Isso acontece porque o `.exe` não tem assinatura digital paga, não porque ele faça algo errado. Clique em **More info → Run anyway**. Se preferir conferir antes, compare o arquivo com o `SHA256SUMS` da release ou compile do código (abaixo).
 
-O jogo **avisa sozinho** quando sai uma versão nova: ao voltar à cidade, ele consulta as releases (no máximo 1 vez por hora). Aparece "Nova versão vX · u atualizar" no topo. Com `u` e a confirmação, ele baixa, confere o checksum, troca o binário e reinicia com o save intacto. A versão atual aparece no canto inferior direito da tela 4.
+O jogo **avisa sozinho** quando sai uma versão nova: ao voltar à cidade, ele consulta as releases (no máximo 1 vez por hora). Aparece "Nova versão vX · u atualizar" no topo. Com `u` e a confirmação, ele baixa, confere o checksum, troca o binário e reinicia com o save intacto. A versão atual aparece no canto direito do rodapé.
 
 ## Compilar do código
 

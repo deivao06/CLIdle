@@ -22,6 +22,8 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Principal** muda sozinha: mostra a dungeon durante a expedição e a cidade quando o herói volta.
 - **Preparação** fica sempre disponível e só configura as expedições, em 4 grupos: Expedição · Poções · Retirada · Loot. Mudanças valem na hora, inclusive com o herói na dungeon; só poções e andar inicial esperam a próxima partida.
 - **Cidade (tela 1 com o herói na cidade):** à esquerda, o `@` descansa junto a uma fogueira animada numa salinha no estilo do mapa; à direita, a lista navegável: Partir agora, Ferreiro, Treino, Loja (com a mochila) e Baú. Em tela estreita (< 100 colunas), a sala da fogueira fica em cima e a lista embaixo, se sobrarem 10+ linhas para a lista; senão, só a lista. Ferreiro, treino, loja, mochila e baú **só funcionam na cidade**; não há fila. Para comprar no meio de uma expedição, o jogador força a volta (`r`). A auto-expedição não espera o jogador.
+- **Cores na cidade:** ferreiro, loja e baú mostram o item na cor da raridade; o que custa mais que o ouro atual fica esmaecido, sem perder a cor.
+- **Versão:** no canto direito do rodapé, em todas as telas, quando cabe.
 - **Linha de descrição:** nas listas (cidade, Preparação, Config), o rodapé explica o item selecionado. O treino mostra o efeito real do próximo nível (ex.: `Atq 8 → 9`); loja e baú comparam com o item equipado.
 - **Config** guarda as opções do jogo (bip, idioma, **efeitos no mapa**: completo/sutil/desligado; sutil deixa a lamparina parada e só números e flash) e **Resetar save**, que pede confirmação, apaga o save e volta para a escolha de classe.
 
@@ -50,7 +52,8 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Início:** o jogo começa na cidade; a expedição parte com `e` ou "Partir agora" na lista da cidade.
 - **Auto-expedição:** liga/desliga (desligada por padrão). Ao terminar, inicia outra com a mesma configuração.
 - Mandar o herói voltar manualmente desliga a auto-expedição; a retirada automática não.
-- **Auto-equipar:** ligado por padrão. Desligado, o herói não troca equipamento na dungeon; na volta, a mochila vai para o **baú** (20 vagas, o que sobra é vendido). Na lista da cidade o jogador equipa (enter), desequipa e vende (`x`) itens do baú.
+- **Auto-equipar:** ligado por padrão. Desligado, o herói não troca equipamento na dungeon; o jogador equipa pelo baú.
+- **Vender loot na volta:** ligado por padrão, independente do auto-equipar. Desligado, a mochila vai para o **baú** (20 vagas, o que sobra é vendido). Na lista da cidade o baú mostra só os itens guardados (não os equipados): enter equipa (o item que estava equipado vai para o baú) e `x` vende. Saves antigos com auto-equipar desligado começam com a venda desligada (passo v5).
 - **Filtro de loot:** "Pegar itens" (comum+ por padrão) define a raridade mínima que vai para a mochila. Item que o herói vai equipar é pego sempre.
 - **Itens de outra classe:** desligado por padrão; o herói só pega o que a classe dele usa.
 - **Limite de mortes:** configurável (padrão sem limite). Depois de N mortes desde que a auto-expedição foi ligada, ela desliga e o herói fica na cidade. Religar zera a contagem.

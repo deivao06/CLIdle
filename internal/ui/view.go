@@ -10,6 +10,7 @@ import (
 
 	"clidle/internal/game"
 	"clidle/internal/lang"
+	"clidle/internal/update"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -165,6 +166,9 @@ func (m Model) viewFooter() string {
 	}
 	for lipgloss.Width(keys) > m.w && strings.Contains(keys, " · ") {
 		_, keys, _ = strings.Cut(keys, " · ")
+	}
+	if gap := m.w - lipgloss.Width(keys) - lipgloss.Width(update.Version); gap >= 2 {
+		keys += strings.Repeat(" ", gap) + update.Version
 	}
 	return truncate(sMuted.Render(keys), m.w)
 }
