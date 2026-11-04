@@ -182,15 +182,17 @@ func (g *Game) step() {
 			h.HP += heal
 			h.Potions--
 			r.hero = lang.T("log.drink", heal)
-		case (m != nil || !g.Exp.Retreating) && g.cast(r):
-		case m != nil && g.bless(r):
-		case m != nil:
+		case !g.Exp.Retreating && g.cast(r):
+		case m != nil && !g.Exp.Retreating && g.bless(r):
+		case m != nil && !g.Exp.Retreating:
 			g.heroAttack(m, r)
 		default:
 			if next, ok := g.chooseStep(); ok {
 				h.Pos = next
 				l.Reveal(h.Pos)
 				g.pickup(r)
+			} else if m != nil {
+				g.heroAttack(m, r)
 			}
 		}
 		g.monstersAct(r, false)

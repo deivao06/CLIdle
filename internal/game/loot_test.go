@@ -149,3 +149,28 @@ func TestHigherRarityNeverWeakerOnSameFloor(t *testing.T) {
 		}
 	}
 }
+
+func TestRetreatFleesInsteadOfFighting(t *testing.T) {
+	g := departed(5)
+	l := g.Exp.Level
+	l.Mons = nil
+	for _, d := range Dirs8 {
+		if p := l.Up.Add(d); l.CanStep(l.Up, p) {
+			g.Hero.Pos = p
+			break
+		}
+	}
+	m := dummy()
+	for _, d := range Dirs8 {
+		if p := g.Hero.Pos.Add(d); p != l.Up && l.CanStep(g.Hero.Pos, p) {
+			m.Pos = p
+			break
+		}
+	}
+	l.Mons = []*Monster{m}
+	g.startRetreat("test")
+	g.step()
+	if g.Exp != nil || m.HP != m.MaxHP {
+		t.Fatalf("hero fought instead of fleeing: monster hp %d", m.HP)
+	}
+}
