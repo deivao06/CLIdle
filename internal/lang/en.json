@@ -88,8 +88,8 @@
   "help.stairs_up": "stairs up (exit)",
   "help.gold": "gold",
   "help.potion": "potion",
-  "help.unknown": "not found yet",
-  "help.unknown_boss": "boss (every 10 floors)",
+  "help.unknown": "monster not found yet",
+  "help.unknown_boss": "boss not found yet (every 10 floors)",
   "help.boss": "%s (boss)",
   "help.footer": "? or esc closes · items: white common, blue magic, green rare, purple epic, orange legendary",
 

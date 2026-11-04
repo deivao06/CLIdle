@@ -88,8 +88,8 @@
   "help.stairs_up": "escada para cima (saída)",
   "help.gold": "ouro",
   "help.potion": "poção",
-  "help.unknown": "ainda não encontrado",
-  "help.unknown_boss": "chefe (a cada 10 andares)",
+  "help.unknown": "monstro ainda não encontrado",
+  "help.unknown_boss": "chefe ainda não encontrado (a cada 10 andares)",
   "help.boss": "%s (chefe)",
   "help.footer": "? ou esc fecha · itens: branco comum, azul mágico, verde raro, roxo épico, laranja lendário",
 

@@ -132,6 +132,9 @@ func (m Model) viewFooter() string {
 	if m.updateErr != "" && time.Since(m.updateErrAt) < updateErrShow {
 		return truncate(sWarn.Render(m.updateErr), m.w)
 	}
+	for lipgloss.Width(keys) > m.w && strings.Contains(keys, " · ") {
+		_, keys, _ = strings.Cut(keys, " · ")
+	}
 	return truncate(sMuted.Render(keys), m.w)
 }
 
@@ -172,7 +175,7 @@ func (m Model) viewTownScreen(h int) string {
 		sceneH, logH = h-1, 1
 	}
 	left := lipgloss.JoinVertical(lipgloss.Left,
-		lipgloss.Place(sceneW, sceneH, lipgloss.Center, lipgloss.Center, m.viewTown()),
+		lipgloss.Place(sceneW, sceneH, lipgloss.Center, lipgloss.Center, m.viewTown(sceneW-2)),
 		m.renderLog(sceneW, logH))
 	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(listW-1).Height(h).Render(m.viewTownList(listW-2, h)))
 }
@@ -205,7 +208,7 @@ func fmtDuration(d time.Duration) string {
 	return fmt.Sprintf("%dh%02d", h, mins)
 }
 
-func (m Model) viewTown() string {
+func (m Model) viewTown(w int) string {
 	g := m.g
 	art := m.campfire()
 	next := sTitle.Render(lang.T("town.press_e"))
@@ -213,8 +216,9 @@ func (m Model) viewTown() string {
 		secs := (game.TownWaitMs - g.AccMs + 999) / 1000
 		next = sMuted.Render(lang.T("town.next_in", max(0, secs)))
 	}
+	text := lipgloss.NewStyle().Width(w).Align(lipgloss.Center)
 	return lipgloss.JoinVertical(lipgloss.Center, art, "", sTitle.Render(lang.T("town.title")),
-		lang.T("town.rest"), next, sMuted.Render(lang.T("town.press_prep")))
+		text.Render(lang.T("town.rest")), text.Render(next), text.Render(sMuted.Render(lang.T("town.press_prep"))))
 }
 
 var (
@@ -352,12 +356,17 @@ func (m Model) renderLog(w, h int) string {
 	entries := m.g.Log
 	start := max(0, len(entries)-h)
 	var lines []string
-	for _, e := range entries[start:] {
+	for i := len(entries) - 1; i >= start && len(lines) < h; i-- {
+		e := entries[i]
 		text := e.Text
 		if e.Count > 1 {
 			text += fmt.Sprintf(" ×%d", e.Count)
 		}
-		lines = append(lines, logStyles[e.Kind].Render(truncate(text, w)))
+		wrapped := strings.Split(logStyles[e.Kind].Width(w).Render(text), "\n")
+		if len(lines)+len(wrapped) > h {
+			wrapped = []string{logStyles[e.Kind].Render(truncate(text, w))}
+		}
+		lines = append(wrapped, lines...)
 	}
 	return strings.Join(lines, "\n")
 }

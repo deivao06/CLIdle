@@ -42,7 +42,7 @@ func step(v *int, delta, by, lo, hi int) { *v = clamp(*v+delta*by, lo, hi) }
 func cfgRow(section, label, value string, adjust func(int)) prepRow {
 	return prepRow{
 		section: section,
-		text:    fmt.Sprintf("%-22s %s", lang.T(label), value),
+		text:    fmt.Sprintf("%-24s %s", lang.T(label), value),
 		style:   sPlain,
 		adjust:  adjust,
 		enter:   func() { adjust(1) },
