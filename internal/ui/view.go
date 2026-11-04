@@ -349,6 +349,8 @@ func (m Model) renderMap(w, h int) string {
 	hp := g.Hero.Pos
 	cx := clamp(hp.X-w/2, 0, game.MapW-w)
 	cy := clamp(hp.Y-h/2, 0, game.MapH-h)
+	overlay, flash, shake := m.fxLayers()
+	cx -= shake
 	var sb strings.Builder
 	for y := cy; y < cy+h; y++ {
 		if y > cy {
@@ -363,7 +365,13 @@ func (m Model) renderMap(w, h int) string {
 			run.Reset()
 		}
 		for x := cx; x < cx+w; x++ {
-			ch, st := m.cell(l, game.Pos{X: x, Y: y})
+			p := game.Pos{X: x, Y: y}
+			ch, st := m.cell(l, p)
+			if o, ok := overlay[p]; ok {
+				ch, st = o.r, o.st
+			} else if f, ok := flash[p]; ok && ch != ' ' {
+				st = f.st
+			}
 			if runStyle != st {
 				flush()
 				runStyle = st

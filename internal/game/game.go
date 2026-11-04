@@ -75,6 +75,9 @@ type Game struct {
 	Lang       string
 	BagLevel   int
 	LastDeath  []LogEntry
+
+	Events []Event `json:"-"`
+	strong bool
 }
 
 func New(seed uint64, c Class) *Game {
@@ -504,7 +507,10 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 		d *= TurnUndeadMult
 		key = "spell.turn_undead.log"
 	}
-	if !g.hurt(m, d, r) || key != "combat.hero_hit" {
+	g.strong = key != "combat.hero_hit"
+	died := g.hurt(m, d, r)
+	g.strong = false
+	if !died || key != "combat.hero_hit" {
 		r.hero = lang.T(key, name, d)
 	}
 }
@@ -514,6 +520,7 @@ func (g *Game) hurt(m *Monster, d int, r *round) bool {
 	e := g.Exp
 	h := g.Hero
 	name := lang.T(m.Info().Name)
+	g.emit(Event{Kind: EventHit, Pos: m.Pos, Value: d, Big: g.strong})
 	m.HP -= d
 	m.Asleep = 0
 	h.HP = min(h.MaxHP(), h.HP+d*h.Effect(LifeSteal)/100)
@@ -646,6 +653,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 		def += BlessDef
 	}
 	d := damage(e.RNG, m.Atk, def)
+	g.emit(Event{Kind: EventHurt, Pos: h.Pos, Value: d, Big: d*BigHitDiv >= h.MaxHP()})
 	h.HP -= d
 	mr.hits = append(mr.hits, d)
 	r.hurt = true

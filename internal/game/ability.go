@@ -63,6 +63,8 @@ func (g *Game) powerStrike(m *Monster, r *round) {
 		targets = adj
 	}
 	var hits []string
+	g.strong = true
+	defer func() { g.strong = false }()
 	for _, t := range targets {
 		d := 2 * damage(g.Exp.RNG, g.Hero.Atk(), t.Def)
 		hits = append(hits, fmt.Sprintf("%s (%d)", lang.T(t.Info().Name), d))

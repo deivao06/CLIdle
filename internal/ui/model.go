@@ -50,6 +50,8 @@ type Model struct {
 	lastDeaths int
 	lastBosses int
 
+	fx []fx
+
 	confirmText string
 	confirmDo   func(*Model)
 	confirmTown bool
@@ -137,6 +139,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.w, m.h = msg.Width, msg.Height
 	case catchUpDoneMsg:
 		m.catching = false
+		m.g.Events = nil
 		m.lastTick = time.Now()
 		m.lastDeaths, m.lastBosses = m.g.Deaths, m.g.BossKills
 		if s := game.Summary(msg); s.Eventful() {
@@ -161,6 +164,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		ms := gap.Milliseconds()
 		m.g.Advance(ms)
 		m.lastTick = m.lastTick.Add(time.Duration(ms) * time.Millisecond)
+		m.collectFx(now)
 		if m.confirmDo != nil && !m.confirmKeep && m.g.InTown() != m.confirmTown {
 			m.confirmDo = nil
 		}

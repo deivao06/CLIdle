@@ -40,6 +40,7 @@ const (
 	BossWakeDist = 1
 
 	DeathKeepGoldPct = 50
+	BigHitDiv        = 4
 	DeathLogLines    = 6
 )
 
