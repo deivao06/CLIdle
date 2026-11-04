@@ -24,6 +24,7 @@ type Expedition struct {
 	SecondWindUsed bool
 	ManaAcc        int
 	Blessed        int
+	Fighting       bool
 }
 
 type ExploreMode int
@@ -93,9 +94,13 @@ func New(seed uint64, c Class) *Game {
 	return g
 }
 
-// StepMs is the duration of the next step: combat rounds have a fixed pace, exploration follows speed.
+func (g *Game) inCombat() bool {
+	return g.Exp != nil && (g.adjacentMonster() != nil || g.ready(MagicMissile) && g.castTarget() != nil)
+}
+
+// StepMs is the duration of the next step: combat rounds have a fixed pace after the first, exploration follows speed.
 func (g *Game) StepMs() int64 {
-	if g.Exp != nil && (g.adjacentMonster() != nil || g.ready(MagicMissile) && g.castTarget() != nil) {
+	if g.inCombat() && g.Exp.Fighting {
 		return CombatRoundMs
 	}
 	return int64(1000 / StepsPerSec(g.Hero.Spd()-g.Hero.Attr(Dex)/ExploreDexDiv))
@@ -171,6 +176,7 @@ func (g *Game) step() {
 	l := g.Exp.Level
 	h := g.Hero
 	r := &round{}
+	fighting := g.inCombat()
 	g.regenMana()
 	if g.Exp.Blessed > 0 {
 		g.Exp.Blessed--
@@ -207,6 +213,7 @@ func (g *Game) step() {
 		g.LastDeath = append(g.LastDeath, lines...)
 		return
 	}
+	g.Exp.Fighting = fighting
 	switch {
 	case g.Exp.Retreating && h.Pos == l.Up:
 		g.returnToTown()

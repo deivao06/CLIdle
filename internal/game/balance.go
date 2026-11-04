@@ -25,7 +25,18 @@ func StepsPerSec(spd int) float64 { return 1 + float64(spd)*0.5 }
 
 func XPToNext(level int) int { return int(20 * math.Pow(1.5, float64(level-1))) }
 
-func MonsterScale(depthsAboveMin int) float64 { return math.Pow(1.15, float64(depthsAboveMin)) }
+const (
+	MonsterGrowth     = 1.15
+	MonsterGrowthDeep = 1.12
+	MonsterDeepFrom   = 20
+)
+
+// MonsterScale grows a monster by MonsterGrowth per floor below its first floor, and by MonsterGrowthDeep past MonsterDeepFrom.
+func MonsterScale(depth, minDepth int) float64 {
+	shallow := max(0, min(depth, MonsterDeepFrom)-min(minDepth, MonsterDeepFrom))
+	deep := max(0, depth-max(minDepth, MonsterDeepFrom))
+	return math.Pow(MonsterGrowth, float64(shallow)) * math.Pow(MonsterGrowthDeep, float64(deep))
+}
 
 func MonstersPerLevel(depth int) int { return min(max(5, 3+depth/2), 12) }
 
@@ -236,7 +247,7 @@ const (
 	ManaRegenDiv     = 4
 )
 
-var ClassHP = [NumClasses]classHP{Warrior: {30, 8}, Mage: {20, 5}, Rogue: {25, 6}, Cleric: {28, 7}}
+var ClassHP = [NumClasses]classHP{Warrior: {30, 8}, Mage: {26, 5}, Rogue: {25, 6}, Cleric: {28, 7}}
 
 // ClassStats growth is per 2 levels.
 type classStats struct{ Start, Growth [NumTraits]int }

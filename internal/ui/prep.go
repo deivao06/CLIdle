@@ -154,7 +154,7 @@ func (m Model) townRows() []prepRow {
 		lvl := g.Hero.Training[t]
 		cost := game.TrainCost(t, lvl)
 		text := lang.T("prep.train_row", t.Name(), lvl, t.Effect(), cost)
-		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.priced(sPlain, cost),
+		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.buyable(cost),
 			enter: func() { g.Train(t) }, desc: m.trainDesc(t)})
 	}
 
@@ -174,7 +174,7 @@ func (m Model) townRows() []prepRow {
 	}
 	if size, cost, ok := g.NextBag(); ok {
 		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, cost)
-		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.priced(sPlain, cost),
+		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.buyable(cost),
 			enter: g.UpgradeBag, desc: lang.T("town.bag.desc")})
 	} else {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.bag_max", size-game.BagSlotsPerLevel), style: sMuted})
@@ -229,6 +229,13 @@ func (m Model) itemDesc(it *game.Item) string {
 		return rarity + lang.T("item.vs.desc", cur.Title(), cur.StatLabel())
 	}
 	return rarity + lang.T("item.vs_none.desc")
+}
+
+func (m Model) buyable(cost int) lipgloss.Style {
+	if cost > m.g.Gold {
+		return sMuted
+	}
+	return sBuy
 }
 
 func (m Model) priced(st lipgloss.Style, cost int) lipgloss.Style {

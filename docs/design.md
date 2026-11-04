@@ -22,7 +22,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Principal** muda sozinha: mostra a dungeon durante a expedição e a cidade quando o herói volta.
 - **Preparação** fica sempre disponível e só configura as expedições, em 4 grupos: Expedição · Poções · Retirada · Loot. Mudanças valem na hora, inclusive com o herói na dungeon; só poções e andar inicial esperam a próxima partida.
 - **Cidade (tela 1 com o herói na cidade):** à esquerda, o `@` descansa junto a uma fogueira animada numa salinha no estilo do mapa; à direita, a lista navegável: Partir agora, Ferreiro, Treino, Loja (com a mochila) e Baú. Em tela estreita (< 100 colunas), a sala da fogueira fica em cima e a lista embaixo, se sobrarem 10+ linhas para a lista; senão, só a lista. Ferreiro, treino, loja, mochila e baú **só funcionam na cidade**; não há fila. Para comprar no meio de uma expedição, o jogador força a volta (`r`). A auto-expedição não espera o jogador.
-- **Cores na cidade:** ferreiro, loja e baú mostram o item na cor da raridade; o que custa mais que o ouro atual fica esmaecido, sem perder a cor.
+- **Cores na cidade:** ferreiro, loja e baú mostram o item na cor da raridade; o que custa mais que o ouro atual fica esmaecido, sem perder a cor. Treino e mochila ficam no branco dos itens comuns quando dá para pagar e cinza quando não dá.
 - **Versão:** no canto direito do rodapé, em todas as telas, quando cabe.
 - **Linha de descrição:** nas listas (cidade, Preparação, Config), o rodapé explica o item selecionado. O treino mostra o efeito real do próximo nível (ex.: `Atq 8 → 9`); loja e baú comparam com o item equipado.
 - **Config** guarda as opções do jogo (bip, idioma, **efeitos no mapa**: completo/sutil/desligado; sutil deixa a lamparina parada e só números e flash) e **Resetar save**, que pede confirmação, apaga o save e volta para a escolha de classe.
@@ -63,19 +63,21 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 ## Dungeon
 
 - Andares infinitos, cada vez mais fundos. Chefe a cada 10 andares.
+- Monstros ficam 15% mais fortes por andar abaixo do primeiro andar em que aparecem; a partir do andar 20, 12% por andar, para a parede do fim do jogo vir mais tarde.
 - Geração estilo Rogue: salas retangulares + corredores, escada `>`.
 - O chefe fica na sala da escada `>`; só dá para descer depois de derrotá-lo. Ele deixa cair um item épico.
 - O chefe dorme até o herói encostar nele. Ao ver o chefe, o herói estima a luta (dano médio dos dois, HP e poções); se não vence, recua ("chefe forte demais").
 - Matar um chefe desbloqueia atalho para o andar seguinte (começar no andar 11, 21...).
 - Comportamento por andar configurável: explorar tudo (padrão) ou descer direto ao achar `>`.
 - Combate roguelike: esbarra no monstro e ataca, por turnos, automático.
-- Combate em ritmo fixo (1 rodada/s); a Velocidade decide quem ataca primeiro e dá ataques extras.
+- Combate em ritmo fixo (1 rodada/s); a primeira rodada sai no ritmo do passo, para o combate não parecer travado ao começar. A Velocidade decide quem ataca primeiro e dá ataques extras.
 - Log com uma linha por rodada; linhas iguais seguidas viram `×N`.
 - Itens: equipa sozinho se for melhor; mochila com limite.
 
 ## Herói
 
 - Um herói, com **classe escolhida no jogo novo**: Guerreiro, Mago, Ladino ou Clérigo. Save antigo vira Guerreiro. Trocar de classe fica para o prestígio.
+- HP base por classe: Guerreiro 30, Clérigo 28, Mago 26, Ladino 25. O mago não pode ser frágil a ponto de morrer nos primeiros andares da primeira expedição.
 - Atributos: **FOR** (dano corpo a corpo), **DES** (velocidade), **INT** (magia e mana), **CON** (vida). Cada classe tem valores iniciais e ganho por nível próprios. O treino da cidade sobe esses quatro.
 - Derivados: Ataque = arma + atributo de dano da classe; Defesa = armadura + capacete + escudo + nível; Velocidade = DES + botas (explorando, a DES conta só metade); Mana só para Mago e Clérigo, recupera um pouco por passo.
 - Fontes de poder: nível/XP, equipamento (achado ou comprado), melhorias permanentes na cidade.

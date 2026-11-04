@@ -15,6 +15,7 @@ var (
 	sHero   = lipgloss.NewStyle().Foreground(lipgloss.Color("226")).Bold(true)
 	sDoing  = lipgloss.NewStyle().Foreground(lipgloss.Color("229")).Bold(true)
 	sPlain  = lipgloss.NewStyle()
+	sBuy    = lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
 
 	sTitle   = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true)
 	sMuted   = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))

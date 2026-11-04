@@ -57,6 +57,9 @@ func TestRoundIsOneLogLine(t *testing.T) {
 		bat.Pos = g.Hero.Pos.Add(Pos{-1, 0})
 	}
 	g.Exp.Level.Mons = []*Monster{bat}
+	if g.StepMs() >= CombatRoundMs {
+		t.Fatalf("first combat round should not wait a full round, got %d", g.StepMs())
+	}
 	before := len(g.Log)
 	g.step()
 	if len(g.Log) != before+1 {

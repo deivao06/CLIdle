@@ -46,7 +46,7 @@ func spawnMonster(rng *RNG, depth int) *Monster {
 	eligible = eligible[max(0, len(eligible)-MonsterWindow):]
 	kind := eligible[rng.Intn(len(eligible))]
 	k := MonsterKinds[kind]
-	s := MonsterScale(depth - k.MinDepth)
+	s := MonsterScale(depth, k.MinDepth)
 	hp := scaled(k.HP, s)
 	return &Monster{
 		Kind:  kind,
