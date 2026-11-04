@@ -308,5 +308,12 @@
   "spell.blink.log": "você pisca para longe",
   "spell.heal.log": "você cura seus ferimentos (+%d HP)",
   "spell.bless.log": "você recebe uma bênção",
-  "spell.turn_undead.log": "você expulsa o %s (%d)"
+  "spell.turn_undead.log": "você expulsa o %s (%d)",
+  "doing.retreat": "Voltando para a cidade (%s) → <",
+  "doing.fight": "Lutando com %s",
+  "doing.hunt": "Indo atrás de um monstro",
+  "doing.loot": "Indo pegar um item",
+  "doing.explore": "Explorando o andar %d",
+  "doing.boss": "Indo enfrentar o chefe: %s",
+  "doing.descend": "Indo para a escada > (andar %d)"
 }

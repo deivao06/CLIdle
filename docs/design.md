@@ -29,6 +29,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Mapa ASCII estilo Rogue; o jogador vê o `@` explorando sozinho.
 - Andar de tamanho fixo (~80×21); a câmera segue o `@` em terminais menores.
 - Névoa de guerra.
+- **Linha de status** acima do log, em todos os tamanhos: o que o herói está fazendo (explorando, lutando com X, indo pegar item, indo para a escada, indo enfrentar o chefe, voltando para a cidade e o motivo).
 - Legenda explicando cada caractere de entidade.
 - Monstros por letra (`r`, `g`, `o`...); chefes em letra maiúscula com cor própria. ~8–10 tipos na v1.
 - Raridade de itens por cor: Comum (branco), Mágico (azul), Raro (verde), Épico (roxo), Lendário (laranja).

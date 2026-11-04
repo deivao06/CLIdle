@@ -148,16 +148,17 @@ func (m Model) viewDungeon(h int) string {
 	if side {
 		mapW = min(game.MapW, m.w-sideW)
 	}
-	mapH, logH := game.MapH, h-game.MapH
+	mapH, logH := game.MapH, h-game.MapH-1
 	if logH < 3 {
-		mapH, logH = h-1, 1
+		mapH, logH = h-2, 1
 	}
 	left := m.renderMap(mapW, mapH)
 	if !side && logH >= 3 {
 		left = lipgloss.JoinVertical(lipgloss.Left, left, m.statsLine(mapW))
 		logH--
 	}
-	left = lipgloss.JoinVertical(lipgloss.Left, left, m.renderLog(mapW, logH))
+	doing := sSection.Render(truncate("▸ "+g.Doing(), mapW))
+	left = lipgloss.JoinVertical(lipgloss.Left, left, doing, m.renderLog(mapW, logH))
 	if !side {
 		return left
 	}

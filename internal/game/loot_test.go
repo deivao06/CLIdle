@@ -1,6 +1,10 @@
 package game
 
-import "testing"
+import (
+	"testing"
+
+	"clidle/internal/lang"
+)
 
 func TestReturnDepositsGoldAndSellsBag(t *testing.T) {
 	g := departed(1)
@@ -172,5 +176,22 @@ func TestRetreatFleesInsteadOfFighting(t *testing.T) {
 	g.step()
 	if g.Exp != nil || m.HP != m.MaxHP {
 		t.Fatalf("hero fought instead of fleeing: monster hp %d", m.HP)
+	}
+}
+
+func TestDoingDescribesRetreatAndFight(t *testing.T) {
+	g := departed(6)
+	l := g.Exp.Level
+	l.Mons = nil
+	if g.Doing() == "" {
+		t.Fatal("no status while exploring")
+	}
+	g.besideHero(dummy())
+	if want := lang.T("doing.fight", lang.T(l.Mons[0].Info().Name)); g.Doing() != want {
+		t.Fatalf("got %q, want %q", g.Doing(), want)
+	}
+	g.startRetreat("x")
+	if g.Doing() != lang.T("doing.retreat", "x") {
+		t.Fatalf("got %q", g.Doing())
 	}
 }

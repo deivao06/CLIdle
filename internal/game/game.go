@@ -716,11 +716,26 @@ func (g *Game) explored() bool {
 
 func (g *Game) chooseStep() (Pos, bool) {
 	l := g.Exp.Level
+	if g.Exp.Retreating {
+		return l.pathStep(g.Hero.Pos, g.passable, func(p Pos) bool { return p == l.Up })
+	}
+	next, i := g.plan()
+	return next, i >= 0
+}
+
+const (
+	goalMonster = iota
+	goalItem
+	goalRush
+	goalFrontier
+	goalLast
+)
+
+// plan returns the hero's next step and which goal it leads to.
+func (g *Game) plan() (Pos, int) {
+	l := g.Exp.Level
 	h := g.Hero
 	to := func(target Pos) func(Pos) bool { return func(p Pos) bool { return p == target } }
-	if g.Exp.Retreating {
-		return l.pathStep(h.Pos, g.passable, to(l.Up))
-	}
 	boss := l.boss()
 	ready := boss == nil || g.canBeat(boss)
 	seenMonster := func(p Pos) bool {
@@ -734,8 +749,33 @@ func (g *Game) chooseStep() (Pos, bool) {
 	if boss != nil {
 		last = to(boss.Pos)
 	}
-	next, i := l.search(h.Pos, g.passable, seenMonster, g.wantedItem, rush, g.frontier, last)
-	return next, i >= 0
+	return l.search(h.Pos, g.passable, seenMonster, g.wantedItem, rush, g.frontier, last)
+}
+
+// Doing describes what the hero is up to, for the status line.
+func (g *Game) Doing() string {
+	if g.Exp == nil {
+		return ""
+	}
+	e := g.Exp
+	if e.Retreating {
+		return lang.T("doing.retreat", e.RetreatWhy)
+	}
+	if m := g.adjacentMonster(); m != nil {
+		return lang.T("doing.fight", lang.T(m.Info().Name))
+	}
+	_, i := g.plan()
+	switch {
+	case i == goalMonster:
+		return lang.T("doing.hunt")
+	case i == goalItem:
+		return lang.T("doing.loot")
+	case i == goalFrontier:
+		return lang.T("doing.explore", e.Level.Depth)
+	case i == goalLast && e.Level.boss() != nil:
+		return lang.T("doing.boss", lang.T(e.Level.boss().Info().Name))
+	}
+	return lang.T("doing.descend", e.Level.Depth+1)
 }
 
 func (g *Game) bossTooStrong() bool {

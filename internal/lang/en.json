@@ -308,5 +308,12 @@
   "spell.blink.log": "you blink away",
   "spell.heal.log": "you cure your wounds (+%d HP)",
   "spell.bless.log": "you are blessed",
-  "spell.turn_undead.log": "you turn the %s (%d)"
+  "spell.turn_undead.log": "you turn the %s (%d)",
+  "doing.retreat": "Returning to town (%s) → <",
+  "doing.fight": "Fighting the %s",
+  "doing.hunt": "Going after a monster",
+  "doing.loot": "Going to pick up an item",
+  "doing.explore": "Exploring floor %d",
+  "doing.boss": "Going to face the boss: %s",
+  "doing.descend": "Heading for the stairs > (floor %d)"
 }
