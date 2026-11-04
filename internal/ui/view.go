@@ -19,6 +19,7 @@ const (
 	townListW        = 70
 	gapMinH          = 20
 	townSceneMinW    = 30
+	townListMinH     = 10
 	campfireFrameMs  = 150
 	crtFrameMs       = 100
 	crtFlickerChance = 0.02
@@ -190,7 +191,13 @@ func (m Model) viewTownScreen(h int) string {
 	listW := min(townListW, m.w)
 	sceneW := m.w - listW
 	if sceneW < townSceneMinW {
-		return m.viewTownList(m.w, h)
+		art := m.campfire()
+		listH := h - lipgloss.Height(art) - 1
+		if listH < townListMinH {
+			return m.viewTownList(m.w, h)
+		}
+		return lipgloss.JoinVertical(lipgloss.Left,
+			lipgloss.PlaceHorizontal(m.w, lipgloss.Center, art), "", m.viewTownList(m.w, listH))
 	}
 	sceneH, logH := game.MapH, h-game.MapH
 	if logH < 3 {
