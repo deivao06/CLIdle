@@ -205,7 +205,7 @@ func (m Model) viewDungeon(h int) string {
 	if !side {
 		return left
 	}
-	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(m.w-mapW-1).Height(h).Render(m.heroPanel(min(48, m.w-mapW-3), h)))
+	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(m.w-mapW-1).Height(h).Render(m.heroPanel(min(48, m.w-mapW-3), h, false)))
 }
 
 func (m Model) viewTownScreen(h int) string {
@@ -458,19 +458,156 @@ func (m Model) renderLog(w, h int) string {
 	return strings.Join(lines, "\n")
 }
 
+const (
+	heroColW   = 48
+	heroColGap = 4
+)
+
+// heroLines is the hero tab: one column on narrow screens, two side by side when both fit.
 func (m Model) heroLines() []string {
-	w := min(48, m.w-4)
-	s := m.heroPanel(w, math.MaxInt/2)
+	w := min(heroColW, m.w-4)
+	left := m.heroPanel(w, math.MaxInt/2, true)
+	if rw := min(56, m.w-w-heroColGap); rw >= 32 {
+		right := strings.TrimPrefix(m.heroSide(rw), "\n")
+		s := lipgloss.JoinHorizontal(lipgloss.Top, lipgloss.NewStyle().Width(w+heroColGap).Render(left), right)
+		return strings.Split(s, "\n")
+	}
+	return strings.Split(left+m.heroSide(w), "\n")
+}
+
+// heroSide holds what the hero tab adds beyond the panel: abilities and the last death.
+func (m Model) heroSide(w int) string {
+	s := m.heroAbilities(w)
 	if d := m.g.LastDeath; len(d) > 0 {
-		s += "\n\n" + sSection.Render(lang.T("hero.last_death")) + "\n"
+		s += "\n" + sSection.Render(lang.T("hero.last_death")) + "\n"
+		if sc := m.g.DeathScene; sc != nil {
+			s = strings.TrimSuffix(s, "\n") + sMuted.Render(lang.T("hero.death_floor", sc.Depth)) + "\n" + deathScene(sc, w) + "\n"
+		}
 		for _, e := range d {
 			s += logStyles[e.Kind].Width(w).Render(e.Text) + "\n"
 		}
 	}
-	return strings.Split(s, "\n")
+	return s
 }
 
-func (m Model) heroPanel(w, maxH int) string {
+// abilityLabel is an ability's name with its unlock level and mana cost.
+func abilityLabel(a game.Ability) string {
+	info := game.AbilityInfo[a]
+	if info.Mana > 0 {
+		return lang.T("ability.label_mana", a.Name(), info.Level, info.Mana)
+	}
+	return lang.T("ability.label", a.Name(), info.Level)
+}
+
+// heroAbilities lists every ability of the hero's class, unlocked or not, with what it does.
+// deathScene draws the saved map around the hero's corpse, dropping rows the hero never saw.
+func deathScene(sc *game.DeathScene, w int) string {
+	var rows []string
+	for i, glyphs := range sc.Glyphs {
+		marks := sc.Marks[i]
+		if strings.TrimSpace(marks) == "" {
+			continue
+		}
+		var b strings.Builder
+		for j, r := range []rune(glyphs) {
+			if j >= w || j >= len(marks) {
+				break
+			}
+			b.WriteString(markStyle(marks[j], r).Render(string(r)))
+		}
+		rows = append(rows, b.String())
+	}
+	return strings.Join(rows, "\n")
+}
+
+func markStyle(mark byte, r rune) lipgloss.Style {
+	switch mark {
+	case game.MarkFloor:
+		return sFloor
+	case game.MarkWall:
+		return sWall
+	case game.MarkDoor:
+		return sDoor
+	case game.MarkStairs:
+		return sStairs
+	case game.MarkDim:
+		return sDim
+	case game.MarkHero:
+		return sWarn
+	case game.MarkMonster, game.MarkKiller:
+		st := *monsterStyle(kindByGlyph(r))
+		return st.Underline(mark == game.MarkKiller)
+	case game.MarkGold:
+		return sGold
+	case game.MarkPotion:
+		return sPotion
+	}
+	if mark >= game.MarkItem(game.Common) && mark <= game.MarkItem(game.Legendary) {
+		return rarityStyles[mark-game.MarkItem(game.Common)]
+	}
+	return sPlain
+}
+
+func kindByGlyph(r rune) game.MonsterKind {
+	for _, k := range append(slices.Clone(game.MonsterKinds), game.BossKinds...) {
+		if k.Glyph == r {
+			return k
+		}
+	}
+	return game.MonsterKind{Glyph: r}
+}
+
+func (m Model) heroAbilities(w int) string {
+	h := m.g.Hero
+	s := "\n" + sSection.Render(lang.T("hero.abilities")) + "\n"
+	desc := lipgloss.NewStyle().Width(w - 2)
+	for _, a := range game.ClassAbilities(h.Class) {
+		mark, name, text := "✓ ", sBuy, sPlain
+		if !h.Has(a) {
+			mark, name, text = "· ", sMuted, sMuted
+		}
+		s += name.Render(mark+abilityLabel(a)) + "\n"
+		for _, l := range strings.Split(desc.Render(a.Desc()), "\n") {
+			s += "  " + text.Render(l) + "\n"
+		}
+	}
+	return s
+}
+
+func (m Model) heroAbilityNames(w int) string {
+	var abilities []string
+	for a := range game.NumAbilities {
+		if m.g.Hero.Has(a) {
+			abilities = append(abilities, a.Name())
+		}
+	}
+	if len(abilities) == 0 {
+		return ""
+	}
+	return "\n" + sSection.Render(lang.T("hero.abilities")) + "\n" + lipgloss.NewStyle().Width(w).Render(strings.Join(abilities, ", ")) + "\n"
+}
+
+func pct(f float64) int { return int(f*100 + 0.5) }
+
+// heroCombat lists the numbers that decide a fight, from the same formulas the game uses.
+func (m Model) heroCombat() string {
+	h := m.g.Hero
+	s := "\n" + sSection.Render(lang.T("hero.combat")) + "\n" + lang.T("hero.atk_def", h.Atk(), h.Def())
+	if sp := h.SpellAtk(); sp > 0 {
+		s += lang.T("hero.spell", sp)
+	}
+	rates := lang.T("hero.rates", pct(h.MissChance()), pct(h.CritChance()))
+	if d := h.DodgeChance(); d > 0 {
+		rates += lang.T("hero.dodge", pct(d))
+	}
+	s += rates + "\n" + lang.T("hero.speed", h.Spd(), game.StepsPerSec(h.Spd()))
+	if r := h.ManaPerStep(); r > 0 {
+		s += lang.T("hero.mana_regen", r)
+	}
+	return s + lang.T("hero.potions_heal", h.Potions, h.PotionHeal())
+}
+
+func (m Model) heroPanel(w, maxH int, tab bool) string {
 	g := m.g
 	h := g.Hero
 	var b strings.Builder
@@ -482,12 +619,16 @@ func (m Model) heroPanel(w, maxH int) string {
 		fmt.Fprintf(&b, "MP  %s\n", numBar(h.MP, h.MaxMP(), w-4, sMP))
 	}
 	fmt.Fprintf(&b, "XP  %s\n", numBar(h.XP, game.XPToNext(h.Level), w-4, sXP))
-	b.WriteString(lang.T("hero.atk_def", h.Atk(), h.Def()))
-	if sp := h.SpellAtk(); sp > 0 {
-		b.WriteString(lang.T("hero.spell", sp))
+	if tab {
+		b.WriteString(m.heroCombat())
+	} else {
+		b.WriteString(lang.T("hero.atk_def", h.Atk(), h.Def()))
+		if sp := h.SpellAtk(); sp > 0 {
+			b.WriteString(lang.T("hero.spell", sp))
+		}
+		b.WriteString(lang.T("hero.speed", h.Spd(), game.StepsPerSec(h.Spd())))
+		b.WriteString(lang.T("hero.potions_gold", h.Potions, g.Gold))
 	}
-	b.WriteString(lang.T("hero.speed", h.Spd(), game.StepsPerSec(h.Spd())))
-	b.WriteString(lang.T("hero.potions_gold", h.Potions, g.Gold))
 	b.WriteString("\n" + sSection.Render(lang.T("hero.equipment")) + "\n")
 	for s, it := range h.Equip {
 		if it == nil {
@@ -496,15 +637,8 @@ func (m Model) heroPanel(w, maxH int) string {
 		}
 		b.WriteString(rarityStyle(it.Rarity).Width(w).Render(fmt.Sprintf("%c %s (%s)", it.Slot.Glyph(), it.Title(), it.StatLabel())) + "\n")
 	}
-	var abilities []string
-	for a := range game.NumAbilities {
-		if h.Has(a) {
-			abilities = append(abilities, a.Name())
-		}
-	}
-	if len(abilities) > 0 {
-		b.WriteString("\n" + sSection.Render(lang.T("hero.abilities")) + "\n")
-		b.WriteString(lipgloss.NewStyle().Width(w).Render(strings.Join(abilities, ", ")) + "\n")
+	if !tab {
+		b.WriteString(m.heroAbilityNames(w))
 	}
 	if e := g.Exp; e != nil {
 		fmt.Fprintf(&b, "\n%s %s", sSection.Render(lang.T("hero.expedition")), lang.T("hero.exp_floor", e.Num, e.Level.Depth))
@@ -538,7 +672,7 @@ func (m Model) heroPanel(w, maxH int) string {
 	return b.String() + bottom
 }
 
-var helpPages = []string{"help.page.symbols", "help.page.how", "help.page.attrs"}
+var helpPages = []string{"help.page.symbols", "help.page.how", "help.page.attrs", "help.page.classes"}
 
 func (m Model) viewHelp(h int) string {
 	var tabs []string
@@ -557,7 +691,7 @@ func (m Model) viewHelp(h int) string {
 	}
 	w := min(m.w, 80)
 	var lines []string
-	for _, p := range strings.Split(lang.T(helpPages[m.helpPage]+".text"), "\n") {
+	for _, p := range strings.Split(helpText(helpPages[m.helpPage]), "\n") {
 		if title, ok := strings.CutPrefix(p, "# "); ok {
 			lines = append(lines, sSection.Render(truncate(title, w)))
 			continue
@@ -570,6 +704,23 @@ func (m Model) viewHelp(h int) string {
 		lines = append(lines, "")
 	}
 	return head + strings.Join(lines, "\n") + foot
+}
+
+// helpText is a help page; the classes page is built from the ability table so it never goes stale.
+func helpText(page string) string {
+	if page != "help.page.classes" {
+		return lang.T(page + ".text")
+	}
+	s := lang.T("help.classes.intro")
+	for c := range game.NumClasses {
+		main := lang.T([...]string{"stat.str", "stat.dex", "stat.int", "stat.con"}[c.MainAttr()])
+		desc := []rune(c.Desc() + lang.T("class.main", main) + ".")
+		s += "\n\n# " + c.Name() + "\n" + strings.ToUpper(string(desc[:1])) + string(desc[1:])
+		for _, a := range game.ClassAbilities(c) {
+			s += "\n  " + abilityLabel(a) + "\n    " + a.Desc()
+		}
+	}
+	return s
 }
 
 // hangWrap wraps an indented line so continuation lines align with its text column ("  FOR  text...").

@@ -118,14 +118,14 @@ func TestAutoStopsAfterDeathLimit(t *testing.T) {
 	g.ToggleAuto()
 	for range 2 {
 		g.Depart()
-		g.die()
+		g.die(nil)
 	}
 	if g.Auto {
 		t.Fatal("auto still on after the death limit")
 	}
 	g.ToggleAuto()
 	g.Depart()
-	g.die()
+	g.die(nil)
 	if !g.Auto {
 		t.Fatal("turning auto back on did not reset the count")
 	}

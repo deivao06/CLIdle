@@ -1,6 +1,7 @@
 package game
 
 import (
+	"strings"
 	"testing"
 
 	"clidle/internal/lang"
@@ -195,5 +196,27 @@ func TestDoingDescribesRetreatAndFight(t *testing.T) {
 	g.startRetreat("x")
 	if g.Doing() != lang.T("doing.retreat", "x") {
 		t.Fatalf("got %q", g.Doing())
+	}
+}
+
+func TestDeathKeepsTheSceneAroundTheCorpse(t *testing.T) {
+	g := departed(1)
+	g.Hero.HP = 1
+	m := &Monster{HP: 9, Atk: 100, Spd: 4, Awake: true}
+	m.Pos = g.Hero.Pos.Add(Pos{1, 0})
+	if !g.Exp.Level.CanStep(g.Hero.Pos, m.Pos) {
+		m.Pos = g.Hero.Pos.Add(Pos{-1, 0})
+	}
+	g.Exp.Level.Mons = []*Monster{m}
+	for i := 0; i < 50 && g.Exp != nil; i++ {
+		g.monsterAttack(m, &round{})
+	}
+	sc := g.DeathScene
+	if sc == nil || len(sc.Glyphs) != DeathSceneH {
+		t.Fatal("no death scene")
+	}
+	all := strings.Join(sc.Glyphs, "") + strings.Join(sc.Marks, "")
+	if !strings.ContainsRune(all, CorpseGlyph) || !strings.ContainsRune(strings.Join(sc.Marks, ""), MarkKiller) {
+		t.Fatalf("scene misses corpse or killer:\n%s", strings.Join(sc.Glyphs, "\n"))
 	}
 }

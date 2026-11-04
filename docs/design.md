@@ -25,6 +25,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Cores na cidade:** ferreiro, loja e baú mostram o item na cor da raridade; o que custa mais que o ouro atual fica esmaecido, sem perder a cor. Treino e mochila ficam no branco dos itens comuns quando dá para pagar e cinza quando não dá.
 - **Versão:** no canto direito do rodapé, em todas as telas, quando cabe.
 - **Linha de descrição:** nas listas (cidade, Preparação, Config), o rodapé explica o item selecionado. O treino mostra o efeito real do próximo nível (ex.: `Atq 8 → 9`); loja e baú comparam com o item equipado.
+- **Herói (tela 3):** duas colunas quando cabem (≥ 84 colunas): à esquerda atributos, barras, **Combate** (ataque, defesa, chance de erro, crítico, esquiva do ladino, velocidade, mana por passo e quanto cada poção cura, das mesmas fórmulas do jogo), equipamento, expedição e recordes; à direita todas as habilidades da classe, liberadas (✓, branco) e bloqueadas (·, cinza), com nível, custo de MP e o que fazem, e a última morte: um desenho do mapa em volta do herói no momento da morte (recorte de 31×11 guardado no save, como o herói via; herói morto como `@` em vermelho, monstro que matou sublinhado; linhas nunca vistas somem) e as últimas linhas do log. Save antigo mostra só o log. Em tela estreita, uma coluna com rolagem. O ouro fica só no topo da tela. O painel lateral da dungeon continua compacto, sem o bloco Combate.
 - **Config** guarda as opções do jogo (bip, idioma, **efeitos no mapa**: completo/sutil/desligado; sutil deixa a lamparina parada e só números e flash) e **Resetar save**, que pede confirmação, apaga o save e volta para a escolha de classe.
 
 ## Visual
@@ -55,6 +56,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Auto-equipar:** ligado por padrão. Desligado, o herói não troca equipamento na dungeon; o jogador equipa pelo baú.
 - **Vender loot na volta:** ligado por padrão, independente do auto-equipar. Desligado, a mochila vai para o **baú** (20 vagas, o que sobra é vendido). Na lista da cidade o baú mostra só os itens guardados (não os equipados): enter equipa (o item que estava equipado vai para o baú) e `x` vende. Saves antigos com auto-equipar desligado começam com a venda desligada (passo v5).
 - **Lendários nunca são vendidos sozinhos:** na volta vão sempre para o baú (mesmo com a venda ligada e o baú cheio); trocados por compra na loja, também vão para o baú. Na dungeon segue a regra normal: com a mochila cheia, o item trocado fica para trás. Só saem vendidos com `x` e confirmação.
+- **Ajuda (`?`) tem 4 páginas:** Símbolos, Como funciona, Atributos e Classes. A página Atributos explica cada efeito de item épico/lendário (com o mesmo nome que aparece no item e a faixa de valores). A página Classes é montada da tabela de habilidades (nunca fica desatualizada): armas de cada classe, atributo principal e cada habilidade com nível, MP e descrição.
 - **Ajuda (`?`) acompanha as regras:** toda regra nova que o jogador sente (combate, venda, mana, monstros) entra no manual.
 - **Filtro de loot:** "Pegar itens" (comum+ por padrão) define a raridade mínima que vai para a mochila. Item que o herói vai equipar é pego sempre.
 - **Itens de outra classe:** desligado por padrão; o herói só pega o que a classe dele usa.
@@ -69,7 +71,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Monstros ficam 15% mais fortes por andar abaixo do primeiro andar em que aparecem; a partir do andar 20, 12% por andar, para a parede do fim do jogo vir mais tarde.
 - Geração estilo Rogue: salas retangulares + corredores, escada `>`.
 - O chefe fica na sala da escada `>`; só dá para descer depois de derrotá-lo. Ele deixa cair um item épico.
-- O chefe dorme até o herói encostar nele. Ao ver o chefe, o herói estima a luta (dano médio dos dois, HP e poções); se não vence, recua ("chefe forte demais").
+- O chefe dorme até o herói encostar nele. O herói **não sabe** se vence o chefe: não há estimativa nem recuo por chefe forte; ele luta como contra qualquer monstro (só recua pelas regras normais, como HP baixo sem poções).
 - Matar um chefe desbloqueia atalho para o andar seguinte (começar no andar 11, 21...).
 - Comportamento por andar configurável: explorar tudo (padrão) ou descer direto ao achar `>`.
 - Combate roguelike: esbarra no monstro e ataca, por turnos, automático.

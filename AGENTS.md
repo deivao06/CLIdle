@@ -72,7 +72,7 @@ internal/ui/            Bubble Tea
 - **Baú:** `Game.Stash`. Só enche com `Config.KeepLoot` (vender loot desligado): `returnToTown` guarda a mochila no baú em vez de vender. `Config.ManualEquip` (auto-equipar desligado) é separado: `better()` devolve falso. O passo v5 de `migrate.go` liga `KeepLoot` em quem tinha `ManualEquip`.
 - **Mochila:** tamanho é `Game.BagCap()` (`BagSize` + `BagLevel`×2), nunca a constante `BagSize` direto. `Config.MinRarity` filtra o que vai para a mochila em `wants`.
 - **Morte:** restaura `StartEquip`, perde ouro e mochila da expedição; mantém poções e XP.
-- **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item épico e libera atalho para `andar+1`. Dorme até o herói encostar (`BossWakeDist`). `checkRetreat` recua se o chefe está visível e `canBeat` (estimativa por dano médio, HP e poções) diz que não vence. Recuando (por qualquer motivo), o herói não luta: só se cura e anda para `<`; ataca apenas se um monstro bloqueia o único caminho.
+- **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item épico e libera atalho para `andar+1`. Dorme até o herói encostar (`BossWakeDist`). O herói não estima a luta com o chefe (o dono quis que ele não soubesse): não há recuo por chefe forte. Recuando (por qualquer motivo), o herói não luta: só se cura e anda para `<`; ataca apenas se um monstro bloqueia o único caminho.
 - **Poção:** além do limite de HP, `needsPotion` bebe se o golpe máximo dos vizinhos (`incoming`) pode matar, desde que a cura supere o dano médio e não seja desperdiçada.
 - **Morte:** `LastDeath` guarda as últimas linhas do log (aba Herói); metade do ouro da expedição fica (`DeathKeepGoldPct`).
 

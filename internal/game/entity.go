@@ -148,6 +148,26 @@ func (h *Hero) Def() int {
 }
 func (h *Hero) Spd() int { return HeroBaseSpd + h.bonus(Boots) + h.Attr(Dex) }
 
+func (h *Hero) MissChance() float64 { return MissChance(h.Attr(Dex)) }
+func (h *Hero) CritChance() float64 { return CritChance(h.Attr(Dex)) + float64(h.Effect(Crit))/100 }
+
+func (h *Hero) DodgeChance() float64 {
+	if !h.Has(Dodge) {
+		return 0
+	}
+	return min(DodgeCap, float64(h.Attr(Dex))*DodgePerDex)
+}
+
+func (h *Hero) PotionHeal() int { return h.MaxHP() * (PotionHealPct + h.Effect(PotionBoost)) / 100 }
+
+// ManaPerStep is the mana recovered per step, for display.
+func (h *Hero) ManaPerStep() float64 {
+	if h.MaxMP() == 0 {
+		return 0
+	}
+	return float64(ManaRegenPerStep+h.Attr(Int)*ManaRegenPerInt) / ManaRegenDiv
+}
+
 func (h *Hero) bonus(s Slot) int {
 	if h.Equip[s] == nil {
 		return 0

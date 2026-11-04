@@ -68,10 +68,12 @@ func TestHeroTabScrollsOnSmallScreens(t *testing.T) {
 	if strings.Contains(m.View(), records) {
 		t.Skip("screen not small enough to need scroll")
 	}
-	for range 30 {
+	seen := false
+	for range 60 {
 		m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})
+		seen = seen || strings.Contains(m.View(), records)
 	}
-	if !strings.Contains(m.View(), records) {
+	if !seen {
 		t.Fatal("records never scrolled into view")
 	}
 }
@@ -151,5 +153,14 @@ func TestSellingLegendaryAsksFirst(t *testing.T) {
 	m.confirmDo(&m)
 	if len(g.Stash) != 0 || g.Gold == 0 {
 		t.Fatalf("confirming did not sell: stash %d gold %d", len(g.Stash), g.Gold)
+	}
+}
+
+func TestClassesHelpListsEveryAbility(t *testing.T) {
+	text := helpText("help.page.classes")
+	for a := range game.NumAbilities {
+		if !strings.Contains(text, a.Name()) || !strings.Contains(text, a.Desc()) || strings.HasSuffix(a.Desc(), ".desc") {
+			t.Fatalf("ability %s missing or without description", a.Name())
+		}
 	}
 }

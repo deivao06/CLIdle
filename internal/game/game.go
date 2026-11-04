@@ -78,6 +78,7 @@ type Game struct {
 	Lang       string
 	BagLevel   int
 	LastDeath  []LogEntry
+	DeathScene *DeathScene `json:",omitempty"`
 
 	Events []Event `json:"-"`
 	strong bool
@@ -239,10 +240,7 @@ func (g *Game) needsPotion() bool {
 	return (h.MaxHP()-h.HP)*2 >= heal && worst >= h.HP && avg < heal
 }
 
-func (g *Game) potionHeal() int {
-	h := g.Hero
-	return h.MaxHP() * (PotionHealPct + h.Effect(PotionBoost)) / 100
-}
+func (g *Game) potionHeal() int { return g.Hero.PotionHeal() }
 
 // incoming is the worst and the average damage the adjacent awake monsters deal before the hero acts again.
 func (g *Game) incoming() (worst, avg int) {
@@ -273,8 +271,6 @@ func (g *Game) checkRetreat() {
 		g.startRetreat(lang.T("retreat.bag_full"))
 	case h.Potions == 0 && h.HP*100 < h.MaxHP()*g.Config.RetreatHPPct:
 		g.startRetreat(lang.T("retreat.low_hp"))
-	case g.bossTooStrong():
-		g.startRetreat(lang.T("retreat.boss_strong"))
 	}
 }
 
@@ -490,7 +486,7 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	name := lang.T(m.Info().Name)
 	sneak := h.Has(SneakAttack) && (!m.Awake || m.HP == m.MaxHP)
 	m.Awake = true
-	miss := MissChance(h.Attr(Dex))
+	miss := h.MissChance()
 	if e.Blessed > 0 {
 		miss /= 2
 	}
@@ -505,7 +501,7 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	}
 	d := damage(e.RNG, h.Atk(), m.Def)
 	key := "combat.hero_hit"
-	if c := CritChance(h.Attr(Dex)) + float64(h.Effect(Crit))/100; c > 0 && e.RNG.Chance(c) {
+	if c := h.CritChance(); c > 0 && e.RNG.Chance(c) {
 		d *= 2
 		key = "combat.hero_crit"
 	}
@@ -657,7 +653,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	e := g.Exp
 	h := g.Hero
 	mr := r.of(m)
-	if e.RNG.Chance(MissChance(m.Dex)) || h.Has(Dodge) && e.RNG.Chance(min(DodgeCap, float64(h.Attr(Dex))*DodgePerDex)) {
+	if e.RNG.Chance(MissChance(m.Dex)) || h.Has(Dodge) && e.RNG.Chance(h.DodgeChance()) {
 		mr.misses++
 		return
 	}
@@ -677,7 +673,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 		h.HP = 0
 		r.after = append(r.after, LogEntry{Text: lang.T("log.death",
 			mr.name, e.Level.Depth, e.Gold-e.deathKeep(), len(e.Bag)+g.foundEquipped(), e.deathKeep()), Kind: LogBad})
-		g.die()
+		g.die(m)
 	}
 }
 
@@ -693,8 +689,9 @@ func (g *Game) foundEquipped() int {
 
 func (e *Expedition) deathKeep() int { return e.Gold * DeathKeepGoldPct / 100 }
 
-func (g *Game) die() {
+func (g *Game) die(killer *Monster) {
 	g.LastDeath = slices.Clone(g.Log[max(0, len(g.Log)-DeathLogLines):])
+	g.DeathScene = g.deathScene(killer)
 	g.Hero.Equip = g.Exp.StartEquip
 	g.Gold += g.Exp.deathKeep()
 	g.Exp = nil
@@ -761,11 +758,7 @@ func (g *Game) plan() (Pos, int) {
 	h := g.Hero
 	to := func(target Pos) func(Pos) bool { return func(p Pos) bool { return p == target } }
 	boss := l.boss()
-	ready := boss == nil || g.canBeat(boss)
-	seenMonster := func(p Pos) bool {
-		m := l.MonsterAt(p)
-		return m != nil && l.Visible(h.Pos, p) && (ready || !m.Boss)
-	}
+	seenMonster := func(p Pos) bool { return l.MonsterAt(p) != nil && l.Visible(h.Pos, p) }
 	rush := func(p Pos) bool {
 		return g.Config.Mode == DescendFast && boss == nil && l.IsSeen(l.Down) && p == l.Down
 	}
@@ -800,19 +793,4 @@ func (g *Game) Doing() string {
 		return lang.T("doing.boss", lang.T(e.Level.boss().Info().Name))
 	}
 	return lang.T("doing.descend", e.Level.Depth+1)
-}
-
-func (g *Game) bossTooStrong() bool {
-	l := g.Exp.Level
-	b := l.boss()
-	return b != nil && l.Visible(g.Hero.Pos, b.Pos) && !g.canBeat(b)
-}
-
-// canBeat estimates a straight fight with average damage, counting the potions the hero carries.
-func (g *Game) canBeat(m *Monster) bool {
-	h := g.Hero
-	heroHit := max(1, float64(max(h.Atk(), h.SpellAtk()))-float64(m.Def)*0.5)
-	monHit := max(1, float64(m.Atk)-float64(h.Def())*0.5) * float64(m.Spd) / float64(h.Spd())
-	pool := h.HP + h.Potions*h.MaxHP()*(PotionHealPct+h.Effect(PotionBoost))/100
-	return float64(m.HP)/heroHit < float64(pool)/monHit
 }

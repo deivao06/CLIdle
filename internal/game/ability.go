@@ -28,6 +28,18 @@ const (
 )
 
 func (a Ability) Name() string { return lang.T(AbilityInfo[a].Key) }
+func (a Ability) Desc() string { return lang.T(AbilityInfo[a].Key + ".desc") }
+
+// ClassAbilities lists a class's abilities in unlock order.
+func ClassAbilities(c Class) []Ability {
+	var out []Ability
+	for a := range NumAbilities {
+		if AbilityInfo[a].Class == c {
+			out = append(out, a)
+		}
+	}
+	return out
+}
 
 func (h *Hero) Has(a Ability) bool {
 	info := AbilityInfo[a]
