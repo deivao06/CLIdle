@@ -17,6 +17,7 @@ const (
 	minW, minH       = 40, 10
 	sideW            = 28
 	townListW        = 70
+	gapMinH          = 20
 	townSceneMinW    = 30
 	campfireFrameMs  = 150
 	crtFrameMs       = 100
@@ -53,7 +54,7 @@ func (m Model) view() string {
 	if m.choosing {
 		return m.viewChoose()
 	}
-	bodyH := m.h - 2
+	bodyH := m.bodyH()
 	if m.catching {
 		f := float64(m.progress.Load()) / 1000
 		msg := sTitle.Render(lang.T("ui.simulating")) + "\n\n" +
@@ -85,7 +86,19 @@ func (m Model) view() string {
 		body = sMuted.Render(lang.T("ui.soon"))
 	}
 	body = lipgloss.NewStyle().Width(m.w).Height(bodyH).MaxHeight(bodyH).Render(body)
-	return lipgloss.JoinVertical(lipgloss.Left, m.viewHeader(), body, m.viewFooter())
+	header := m.viewHeader()
+	if m.h-2 > bodyH {
+		header += "\n"
+	}
+	return lipgloss.JoinVertical(lipgloss.Left, header, body, m.viewFooter())
+}
+
+// bodyH leaves a blank line under the tabs when the terminal is tall enough.
+func (m Model) bodyH() int {
+	if m.h >= gapMinH {
+		return m.h - 3
+	}
+	return m.h - 2
 }
 
 func (m Model) viewHeader() string {
@@ -162,6 +175,10 @@ func (m Model) viewDungeon(h int) string {
 		doingStyle = sWarn
 	}
 	doing := doingStyle.Render(truncate("▸ "+g.Doing(), mapW))
+	if logH >= 3 {
+		doing += "\n"
+		logH--
+	}
 	left = lipgloss.JoinVertical(lipgloss.Left, left, doing, m.renderLog(mapW, logH))
 	if !side {
 		return left

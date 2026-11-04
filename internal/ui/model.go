@@ -258,7 +258,7 @@ func (m *Model) heroKey(key string) {
 	case "down", "j":
 		m.heroTop++
 	}
-	m.heroTop = clamp(m.heroTop, 0, max(0, len(m.heroLines())-(m.h-2)))
+	m.heroTop = clamp(m.heroTop, 0, max(0, len(m.heroLines())-m.bodyH()))
 }
 
 func (m *Model) prepKey(key string) {
