@@ -20,7 +20,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Abaixo de **40×10**: aviso "janela muito pequena".
 - Telas: `1` Principal · `2` Preparação · `3` Herói · `4` Config · `?` legenda/ajuda · `q` sair.
 - **Principal** muda sozinha: mostra a dungeon durante a expedição e a cidade quando o herói volta.
-- **Preparação** fica sempre disponível e só configura as expedições. Mudanças valem na hora, inclusive com o herói na dungeon; só poções e andar inicial esperam a próxima partida.
+- **Preparação** fica sempre disponível e só configura as expedições, em 4 grupos: Expedição · Poções · Retirada · Loot. Mudanças valem na hora, inclusive com o herói na dungeon; só poções e andar inicial esperam a próxima partida.
 - **Cidade (tela 1 com o herói na cidade):** à esquerda, o `@` descansa junto a uma fogueira animada numa salinha no estilo do mapa; à direita, a lista navegável: Partir agora, Ferreiro, Treino, Loja (com a mochila) e Baú. Em tela estreita (< 100 colunas), a sala da fogueira fica em cima e a lista embaixo, se sobrarem 10+ linhas para a lista; senão, só a lista. Ferreiro, treino, loja, mochila e baú **só funcionam na cidade**; não há fila. Para comprar no meio de uma expedição, o jogador força a volta (`r`). A auto-expedição não espera o jogador.
 - **Linha de descrição:** nas listas (cidade, Preparação, Config), o rodapé explica o item selecionado. O treino mostra o efeito real do próximo nível (ex.: `Atq 8 → 9`); loja e baú comparam com o item equipado.
 - **Config** guarda as opções do jogo (bip, idioma) e **Resetar save**, que pede confirmação, apaga o save e volta para a escolha de classe.

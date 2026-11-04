@@ -83,7 +83,11 @@ func (m Model) view() string {
 	case m.tab == tabHero:
 		lines := m.heroLines()
 		top := clamp(m.heroTop, 0, max(0, len(lines)-bodyH))
-		body = strings.Join(lines[top:min(len(lines), top+bodyH)], "\n")
+		shown := lines[top:min(len(lines), top+bodyH)]
+		if top+bodyH < len(lines) {
+			shown[len(shown)-1] = sMuted.Render(lang.T("hero.more"))
+		}
+		body = strings.Join(shown, "\n")
 	default:
 		body = sMuted.Render(lang.T("ui.soon"))
 	}
@@ -506,7 +510,7 @@ func (m Model) viewHelp(h int) string {
 	foot := "\n" + sMuted.Render(truncate(lang.T("help.footer"), m.w))
 	bodyH := max(1, h-3)
 	if m.helpPage == 0 {
-		return head + m.viewSymbols(bodyH) + foot
+		return head + m.viewSymbols(bodyH) + "\n" + sMuted.Render(truncate(lang.T("help.footer_symbols"), m.w))
 	}
 	w := min(m.w, 80)
 	var lines []string

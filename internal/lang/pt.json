@@ -100,7 +100,7 @@
 
   "prep.yes": "sim",
   "prep.no": "não",
-  "prep.section.next": "Próxima expedição",
+  "prep.section.next": "Expedição",
   "prep.section.shop": "Loja",
   "prep.section.smith": "Ferreiro",
   "prep.section.chest": "Baú %d/%d",
@@ -146,8 +146,8 @@
   "prep.train_row": "%-12s nv %-3d %-8s %6d ouro",
   "prep.gold": "Ouro %d",
   "prep.away_config": "Herói na dungeon: poções e andar inicial valem na próxima expedição.",
-  "town.keys": "↑↓ escolhe · enter compra/equipa · x vende",
-  "prep.keys": "↑↓ escolhe · ←→ ajusta · enter alterna",
+  "town.keys": "↑↓ escolher · enter comprar/equipar · x vender",
+  "prep.keys": "↑↓ escolher · ←→ ajustar · enter alternar",
 
   "rarity.common": "comum",
   "rarity.rare": "raro",
@@ -228,7 +228,7 @@
   "item.kite_shield": "Escudo Pipa",
   "item.tower_shield": "Escudo Torre",
 
-  "log.welcome": "Bem-vindo à cidade. Prepare a expedição na aba 2 e aperte e para partir.",
+  "log.welcome": "Bem-vindo! Aperte ? para ver como o jogo funciona. Configure a expedição na aba 2 e aperte e para partir.",
   "log.depart": "Expedição #%d parte rumo à dungeon.",
   "log.arrive_floor": "Você chega ao andar %d.",
   "log.boss_guard": "Uma presença terrível guarda a escada: %s.",
@@ -356,5 +356,11 @@
   "help.page.attrs.text": "# Atributos\n  FOR  Força: dano corpo a corpo do guerreiro, do mago e do clérigo.\n  DES  Destreza: velocidade (explora mais rápido e age mais vezes em combate) e dano do ladino.\n  INT  Inteligência: dano das magias e mana (mago e clérigo).\n  CON  Constituição: HP máximo.\nTodo herói ganha atributos ao subir de nível. O treino na cidade soma pontos permanentes; a linha de descrição mostra o efeito antes de comprar.\n\n# Números do herói\n  Ataque      arma + atributo de dano da classe.\n  Defesa      armadura + capacete + escudo + nível. Reduz o dano recebido.\n  Velocidade  botas + DES. O valor em /s é quantos passos ele dá por segundo explorando.\n  Mág         dano da melhor magia (mago e clérigo).\n  MP          mana; as magias gastam e ela volta um pouco a cada passo.\n\n# Raridade dos itens\nComum (branco) › Mágico (azul) › Raro (verde) › Épico (roxo) › Lendário (laranja). No mesmo andar, raridade maior nunca é mais fraca. Épicos têm 1 efeito especial e lendários têm 2 (roubo de vida, crítico, HP extra, ouro extra, cura de poção, XP extra).\n\n# Classes\nCada classe usa só certas armas e armaduras. Guerreiro e clérigo usam espadas e maças; mago usa cajados; ladino usa adagas.",
   "help.rarity": "Itens: branco comum, azul mágico, verde raro, roxo épico, laranja lendário",
   "item.rarity.desc": "Raridade: %s.",
-  "class.main": " · atributo principal: %s"
+  "class.main": " · atributo principal: %s",
+  "prep.section.potions": "Poções",
+  "prep.section.retreat": "Retirada",
+  "prep.section.loot": "Loot",
+  "help.footer_symbols": "←→ páginas · ? ou esc fecha",
+  "hero.more": "↓ mais (↑↓ rolar)",
+  "settings.version": "versão %s"
 }

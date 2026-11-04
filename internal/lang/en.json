@@ -100,7 +100,7 @@
 
   "prep.yes": "yes",
   "prep.no": "no",
-  "prep.section.next": "Next expedition",
+  "prep.section.next": "Expedition",
   "prep.section.shop": "Shop",
   "prep.section.smith": "Blacksmith",
   "prep.section.chest": "Chest %d/%d",
@@ -228,7 +228,7 @@
   "item.kite_shield": "Kite Shield",
   "item.tower_shield": "Tower Shield",
 
-  "log.welcome": "Welcome to town. Prepare the expedition on tab 2 and press e to depart.",
+  "log.welcome": "Welcome! Press ? to see how the game works. Set up the expedition on tab 2 and press e to depart.",
   "log.depart": "Expedition #%d sets out for the dungeon.",
   "log.arrive_floor": "You reach floor %d.",
   "log.boss_guard": "A terrible presence guards the stairs: %s.",
@@ -356,5 +356,11 @@
   "help.page.attrs.text": "# Attributes\n  STR  Strength: melee damage for the warrior, mage and cleric.\n  DEX  Dexterity: speed (explores faster and acts more often in combat) and rogue damage.\n  INT  Intelligence: spell damage and mana (mage and cleric).\n  CON  Constitution: max HP.\nEvery hero gains attributes on level up. Training in town adds permanent points; the description line shows the effect before you buy.\n\n# Hero numbers\n  Attack     weapon + the class damage attribute.\n  Defense    armor + helmet + shield + level. Reduces damage taken.\n  Speed      boots + DEX. The /s value is how many steps per second while exploring.\n  Spell      damage of the best spell (mage and cleric).\n  MP         mana; spells spend it and it comes back a little each step.\n\n# Item rarity\nCommon (white) › Magic (blue) › Rare (green) › Epic (purple) › Legendary (orange). On the same floor, a higher rarity is never weaker. Epics have 1 special effect and legendaries have 2 (life steal, critical, extra HP, extra gold, potion healing, extra XP).\n\n# Classes\nEach class only uses certain weapons and armor. Warrior and cleric use swords and maces; mage uses staves; rogue uses daggers.",
   "help.rarity": "Items: white common, blue magic, green rare, purple epic, orange legendary",
   "item.rarity.desc": "Rarity: %s.",
-  "class.main": " · main attribute: %s"
+  "class.main": " · main attribute: %s",
+  "prep.section.potions": "Potions",
+  "prep.section.retreat": "Retreat",
+  "prep.section.loot": "Loot",
+  "help.footer_symbols": "←→ pages · ? or esc closes",
+  "hero.more": "↓ more (↑↓ scroll)",
+  "settings.version": "version %s"
 }

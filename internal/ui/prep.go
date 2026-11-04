@@ -80,9 +80,9 @@ func (m Model) prepRows() []prepRow {
 	g := m.g
 	c := &g.Config
 	var rows []prepRow
-	nextSection := lang.T("prep.section.next")
+	section := lang.T("prep.section.next")
 	cfg := func(label, value string, adjust func(int)) {
-		rows = append(rows, cfgRow(nextSection, label, value, adjust))
+		rows = append(rows, cfgRow(section, label, value, adjust))
 	}
 	auto := lang.T("prep.off")
 	if g.Auto {
@@ -99,30 +99,33 @@ func (m Model) prepRows() []prepRow {
 		mode = lang.T("prep.mode.descend")
 	}
 	cfg("prep.mode", mode, func(int) { c.Mode = 1 - c.Mode })
-	cfg("prep.potions", lang.T("prep.potions_value", c.PotionsToBring, game.PotionPrice),
-		func(d int) { step(&c.PotionsToBring, d, 1, 0, game.MaxPotions) })
-	cfg("prep.potion_at", fmt.Sprintf("%d%%", c.PotionAtPct), func(d int) { step(&c.PotionAtPct, d, 5, 5, 90) })
-	retreat := lang.T("prep.never")
-	if c.RetreatHPPct > 0 {
-		retreat = fmt.Sprintf("%d%%", c.RetreatHPPct)
-	}
-	cfg("prep.retreat_hp", retreat, func(d int) { step(&c.RetreatHPPct, d, 5, 0, 90) })
-	cfg("prep.auto_equip", onOff(!c.ManualEquip), func(int) { c.ManualEquip = !c.ManualEquip })
-	cfg("prep.min_rarity", lang.T("prep.min_rarity_value", c.MinRarity.Name()), func(d int) {
-		c.MinRarity = (c.MinRarity + game.Rarity(d) + game.NumRarities) % game.NumRarities
-	})
-	cfg("prep.any_class", onOff(c.AnyClass), func(int) { c.AnyClass = !c.AnyClass })
-	cfg("prep.retreat_bag", onOff(c.RetreatBagFull), func(int) { c.RetreatBagFull = !c.RetreatBagFull })
-	last := lang.T("prep.no_limit")
-	if c.LastFloor > 0 {
-		last = lang.T("status.floor", c.LastFloor)
-	}
-	cfg("prep.last_floor", last, func(d int) { step(&c.LastFloor, d, 1, 0, 999) })
 	floors := g.ShortcutList()
 	at := max(0, slices.Index(floors, c.StartFloor))
 	cfg("prep.start_floor", lang.T("prep.start_floor_value", floors[at], len(floors)-1), func(d int) {
 		c.StartFloor = floors[(at+d+len(floors))%len(floors)]
 	})
+	last := lang.T("prep.no_limit")
+	if c.LastFloor > 0 {
+		last = lang.T("status.floor", c.LastFloor)
+	}
+	cfg("prep.last_floor", last, func(d int) { step(&c.LastFloor, d, 1, 0, 999) })
+	section = lang.T("prep.section.potions")
+	cfg("prep.potions", lang.T("prep.potions_value", c.PotionsToBring, game.PotionPrice),
+		func(d int) { step(&c.PotionsToBring, d, 1, 0, game.MaxPotions) })
+	cfg("prep.potion_at", fmt.Sprintf("%d%%", c.PotionAtPct), func(d int) { step(&c.PotionAtPct, d, 5, 5, 90) })
+	section = lang.T("prep.section.retreat")
+	retreat := lang.T("prep.never")
+	if c.RetreatHPPct > 0 {
+		retreat = fmt.Sprintf("%d%%", c.RetreatHPPct)
+	}
+	cfg("prep.retreat_hp", retreat, func(d int) { step(&c.RetreatHPPct, d, 5, 0, 90) })
+	cfg("prep.retreat_bag", onOff(c.RetreatBagFull), func(int) { c.RetreatBagFull = !c.RetreatBagFull })
+	section = lang.T("prep.section.loot")
+	cfg("prep.auto_equip", onOff(!c.ManualEquip), func(int) { c.ManualEquip = !c.ManualEquip })
+	cfg("prep.min_rarity", lang.T("prep.min_rarity_value", c.MinRarity.Name()), func(d int) {
+		c.MinRarity = (c.MinRarity + game.Rarity(d) + game.NumRarities) % game.NumRarities
+	})
+	cfg("prep.any_class", onOff(c.AnyClass), func(int) { c.AnyClass = !c.AnyClass })
 	return rows
 }
 
@@ -275,7 +278,7 @@ func (m Model) viewSettings(h int) string {
 	for len(body) < h-1 {
 		body = append(body, "")
 	}
-	version := lipgloss.PlaceHorizontal(m.w, lipgloss.Right, sMuted.Render(update.Version))
+	version := lipgloss.PlaceHorizontal(m.w, lipgloss.Right, sMuted.Render(lang.T("settings.version", update.Version)))
 	return strings.Join(append(body, version), "\n")
 }
 
