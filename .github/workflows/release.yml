@@ -22,11 +22,14 @@ jobs:
       - name: Test
         run: go test -short ./...
 
+      - name: Windows resources
+        run: go run github.com/tc-hib/go-winres@v0.3.3 make --in winres/winres.json --product-version "${GITHUB_REF_NAME#v}" --file-version "${GITHUB_REF_NAME#v}"
+
       - name: Build
         run: |
-          ld="-s -w -X clidle/internal/update.Version=${GITHUB_REF_NAME}"
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$ld" -o dist/clidle-linux-amd64 .
-          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "$ld" -o dist/clidle-windows-amd64.exe .
+          ver="-X clidle/internal/update.Version=${GITHUB_REF_NAME}"
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w $ver" -o dist/clidle-linux-amd64 .
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "$ver" -o dist/clidle-windows-amd64.exe .
           cd dist && sha256sum clidle-* > SHA256SUMS
 
       - name: Release notes

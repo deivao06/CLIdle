@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/banner.png" alt="CLIdle: an idle roguelike for your terminal"></p>
+
 # CLIdle
 
 > ⚠️ **Feito com uso de IA.** O código, os textos e o design deste projeto foram desenvolvidos com a ajuda de agentes de IA (Claude Code), sob direção e revisão do autor.
