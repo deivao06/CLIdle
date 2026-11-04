@@ -378,6 +378,7 @@ func (g *Game) pickup(r *round) {
 		add(LogLoot, "log.pick_potion")
 	case g.better(f.Item):
 		it := f.Item
+		g.emit(Event{Kind: EventLoot, Pos: h.Pos, Value: int(it.Rarity)})
 		old := h.Equip[it.Slot]
 		h.Equip[it.Slot] = it
 		h.HP = min(h.HP, h.MaxHP())
@@ -386,6 +387,7 @@ func (g *Game) pickup(r *round) {
 			e.Bag = append(e.Bag, old)
 		}
 	default:
+		g.emit(Event{Kind: EventLoot, Pos: h.Pos, Value: int(f.Item.Rarity)})
 		e.Bag = append(e.Bag, f.Item)
 		add(f.Item.Rarity.LogKind(), "log.stash", f.Item.Title(), f.Item.Rarity.Name())
 	}
@@ -535,8 +537,10 @@ func (g *Game) hurt(m *Monster, d int, r *round) bool {
 	if m.Boss {
 		g.killBoss(m, r)
 	}
+	g.emit(Event{Kind: EventKill, Pos: m.Pos, Big: m.Boss})
 	e.Level.removeMonster(m)
 	if h.gainXP(xp) {
+		g.emit(Event{Kind: EventLevelUp, Pos: h.Pos})
 		r.after = append(r.after, LogEntry{Text: lang.T("log.level_up", h.Level), Kind: LogGood})
 	}
 	return true

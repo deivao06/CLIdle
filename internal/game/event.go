@@ -13,6 +13,9 @@ type EventKind int
 const (
 	EventHit EventKind = iota
 	EventHurt
+	EventKill
+	EventLoot
+	EventLevelUp
 )
 
 const maxEvents = 32

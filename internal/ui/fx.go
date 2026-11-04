@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"clidle/internal/game"
@@ -14,6 +15,12 @@ const (
 	fxFloat     = 700 * time.Millisecond
 	fxShake     = 120 * time.Millisecond
 	fxShakeStep = 40 * time.Millisecond
+	fxBurst     = 300 * time.Millisecond
+	fxSparkle   = 600 * time.Millisecond
+	fxTwinkle   = 100 * time.Millisecond
+	fxRing      = 700 * time.Millisecond
+	fxRingMax   = 7.0
+	fxLife      = 800 * time.Millisecond
 )
 
 var (
@@ -43,7 +50,7 @@ func (m *Model) collectFx(now time.Time) {
 	}
 	keep := m.fx[:0]
 	for _, f := range m.fx {
-		if f.lvl == lvl && now.Sub(f.at) < fxFloat {
+		if f.lvl == lvl && now.Sub(f.at) < fxLife {
 			keep = append(keep, f)
 		}
 	}
@@ -60,8 +67,13 @@ func (m *Model) collectFx(now time.Time) {
 func (m Model) fxLayers() (overlay, flash map[game.Pos]fxCell, shake int) {
 	overlay, flash = map[game.Pos]fxCell{}, map[game.Pos]fxCell{}
 	for _, f := range m.fx {
+		if age := m.lastTick.Sub(f.at); age >= 0 {
+			m.moment(f, age, overlay)
+		}
+	}
+	for _, f := range m.fx {
 		age := m.lastTick.Sub(f.at)
-		if age < 0 || age >= fxFloat {
+		if age < 0 || age >= fxFloat || f.Kind != game.EventHit && f.Kind != game.EventHurt {
 			continue
 		}
 		if f.Big && age < fxShake {
@@ -87,4 +99,59 @@ func (m Model) fxLayers() (overlay, flash map[game.Pos]fxCell, shake int) {
 		}
 	}
 	return overlay, flash, shake
+}
+
+var (
+	sBurst = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true)
+	sRing  = lipgloss.NewStyle().Foreground(lipgloss.Color("220")).Bold(true)
+)
+
+// moment draws kill bursts, loot sparkles and the level-up ring.
+func (m Model) moment(f fx, age time.Duration, overlay map[game.Pos]fxCell) {
+	l := m.g.Exp.Level
+	put := func(p game.Pos, r rune, st *lipgloss.Style) {
+		if p != m.g.Hero.Pos && l.IsSeen(p) {
+			overlay[p] = fxCell{r, st}
+		}
+	}
+	switch f.Kind {
+	case game.EventKill:
+		switch {
+		case age < fxBurst/3:
+			put(f.Pos, '*', &sBurst)
+			if f.Big {
+				for _, d := range game.Dirs8 {
+					put(f.Pos.Add(d), '*', &sBurst)
+				}
+			}
+		case age < fxBurst:
+			put(f.Pos, '·', &sMuted)
+		}
+	case game.EventLoot:
+		if f.Value < int(game.Rare) || age >= fxSparkle {
+			return
+		}
+		st := rarityStyles[f.Value]
+		glyph := [...]rune{'*', '+', '·'}[age/fxTwinkle%3]
+		ring := []game.Pos{{X: -1, Y: -1}, {X: 1, Y: -1}, {X: -1, Y: 1}, {X: 1, Y: 1}}
+		if f.Value == int(game.Legendary) {
+			ring = append(ring, game.Pos{X: -2}, game.Pos{X: 2}, game.Pos{Y: -2}, game.Pos{Y: 2})
+		}
+		for _, d := range ring {
+			put(f.Pos.Add(d), glyph, &st)
+		}
+	case game.EventLevelUp:
+		if age >= fxRing {
+			return
+		}
+		r := float64(age) / float64(fxRing) * fxRingMax
+		for y := f.Pos.Y - int(r/2) - 1; y <= f.Pos.Y+int(r/2)+1; y++ {
+			for x := f.Pos.X - int(r) - 1; x <= f.Pos.X+int(r)+1; x++ {
+				dx, dy := float64(x-f.Pos.X), float64(y-f.Pos.Y)*2
+				if d := math.Sqrt(dx*dx + dy*dy); math.Abs(d-r) < 0.7 {
+					put(game.Pos{X: x, Y: y}, '*', &sRing)
+				}
+			}
+		}
+	}
 }
