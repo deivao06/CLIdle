@@ -94,7 +94,7 @@ var EffectRange = [NumEffects][2]int{
 
 var RarityChance = [...]float64{Magic: 0.2, Rare: 0.08, Epic: 0.03, Legendary: 0.01}
 
-var rarityMult = [...]float64{1, 1.5, 1.85, 2.2, 2.8}
+var rarityMult = [...]float64{1, 1.5, 1.85, 2.3, 2.9}
 
 var armorWeightMult = [...]float64{Light: 0.8, Medium: 1, Heavy: 1.25}
 
@@ -108,6 +108,17 @@ func ItemBase(slot Slot, kind, depth int, r Rarity) float64 {
 		return (1 + float64(depth)*0.8) * rarityMult[r] / 2
 	}
 	return 1 + float64(depth)/6 + float64(r)
+}
+
+const ItemSpread = 0.1
+
+// ItemRoll keeps a higher rarity at least as strong as a lower one from the same floor.
+func ItemRoll(slot Slot, kind, depth int, r Rarity, roll float64) int {
+	base := ItemBase(slot, kind, depth, r)
+	if slot != Boots {
+		base *= 1 - ItemSpread + 2*ItemSpread*roll
+	}
+	return max(1, int(base+0.5))
 }
 
 type classGear struct {

@@ -135,3 +135,17 @@ func TestEveryRarityDrops(t *testing.T) {
 		}
 	}
 }
+
+func TestHigherRarityNeverWeakerOnSameFloor(t *testing.T) {
+	for s := range NumSlots {
+		for k := range ItemNames[s] {
+			for d := 1; d <= 60; d++ {
+				for r := Magic; r <= Legendary; r++ {
+					if lo, hi := ItemRoll(s, k, d, r, 0), ItemRoll(s, k, d, r-1, 1); lo < hi {
+						t.Fatalf("slot %d kind %d floor %d: %v %d < %v %d", s, k, d, r, lo, r-1, hi)
+					}
+				}
+			}
+		}
+	}
+}

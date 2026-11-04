@@ -155,7 +155,7 @@ func newItem(rng *RNG, depth int) *Item {
 func newItemOf(rng *RNG, depth int, rarity Rarity) *Item {
 	slot := Slot(rng.Intn(int(NumSlots)))
 	kind := rng.Intn(len(ItemNames[slot]))
-	base := ItemBase(slot, kind, depth, rarity) * (0.8 + 0.4*rng.Float())
+	base := ItemRoll(slot, kind, depth, rarity, rng.Float())
 	names := ItemNames[slot][kind]
 	name := names[0].name
 	for _, n := range names {
@@ -163,7 +163,7 @@ func newItemOf(rng *RNG, depth int, rarity Rarity) *Item {
 			name = n.name
 		}
 	}
-	it := &Item{ID: rng.Uint64(), Slot: slot, Kind: kind, Rarity: rarity, Name: name, Base: max(1, int(base+0.5))}
+	it := &Item{ID: rng.Uint64(), Slot: slot, Kind: kind, Rarity: rarity, Name: name, Base: base}
 	for len(it.Effects) < EffectCount[rarity] {
 		k := Effect(rng.Intn(int(NumEffects)))
 		if !slices.ContainsFunc(it.Effects, func(f ItemEffect) bool { return f.Kind == k }) {
