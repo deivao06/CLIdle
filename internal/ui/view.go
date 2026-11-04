@@ -157,7 +157,11 @@ func (m Model) viewDungeon(h int) string {
 		left = lipgloss.JoinVertical(lipgloss.Left, left, m.statsLine(mapW))
 		logH--
 	}
-	doing := sSection.Render(truncate("▸ "+g.Doing(), mapW))
+	doingStyle := sHero
+	if g.Exp.Retreating {
+		doingStyle = sWarn
+	}
+	doing := doingStyle.Render(truncate("▸ "+g.Doing(), mapW))
 	left = lipgloss.JoinVertical(lipgloss.Left, left, doing, m.renderLog(mapW, logH))
 	if !side {
 		return left
