@@ -362,5 +362,10 @@
   "prep.section.loot": "Loot",
   "help.footer_symbols": "←→ páginas · ? ou esc fecha",
   "hero.more": "↓ mais (↑↓ rolar)",
-  "settings.version": "versão %s"
+  "settings.version": "versão %s",
+  "prep.effects": "Efeitos no mapa",
+  "prep.effects_full": "completo",
+  "prep.effects_subtle": "sutil",
+  "prep.effects_off": "desligado",
+  "prep.effects.desc": "Completo: lamparina, números de dano, tremor e brilhos. Sutil: lamparina parada, números e flash, sem tremor nem brilhos. Desligado: mapa sem efeitos."
 }

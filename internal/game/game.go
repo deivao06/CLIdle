@@ -72,6 +72,7 @@ type Game struct {
 	Stash      []*Item
 	Bell       bool
 	CRT        bool
+	Effects    Effects
 	Lang       string
 	BagLevel   int
 	LastDeath  []LogEntry

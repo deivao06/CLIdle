@@ -26,3 +26,13 @@ func (g *Game) emit(e Event) {
 	}
 	g.Events = append(g.Events, e)
 }
+
+// Effects is how much map animation the player wants; the zero value shows everything.
+type Effects int
+
+const (
+	EffectsFull Effects = iota
+	EffectsSubtle
+	EffectsOff
+	NumEffectLevels
+)

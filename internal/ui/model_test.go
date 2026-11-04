@@ -116,3 +116,20 @@ func TestHelpPagesCycleWithArrows(t *testing.T) {
 		t.Fatalf("page %d did not wrap", got.helpPage)
 	}
 }
+
+func TestEffectsOffDrawsNoLampOrFx(t *testing.T) {
+	g := game.New(1, game.Warrior)
+	g.Depart()
+	m := New(g)
+	m.fx = []fx{{Event: game.Event{Kind: game.EventHit, Pos: g.Hero.Pos, Value: 9, Big: true}, at: m.lastTick, lvl: g.Exp.Level}}
+	if o, _, shake := m.fxLayers(); len(o) == 0 || shake == 0 {
+		t.Fatal("full effects should draw the hit and shake")
+	}
+	g.Effects = game.EffectsOff
+	if o, f, shake := m.fxLayers(); len(o)+len(f) != 0 || shake != 0 {
+		t.Fatal("effects off still draws")
+	}
+	if m.lampLight(g.Exp.Level, g.Hero.Pos, true) >= 0 {
+		t.Fatal("effects off still lights the lamp")
+	}
+}

@@ -362,5 +362,10 @@
   "prep.section.loot": "Loot",
   "help.footer_symbols": "←→ pages · ? or esc closes",
   "hero.more": "↓ more (↑↓ scroll)",
-  "settings.version": "version %s"
+  "settings.version": "version %s",
+  "prep.effects": "Map effects",
+  "prep.effects_full": "full",
+  "prep.effects_subtle": "subtle",
+  "prep.effects_off": "off",
+  "prep.effects.desc": "Full: lamp, damage numbers, shake and sparkles. Subtle: steady lamp, numbers and flash, no shake or sparkles. Off: plain map."
 }

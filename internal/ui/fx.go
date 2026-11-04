@@ -66,8 +66,12 @@ func (m *Model) collectFx(now time.Time) {
 // fxLayers returns the floating numbers and flashes to draw over the map, and the camera shake offset.
 func (m Model) fxLayers() (overlay, flash map[game.Pos]fxCell, shake int) {
 	overlay, flash = map[game.Pos]fxCell{}, map[game.Pos]fxCell{}
+	full := m.g.Effects == game.EffectsFull
+	if m.g.Effects == game.EffectsOff {
+		return overlay, flash, 0
+	}
 	for _, f := range m.fx {
-		if age := m.lastTick.Sub(f.at); age >= 0 {
+		if age := m.lastTick.Sub(f.at); age >= 0 && full {
 			m.moment(f, age, overlay)
 		}
 	}
@@ -76,7 +80,7 @@ func (m Model) fxLayers() (overlay, flash map[game.Pos]fxCell, shake int) {
 		if age < 0 || age >= fxFloat || f.Kind != game.EventHit && f.Kind != game.EventHurt {
 			continue
 		}
-		if f.Big && age < fxShake {
+		if full && f.Big && age < fxShake {
 			shake = 1 - 2*int(age/fxShakeStep%2)
 		}
 		text, st, fl := fmt.Sprint(f.Value), &sDmgHit, &sFlashHit

@@ -419,12 +419,15 @@ func (m Model) cell(l *game.Level, p game.Pos) (rune, *lipgloss.Style) {
 // lampLight returns the warmth level of a tile lit by the hero's lamp, or -1 when it is dark.
 // It only lights what the hero sees or known corridors, so light never leaks into another room.
 func (m Model) lampLight(l *game.Level, p game.Pos, visible bool) int {
-	if !visible && l.RoomAt(p) >= 0 {
+	if m.g.Effects == game.EffectsOff || !visible && l.RoomAt(p) >= 0 {
 		return -1
 	}
 	h := m.g.Hero.Pos
 	dx, dy := float64(p.X-h.X), float64(p.Y-h.Y)*2
-	radius := lampRadius + flicker(m.lastTick.UnixMilli()/campfireFrameMs, 2)*lampFlicker
+	radius := lampRadius
+	if m.g.Effects == game.EffectsFull {
+		radius += flicker(m.lastTick.UnixMilli()/campfireFrameMs, 2) * lampFlicker
+	}
 	d := math.Sqrt(dx*dx + dy*dy)
 	if d > radius {
 		return -1
