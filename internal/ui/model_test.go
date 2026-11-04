@@ -78,6 +78,7 @@ func TestHeroTabScrollsOnSmallScreens(t *testing.T) {
 
 func TestChestRowsEquipAndSell(t *testing.T) {
 	g := game.New(1, game.Warrior)
+	g.Hero.Equip[game.Weapon] = nil
 	g.Stash = []*game.Item{{Slot: game.Weapon, Kind: game.Blade, Base: 5}, {Slot: game.Armor, Base: 3}}
 	m := New(g)
 	m.tab = tabDungeon

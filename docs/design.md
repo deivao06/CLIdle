@@ -71,6 +71,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Fontes de poder: nível/XP, equipamento (achado ou comprado), melhorias permanentes na cidade.
 - Equipamento: arma, armadura, botas, capacete, escudo. Armas por classe (Guerreiro espadas/machados, Mago cajados, Ladino adagas, Clérigo maças). Armadura leve/média/pesada (mais pesada = mais Defesa).
   - Guerreiro: qualquer armadura e escudo. Mago: leve, sem escudo. Ladino: leve/média, sem escudo. Clérigo: média/pesada e escudo.
+  - O herói começa com a arma básica comum da classe (espada curta, bordão, adaga, maça).
   - A dungeon e a loja geram itens de todas as classes. O que o herói não usa vai para a mochila e é vendido na volta; a loja não deixa comprar.
 - Habilidades por nível (aparecem no log da rodada):
   - **Guerreiro:** golpe forte (dano dobrado a cada N golpes), segundo fôlego (cura uma vez por andar com vida baixa), golpe giratório (o golpe forte acerta todos em volta).

@@ -44,6 +44,7 @@ func TestEquipFromStashSwapsWithEquipped(t *testing.T) {
 
 func TestEquipFromStashRefusesOtherClassAndWhileAway(t *testing.T) {
 	g := New(1, Warrior)
+	g.Hero.Equip[Weapon] = nil
 	g.Stash = []*Item{{Slot: Weapon, Kind: Staff, Base: 7}}
 	g.EquipStash(0)
 	if g.Hero.Equip[Weapon] != nil {

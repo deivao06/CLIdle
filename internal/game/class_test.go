@@ -4,6 +4,7 @@ import "testing"
 
 func TestWarriorKeepsTodaysCurve(t *testing.T) {
 	h := NewHero(Warrior)
+	h.Equip[Weapon] = nil
 	h.Level = 9
 	h.Training[Con], h.Training[Str], h.Training[Dex] = 2, 3, 1
 	if h.MaxHP() != 30+8*8+2*5 || h.Atk() != 5+12+3 || h.Def() != 1+4 || h.Spd() != 4+1 {
@@ -39,6 +40,7 @@ func TestChooseClassOnlyBeforeFirstExpedition(t *testing.T) {
 
 func TestMageMeleeIgnoresInt(t *testing.T) {
 	h := NewHero(Mage)
+	h.Equip[Weapon] = nil
 	h.Level = 10
 	if h.Atk() != HeroBaseAtk+h.Attr(Str) {
 		t.Fatalf("mage melee %d uses INT", h.Atk())
@@ -49,5 +51,14 @@ func TestRogueExploresAtMostTwiceWarriorPace(t *testing.T) {
 	w, r := heroAt(Warrior, 17, 1), heroAt(Rogue, 17, 1)
 	if r.StepMs()*2 < w.StepMs() {
 		t.Fatalf("rogue %dms warrior %dms", r.StepMs(), w.StepMs())
+	}
+}
+
+func TestHeroStartsWithClassWeapon(t *testing.T) {
+	for c := range NumClasses {
+		w := NewHero(c).Equip[Weapon]
+		if w == nil || !c.CanUse(w) {
+			t.Fatalf("%v starts with %v", c, w)
+		}
 	}
 }

@@ -96,6 +96,8 @@ type Hero struct {
 
 func NewHero(c Class) *Hero {
 	h := &Hero{Class: c, Level: 1, Potions: StartPotions}
+	kind := ClassGear[c].Weapon
+	h.Equip[Weapon] = &Item{ID: 1, Slot: Weapon, Kind: kind, Name: ItemNames[Weapon][kind][0].name, Base: int(ItemBase(Weapon, kind, 1, Common) + 0.5)}
 	h.HP = h.MaxHP()
 	return h
 }
