@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/muesli/termenv"
 	"math"
+	"slices"
 	"strings"
 	"time"
 
@@ -104,7 +105,13 @@ func (m Model) bodyH() int {
 
 func (m Model) viewHeader() string {
 	right := m.updateNotice() + m.statusLine()
-	for _, tabs := range [][]string{{"1 " + lang.T("tab.main"), "2 " + lang.T("tab.prep"), "3 " + lang.T("tab.hero"), "4 " + lang.T("tab.settings")}, {"1", "2", "3", "4"}} {
+	full := []string{"1 " + lang.T("tab.main"), "2 " + lang.T("tab.prep"), "3 " + lang.T("tab.hero"), "4 " + lang.T("tab.settings")}
+	short := []string{"1", "2", "3", "4"}
+	active := slices.Clone(short)
+	if !m.help {
+		active[m.tab] = full[m.tab]
+	}
+	for _, tabs := range [][]string{full, active, short} {
 		var parts []string
 		for i, t := range tabs {
 			if i == m.tab && !m.help {
@@ -133,9 +140,13 @@ func (m Model) statusLine() string {
 }
 
 func (m Model) viewFooter() string {
-	keys := lang.T("footer.dungeon")
+	auto := lang.T("prep.off")
+	if m.g.Auto {
+		auto = lang.T("prep.on")
+	}
+	keys := lang.T("footer.dungeon", auto)
 	if m.g.InTown() {
-		keys = lang.T("footer.town")
+		keys = lang.T("footer.town", auto)
 	}
 	if m.confirmDo != nil {
 		return truncate(sMuted.Render(lang.T("footer.confirm")), m.w)
@@ -419,11 +430,11 @@ func (m Model) heroPanel(w, maxH int) string {
 	fmt.Fprintf(&b, "%s %s\n", sSection.Render(h.Class.Name()), lang.T("hero.level", h.Level))
 	wrap := lipgloss.NewStyle().Width(w)
 	b.WriteString(wrap.Render(lang.T("hero.attrs", h.Attr(game.Str), h.Attr(game.Dex), h.Attr(game.Int), h.Attr(game.Con))) + "\n")
-	fmt.Fprintf(&b, "HP  %s\n", bar(h.HP, h.MaxHP(), w-4, hpStyle(h.HP, h.MaxHP())))
+	fmt.Fprintf(&b, "HP  %s\n", numBar(h.HP, h.MaxHP(), w-4, hpStyle(h.HP, h.MaxHP())))
 	if h.MaxMP() > 0 {
-		fmt.Fprintf(&b, "MP  %s\n", bar(h.MP, h.MaxMP(), w-4, sMP))
+		fmt.Fprintf(&b, "MP  %s\n", numBar(h.MP, h.MaxMP(), w-4, sMP))
 	}
-	fmt.Fprintf(&b, "XP  %s\n", bar(h.XP, game.XPToNext(h.Level), w-4, sXP))
+	fmt.Fprintf(&b, "XP  %s\n", numBar(h.XP, game.XPToNext(h.Level), w-4, sXP))
 	b.WriteString(lang.T("hero.atk_def", h.Atk(), h.Def()))
 	if sp := h.SpellAtk(); sp > 0 {
 		b.WriteString(lang.T("hero.spell", sp))
@@ -583,6 +594,11 @@ func (m Model) viewSymbols(h int) string {
 }
 
 var slotNames = [...]string{"slot.weapon", "slot.armor", "slot.boots", "slot.helmet", "slot.shield"}
+
+func numBar(v, maxV, w int, st lipgloss.Style) string {
+	num := fmt.Sprintf(" %9s", fmt.Sprintf("%d/%d", v, maxV))
+	return bar(v, maxV, w-len(num), st) + sMuted.Render(num)
+}
 
 func bar(v, maxV, w int, st lipgloss.Style) string {
 	w = max(w, 4)

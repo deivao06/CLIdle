@@ -30,7 +30,7 @@ func (m Model) viewChoose() string {
 		if int(c) == m.cursor {
 			name, prefix = sTitle.Render(c.Name()), sTabOn.Render("›")+" "
 		}
-		b.WriteString(prefix + name + "\n    " + sMuted.Render(c.Desc()) + "\n")
+		b.WriteString(prefix + name + "\n    " + sMuted.Render(c.Desc()+lang.T("class.main", lang.T([...]string{"stat.str", "stat.dex", "stat.int", "stat.con"}[c.MainAttr()]))) + "\n")
 	}
 	b.WriteString("\n" + sMuted.Render(lang.T("choose.keys")))
 	block := b.String()

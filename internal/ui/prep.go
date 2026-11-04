@@ -224,13 +224,14 @@ func (m Model) trainDesc(t game.Trait) string {
 
 // itemDesc says how an item compares with what the hero has equipped in that slot.
 func (m Model) itemDesc(it *game.Item) string {
+	rarity := lang.T("item.rarity.desc", it.Rarity.Name()) + " "
 	if !m.g.Hero.Class.CanUse(it) {
-		return lang.T("item.other_class.desc")
+		return rarity + lang.T("item.other_class.desc")
 	}
 	if cur := m.g.Hero.Equip[it.Slot]; cur != nil && cur.ID != it.ID {
-		return lang.T("item.vs.desc", cur.Title(), cur.StatLabel())
+		return rarity + lang.T("item.vs.desc", cur.Title(), cur.StatLabel())
 	}
-	return lang.T("item.vs_none.desc")
+	return rarity + lang.T("item.vs_none.desc")
 }
 
 func (m Model) priced(st lipgloss.Style, cost int) lipgloss.Style {
