@@ -98,7 +98,7 @@ Quase não há testes de UI (só `internal/ui/model_test.go`). Para ver telas:
 - **Comentários só quando o porquê não é óbvio.** Regras de negócio ficam no `docs/design.md`, não em comentários.
 - **Mudanças mínimas.** Diffs pequenos e focados.
 - **Números de balanceamento só em `balance.go`.**
-- Commits no estilo `feat: ...` / `docs: ...` em português, terminando com a linha `Co-Authored-By` do agente.
+- Commits no estilo `feat: ...` / `fix: ...` / `docs: ...` **em inglês**, terminando com a linha `Co-Authored-By` do agente. `feat:` e `fix:` viram as notas da release, então escreva para o jogador. Notas de release sem ícones/emojis nos títulos.
 - Rode `gofmt`, `go vet` e `go test ./...` antes de commitar.
 
 ## Como trabalhar com o dono do projeto

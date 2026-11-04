@@ -33,12 +33,12 @@ jobs:
         run: |
           prev=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
           range="${prev:+$prev..}${GITHUB_REF_NAME}"
-          feat=$(git log --pretty=%s "$range" | sed -n 's/^feat[^:]*: */- /p')
-          fix=$(git log --pretty=%s "$range" | sed -n 's/^fix[^:]*: */- /p')
+          feat=$(git log --pretty=%s "$range" | sed -n 's/^feat[^:]*: */* /p')
+          fix=$(git log --pretty=%s "$range" | sed -n 's/^fix[^:]*: */* /p')
           : > notes.md
-          if [ -n "$feat" ]; then printf '## Novidades\n\n%s\n\n' "$feat" >> notes.md; fi
-          if [ -n "$fix" ]; then printf '## Correções\n\n%s\n\n' "$fix" >> notes.md; fi
-          if [ ! -s notes.md ]; then echo "Sem mudanças no jogo." > notes.md; fi
+          if [ -n "$feat" ]; then printf "## What's new\n\n%s\n\n" "$feat" >> notes.md; fi
+          if [ -n "$fix" ]; then printf '## Fixes\n\n%s\n\n' "$fix" >> notes.md; fi
+          if [ ! -s notes.md ]; then echo "No gameplay changes." > notes.md; fi
           if [ -n "$prev" ]; then echo "**Commits:** https://github.com/${GITHUB_REPOSITORY}/compare/${prev}...${GITHUB_REF_NAME}" >> notes.md; fi
 
       - name: Publish

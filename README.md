@@ -128,4 +128,4 @@ git tag v0.2.0
 git push origin v0.2.0
 ```
 
-O GitHub Actions (`.github/workflows/release.yml`) roda os testes, compila os binários de Linux e Windows com a versão embutida, gera o `SHA256SUMS` e publica a release. As notas são montadas a partir dos commits desde a tag anterior: `feat:` vira **Novidades** e `fix:` vira **Correções**.
+O GitHub Actions (`.github/workflows/release.yml`) roda os testes, compila os binários de Linux e Windows com a versão embutida, gera o `SHA256SUMS` e publica a release. As notas são montadas a partir dos commits desde a tag anterior, em inglês: `feat:` vira **What's new** e `fix:` vira **Fixes**.
