@@ -480,9 +480,64 @@ func (m Model) heroPanel(w, maxH int) string {
 	return b.String() + bottom
 }
 
+var helpPages = []string{"help.page.symbols", "help.page.how", "help.page.attrs"}
+
 func (m Model) viewHelp(h int) string {
+	var tabs []string
+	for i, p := range helpPages {
+		st := sTabOff
+		if i == m.helpPage {
+			st = sTabOn
+		}
+		tabs = append(tabs, st.Render(" "+lang.T(p)+" "))
+	}
+	head := strings.Join(tabs, " ") + "\n\n"
+	foot := "\n" + sMuted.Render(truncate(lang.T("help.footer"), m.w))
+	bodyH := max(1, h-3)
+	if m.helpPage == 0 {
+		return head + m.viewSymbols(bodyH) + foot
+	}
+	w := min(m.w, 80)
+	var lines []string
+	for _, p := range strings.Split(lang.T(helpPages[m.helpPage]+".text"), "\n") {
+		if title, ok := strings.CutPrefix(p, "# "); ok {
+			lines = append(lines, sSection.Render(truncate(title, w)))
+			continue
+		}
+		lines = append(lines, hangWrap(p, w)...)
+	}
+	top := clamp(m.helpTop, 0, max(0, len(lines)-bodyH))
+	lines = lines[top:min(len(lines), top+bodyH)]
+	for len(lines) < bodyH {
+		lines = append(lines, "")
+	}
+	return head + strings.Join(lines, "\n") + foot
+}
+
+// hangWrap wraps an indented line so continuation lines align with its text column ("  FOR  text...").
+func hangWrap(p string, w int) []string {
+	body := strings.TrimLeft(p, " ")
+	cut := len(p) - len(body)
+	if cut > 0 {
+		if i := strings.Index(body, "  "); i > 0 {
+			rest := strings.TrimLeft(body[i:], " ")
+			cut = len(p) - len(rest)
+		}
+	}
+	pad := lipgloss.Width(p[:cut])
+	wrapped := strings.Split(lipgloss.NewStyle().Width(max(10, w-pad)).Render(p[cut:]), "\n")
+	for i := range wrapped {
+		if i == 0 {
+			wrapped[i] = p[:cut] + wrapped[i]
+		} else {
+			wrapped[i] = strings.Repeat(" ", pad) + wrapped[i]
+		}
+	}
+	return wrapped
+}
+
+func (m Model) viewSymbols(h int) string {
 	var b strings.Builder
-	b.WriteString(sSection.Render(lang.T("help.title")) + "\n\n")
 	rows := [][2]string{
 		{sHero.Render("@"), lang.T("help.hero")},
 		{sFloor.Render("."), lang.T("help.floor")},
@@ -513,7 +568,7 @@ func (m Model) viewHelp(h int) string {
 		}
 		rows = append(rows, [2]string{monsterStyle(k).Render(string(k.Glyph)), lang.T("help.boss", lang.T(k.Name))})
 	}
-	perCol := max(1, h-4)
+	perCol := max(1, h-2)
 	var cols []string
 	for i := 0; i < len(rows); i += perCol {
 		var col strings.Builder
@@ -523,7 +578,7 @@ func (m Model) viewHelp(h int) string {
 		cols = append(cols, col.String())
 	}
 	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, cols...))
-	b.WriteString("\n" + sMuted.Render(lang.T("help.footer")))
+	b.WriteString("\n" + sMuted.Render(truncate(lang.T("help.rarity"), m.w)))
 	return b.String()
 }
 

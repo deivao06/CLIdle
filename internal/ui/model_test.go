@@ -102,3 +102,17 @@ func TestChestRowsEquipAndSell(t *testing.T) {
 		t.Fatalf("x did not sell: stash %d gold %d", len(g.Stash), g.Gold)
 	}
 }
+
+func TestHelpPagesCycleWithArrows(t *testing.T) {
+	var m tea.Model = New(game.New(1, game.Warrior))
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("?")})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRight})
+	if got := m.(Model); !got.help || got.helpPage != 1 {
+		t.Fatalf("help %v page %d", got.help, got.helpPage)
+	}
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyLeft})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyLeft})
+	if got := m.(Model); got.helpPage != len(helpPages)-1 {
+		t.Fatalf("page %d did not wrap", got.helpPage)
+	}
+}

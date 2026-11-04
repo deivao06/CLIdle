@@ -31,8 +31,8 @@
   "status.level": " · lv %d · %s · ",
   "status.gold": "%d gold ",
 
-  "footer.dungeon": "1-4 screens · r retreat · a auto · ? legend · q quit",
-  "footer.town": "1-4 screens · e depart · a auto · ? legend · q quit",
+  "footer.dungeon": "1-4 screens · r retreat · a auto · ? help · q quit",
+  "footer.town": "1-4 screens · e depart · a auto · ? help · q quit",
   "footer.confirm": "y/enter confirm · n/esc cancel",
   "footer.save_error": "save error: %s",
 
@@ -78,7 +78,6 @@
   "hero.bag_item": "%c %s (%s) · %d gold",
   "hero.more_items": "+%d items",
 
-  "help.title": "Legend",
   "help.hero": "hero",
   "help.floor": "floor",
   "help.corridor": "corridor",
@@ -91,7 +90,7 @@
   "help.unknown": "monster not found yet",
   "help.unknown_boss": "boss not found yet (every 10 floors)",
   "help.boss": "%s (boss)",
-  "help.footer": "? or esc closes · items: white common, blue magic, green rare, purple epic, orange legendary",
+  "help.footer": "←→ pages · ↑↓ scroll · ? or esc closes",
 
   "slot.weapon": "weapon",
   "slot.armor": "armor",
@@ -336,8 +335,8 @@
   "town.no_slot.desc": "Nothing equipped here. Find an item in the dungeon or buy one in the shop.",
   "town.smith.desc": "Upgrades the equipped item. The bonus stays on the item for good.",
   "town.bag.desc": "More bag slots: the hero carries more loot before returning.",
-  "train.str.desc": "Strength raises melee damage.",
-  "train.dex.desc": "Dexterity raises speed: explores faster and acts more often in combat.",
+  "train.str.desc": "Strength raises melee damage for the warrior, mage and cleric.",
+  "train.dex.desc": "Dexterity raises speed (explores faster and acts more often in combat) and rogue damage.",
   "train.int.desc": "Intelligence raises spell damage and mana (mage and cleric).",
   "train.con.desc": "Constitution raises max HP.",
   "train.effect": "Next level: %s.",
@@ -349,5 +348,11 @@
   "chest.desc": "Enter equips · x sells for %d gold.",
   "stat.spell": "Spell",
   "stat.hp": "HP",
-  "stat.mp": "MP"
+  "stat.mp": "MP",
+  "help.page.symbols": "Symbols",
+  "help.page.how": "How it works",
+  "help.page.attrs": "Attributes",
+  "help.page.how.text": "# Expedition\nThe hero leaves town, goes down floor by floor and comes back on its own. You don't control the steps: you set up the expedition on screen 2 and spend gold in town (screen 1).\n\n# What the hero does each step\nOne action per step, in this order:\n  1. Heals if needed: second wind, healing spell or potion.\n  2. Fights the adjacent monster (the mage also attacks from range).\n  3. Walks to the most important goal:\n     visible monster › item it wants › stairs > (descend mode) › unexplored area › boss or stairs >.\nThe ▸ line above the log shows the current goal.\n\n# Retreat\nThe hero returns to town when the bag is full, when it has no potions and low HP, when the boss looks too strong, after finishing the configured last floor, or when you press r. While retreating it flees to the stairs < without fighting; it only attacks if a monster blocks the only path.\n\n# In town\nGold is stored and the bag is sold (or goes to the chest, with auto-equip off). Blacksmith, training, shop and chest only work while the hero is in town.\n\n# Death\nLoses half the gold and all items found on the expedition. Keeps level, XP, potions and the gear it left with.\n\n# Bosses\nEvery 10 floors a boss guards the stairs. It sleeps until the hero gets close. Once defeated, it drops an epic item and unlocks a shortcut to start deeper.\n\n# Auto-expedition (a)\nWhen on, the hero rests a few seconds in town and sets out again on its own.\n\n# While closed\nWhen you reopen the game, it simulates the time it was closed (up to 12 hours) and shows a summary.",
+  "help.page.attrs.text": "# Attributes\n  STR  Strength: melee damage for the warrior, mage and cleric.\n  DEX  Dexterity: speed (explores faster and acts more often in combat) and rogue damage.\n  INT  Intelligence: spell damage and mana (mage and cleric).\n  CON  Constitution: max HP.\nEvery hero gains attributes on level up. Training in town adds permanent points; the description line shows the effect before you buy.\n\n# Hero numbers\n  Attack     weapon + the class damage attribute.\n  Defense    armor + helmet + shield + level. Reduces damage taken.\n  Speed      boots + DEX. The /s value is how many steps per second while exploring.\n  Spell      damage of the best spell (mage and cleric).\n  MP         mana; spells spend it and it comes back a little each step.\n\n# Item rarity\nCommon (white) › Magic (blue) › Rare (green) › Epic (purple) › Legendary (orange). On the same floor, a higher rarity is never weaker. Epics have 1 special effect and legendaries have 2 (life steal, critical, extra HP, extra gold, potion healing, extra XP).\n\n# Classes\nEach class only uses certain weapons and armor. Warrior and cleric use swords and maces; mage uses staves; rogue uses daggers.",
+  "help.rarity": "Items: white common, blue magic, green rare, purple epic, orange legendary"
 }

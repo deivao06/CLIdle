@@ -34,6 +34,8 @@ type Model struct {
 	w, h     int
 	tab      int
 	help     bool
+	helpPage int
+	helpTop  int
 	cursor   int
 	heroTop  int
 	lastTick time.Time
@@ -228,10 +230,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "u":
 			m.askUpdate()
 		case "?":
-			m.help = !m.help
+			m.help, m.helpTop = !m.help, 0
 		case "esc":
 			m.help = false
 		default:
+			if m.help {
+				m.helpKey(msg.String())
+			}
 			if (m.tab == tabPrep || m.tab == tabSettings || m.tab == tabDungeon && m.g.InTown()) && !m.help {
 				m.prepKey(msg.String())
 			}
@@ -241,6 +246,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 	return m, nil
+}
+
+func (m *Model) helpKey(key string) {
+	switch key {
+	case "left", "h", "shift+tab":
+		m.helpPage, m.helpTop = (m.helpPage+len(helpPages)-1)%len(helpPages), 0
+	case "right", "l", "tab":
+		m.helpPage, m.helpTop = (m.helpPage+1)%len(helpPages), 0
+	case "up", "k":
+		m.helpTop = max(0, m.helpTop-1)
+	case "down", "j":
+		m.helpTop++
+	}
 }
 
 func (m *Model) bell() {

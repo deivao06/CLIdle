@@ -31,8 +31,8 @@
   "status.level": " · nv %d · %s · ",
   "status.gold": "%d ouro ",
 
-  "footer.dungeon": "1-4 telas · r retirar · a auto · ? legenda · q sair",
-  "footer.town": "1-4 telas · e partir · a auto · ? legenda · q sair",
+  "footer.dungeon": "1-4 telas · r retirar · a auto · ? ajuda · q sair",
+  "footer.town": "1-4 telas · e partir · a auto · ? ajuda · q sair",
   "footer.confirm": "s/enter confirmar · n/esc cancelar",
   "footer.save_error": "erro ao salvar: %s",
 
@@ -78,7 +78,6 @@
   "hero.bag_item": "%c %s (%s) · %d ouro",
   "hero.more_items": "+%d itens",
 
-  "help.title": "Legenda",
   "help.hero": "herói",
   "help.floor": "chão",
   "help.corridor": "corredor",
@@ -91,7 +90,7 @@
   "help.unknown": "monstro ainda não encontrado",
   "help.unknown_boss": "chefe ainda não encontrado (a cada 10 andares)",
   "help.boss": "%s (chefe)",
-  "help.footer": "? ou esc fecha · itens: branco comum, azul mágico, verde raro, roxo épico, laranja lendário",
+  "help.footer": "←→ páginas · ↑↓ rolar · ? ou esc fecha",
 
   "slot.weapon": "arma",
   "slot.armor": "armadura",
@@ -336,8 +335,8 @@
   "town.no_slot.desc": "Nada equipado aqui. Ache um item na dungeon ou compre na loja.",
   "town.smith.desc": "Melhora o item equipado. O bônus fica no item para sempre.",
   "town.bag.desc": "Mais vagas na mochila: o herói carrega mais loot antes de voltar.",
-  "train.str.desc": "Força aumenta o dano corpo a corpo.",
-  "train.dex.desc": "Destreza aumenta a velocidade: explora mais rápido e age mais vezes em combate.",
+  "train.str.desc": "Força aumenta o dano corpo a corpo do guerreiro, do mago e do clérigo.",
+  "train.dex.desc": "Destreza aumenta a velocidade (explora mais rápido e age mais vezes em combate) e o dano do ladino.",
   "train.int.desc": "Inteligência aumenta o dano das magias e a mana (mago e clérigo).",
   "train.con.desc": "Constituição aumenta o HP máximo.",
   "train.effect": "Próximo nível: %s.",
@@ -349,5 +348,11 @@
   "chest.desc": "Enter equipa · x vende por %d ouro.",
   "stat.spell": "Mág",
   "stat.hp": "HP",
-  "stat.mp": "MP"
+  "stat.mp": "MP",
+  "help.page.symbols": "Símbolos",
+  "help.page.how": "Como funciona",
+  "help.page.attrs": "Atributos",
+  "help.page.how.text": "# Expedição\nO herói sai da cidade, desce andar por andar e volta sozinho. Você não controla os passos: configura a expedição na tela 2 e gasta o ouro na cidade (tela 1).\n\n# O que o herói faz a cada passo\nUma ação por passo, nesta ordem:\n  1. Se cura se precisar: segundo fôlego, magia de cura ou poção.\n  2. Luta com o monstro ao lado (o mago também ataca de longe).\n  3. Anda até o objetivo mais importante:\n     monstro à vista › item que ele quer › escada > (modo descer direto) › parte não explorada › chefe ou escada >.\nA linha ▸ acima do log mostra o objetivo atual.\n\n# Retirada\nO herói volta para a cidade quando a mochila enche, quando fica sem poções com HP baixo, quando o chefe parece forte demais, ao terminar o último andar configurado ou quando você aperta r. Na retirada ele foge para a escada < sem lutar; só ataca se um monstro bloquear o único caminho.\n\n# Na cidade\nO ouro é guardado e a mochila é vendida (ou vai para o baú, com auto-equipar desligado). Ferreiro, treino, loja e baú só funcionam com o herói na cidade.\n\n# Morte\nPerde metade do ouro achado e os itens achados na expedição. Mantém nível, XP, poções e o equipamento com que saiu.\n\n# Chefes\nA cada 10 andares um chefe guarda a escada. Ele dorme até o herói chegar perto. Derrotado, deixa um item épico e libera um atalho para começar mais fundo.\n\n# Auto-expedição (a)\nLigada, o herói descansa alguns segundos na cidade e parte de novo sozinho.\n\n# Fora do jogo\nAo reabrir, o jogo simula o tempo em que ficou fechado (até 12 horas) e mostra um resumo.",
+  "help.page.attrs.text": "# Atributos\n  FOR  Força: dano corpo a corpo do guerreiro, do mago e do clérigo.\n  DES  Destreza: velocidade (explora mais rápido e age mais vezes em combate) e dano do ladino.\n  INT  Inteligência: dano das magias e mana (mago e clérigo).\n  CON  Constituição: HP máximo.\nTodo herói ganha atributos ao subir de nível. O treino na cidade soma pontos permanentes; a linha de descrição mostra o efeito antes de comprar.\n\n# Números do herói\n  Ataque      arma + atributo de dano da classe.\n  Defesa      armadura + capacete + escudo + nível. Reduz o dano recebido.\n  Velocidade  botas + DES. O valor em /s é quantos passos ele dá por segundo explorando.\n  Mág         dano da melhor magia (mago e clérigo).\n  MP          mana; as magias gastam e ela volta um pouco a cada passo.\n\n# Raridade dos itens\nComum (branco) › Mágico (azul) › Raro (verde) › Épico (roxo) › Lendário (laranja). No mesmo andar, raridade maior nunca é mais fraca. Épicos têm 1 efeito especial e lendários têm 2 (roubo de vida, crítico, HP extra, ouro extra, cura de poção, XP extra).\n\n# Classes\nCada classe usa só certas armas e armaduras. Guerreiro e clérigo usam espadas e maças; mago usa cajados; ladino usa adagas.",
+  "help.rarity": "Itens: branco comum, azul mágico, verde raro, roxo épico, laranja lendário"
 }
