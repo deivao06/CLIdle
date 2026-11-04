@@ -117,7 +117,7 @@ func TestMageStashesSword(t *testing.T) {
 	if g.better(sword) || g.wants(&FloorItem{Item: sword}) {
 		t.Fatal("mage should ignore a sword by default")
 	}
-	g.Exp.Config.AnyClass = true
+	g.Config.AnyClass = true
 	if !g.wants(&FloorItem{Item: sword}) {
 		t.Fatal("mage should bag a sword with other classes' items on")
 	}

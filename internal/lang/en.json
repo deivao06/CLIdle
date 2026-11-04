@@ -146,7 +146,7 @@
   "log.bag_done": "The bag now holds %d items.",
   "prep.train_row": "%-12s lv %-3d %-8s %6d gold",
   "prep.gold": "Gold %d",
-  "prep.away_config": "Hero in the dungeon: settings apply on the next expedition.",
+  "prep.away_config": "Hero in the dungeon: potions and start floor apply on the next expedition.",
   "town.keys": "↑↓ choose · enter buy/equip · x sell",
   "prep.keys": "↑↓ choose · ←→ adjust · enter toggle",
 

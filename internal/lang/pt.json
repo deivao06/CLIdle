@@ -146,7 +146,7 @@
   "log.bag_done": "A mochila agora guarda %d itens.",
   "prep.train_row": "%-12s nv %-3d %-8s %6d ouro",
   "prep.gold": "Ouro %d",
-  "prep.away_config": "Herói na dungeon: a config vale na próxima expedição.",
+  "prep.away_config": "Herói na dungeon: poções e andar inicial valem na próxima expedição.",
   "town.keys": "↑↓ escolhe · enter compra/equipa · x vende",
   "prep.keys": "↑↓ escolhe · ←→ ajusta · enter alterna",
 

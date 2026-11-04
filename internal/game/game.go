@@ -19,7 +19,6 @@ type Expedition struct {
 	StartEquip [NumSlots]*Item
 	Retreating bool
 	RetreatWhy string
-	Config     Config
 
 	Attacks        int
 	SecondWindUsed bool
@@ -125,7 +124,7 @@ func (g *Game) Advance(ms int64) {
 func (g *Game) StartExpedition() {
 	g.ExpNum++
 	seed := g.RNG.Uint64()
-	g.Exp = &Expedition{Num: g.ExpNum, Seed: seed, RNG: NewRNG(seed), StartEquip: g.Hero.Equip, Config: g.Config}
+	g.Exp = &Expedition{Num: g.ExpNum, Seed: seed, RNG: NewRNG(seed), StartEquip: g.Hero.Equip}
 	g.Hero.HP = g.Hero.MaxHP()
 	g.Hero.MP = g.Hero.MaxMP()
 	g.buyPotions()
@@ -205,7 +204,7 @@ func (g *Game) step() {
 	case g.Exp.Retreating && h.Pos == l.Up:
 		g.returnToTown()
 	case !g.Exp.Retreating && h.Pos == l.Down && g.readyToDescend():
-		if c := g.Exp.Config.LastFloor; c > 0 && l.Depth >= c {
+		if c := g.Config.LastFloor; c > 0 && l.Depth >= c {
 			g.startRetreat(lang.T("retreat.floor_done", l.Depth))
 			return
 		}
@@ -248,7 +247,7 @@ func (g *Game) incoming() (worst, avg int) {
 
 func (g *Game) lowHP() bool {
 	h := g.Hero
-	return h.HP*100 < h.MaxHP()*g.Exp.Config.PotionAtPct
+	return h.HP*100 < h.MaxHP()*g.Config.PotionAtPct
 }
 
 func (g *Game) checkRetreat() {
@@ -256,9 +255,9 @@ func (g *Game) checkRetreat() {
 	h := g.Hero
 	switch {
 	case e.Retreating:
-	case g.Exp.Config.RetreatBagFull && len(e.Bag) >= g.BagCap():
+	case g.Config.RetreatBagFull && len(e.Bag) >= g.BagCap():
 		g.startRetreat(lang.T("retreat.bag_full"))
-	case h.Potions == 0 && h.HP*100 < h.MaxHP()*g.Exp.Config.RetreatHPPct:
+	case h.Potions == 0 && h.HP*100 < h.MaxHP()*g.Config.RetreatHPPct:
 		g.startRetreat(lang.T("retreat.low_hp"))
 	case g.bossTooStrong():
 		g.startRetreat(lang.T("retreat.boss_strong"))
@@ -286,7 +285,7 @@ func (g *Game) returnToTown() {
 	e := g.Exp
 	sold, kept := 0, 0
 	for _, it := range e.Bag {
-		if e.Config.ManualEquip && len(g.Stash) < StashSize {
+		if g.Config.ManualEquip && len(g.Stash) < StashSize {
 			g.Stash = append(g.Stash, it)
 			kept++
 			continue
@@ -311,12 +310,12 @@ func (g *Game) wants(f *FloorItem) bool {
 	if f.Item == nil {
 		return true
 	}
-	c := g.Exp.Config
+	c := g.Config
 	return g.better(f.Item) || f.Item.Rarity >= c.MinRarity && (c.AnyClass || g.Hero.Class.CanUse(f.Item)) && len(g.Exp.Bag) < g.BagCap()
 }
 
 func (g *Game) better(it *Item) bool {
-	if g.Exp != nil && g.Exp.Config.ManualEquip {
+	if g.Exp != nil && g.Config.ManualEquip {
 		return false
 	}
 	cur := g.Hero.Equip[it.Slot]
@@ -342,7 +341,7 @@ func (g *Game) readyToDescend() bool {
 	if g.Exp.Level.boss() != nil {
 		return false
 	}
-	if g.Exp.Config.Mode == DescendFast {
+	if g.Config.Mode == DescendFast {
 		return true
 	}
 	if _, ok := g.Exp.Level.pathStep(g.Hero.Pos, g.passable, g.wantedItem); ok {
@@ -727,7 +726,7 @@ func (g *Game) chooseStep() (Pos, bool) {
 		return m != nil && l.Visible(h.Pos, p) && (ready || !m.Boss)
 	}
 	rush := func(p Pos) bool {
-		return g.Exp.Config.Mode == DescendFast && boss == nil && l.IsSeen(l.Down) && p == l.Down
+		return g.Config.Mode == DescendFast && boss == nil && l.IsSeen(l.Down) && p == l.Down
 	}
 	last := to(l.Down)
 	if boss != nil {
