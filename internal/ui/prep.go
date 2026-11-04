@@ -21,6 +21,7 @@ type prepRow struct {
 	do      func(*Model)
 	sell    func()
 	confirm string
+	desc    string
 }
 
 func onOff(b bool) string {
@@ -46,6 +47,7 @@ func cfgRow(section, label, value string, adjust func(int)) prepRow {
 		style:   sPlain,
 		adjust:  adjust,
 		enter:   func() { adjust(1) },
+		desc:    lang.T(label + ".desc"),
 	}
 }
 
@@ -70,7 +72,7 @@ func (m Model) settingsRows() []prepRow {
 			lang.Set(g.Lang)
 		}),
 		{section: lang.T("settings.section.save"), text: lang.T("settings.reset"), style: sWarn,
-			confirm: lang.T("confirm.reset"), do: (*Model).resetSave},
+			confirm: lang.T("confirm.reset"), do: (*Model).resetSave, desc: lang.T("settings.reset.desc")},
 	}
 }
 
@@ -126,12 +128,12 @@ func (m Model) prepRows() []prepRow {
 
 func (m Model) townRows() []prepRow {
 	g := m.g
-	rows := []prepRow{{text: lang.T("prep.depart_now"), style: sTitle, enter: g.Depart, confirm: lang.T("confirm.depart")}}
+	rows := []prepRow{{text: lang.T("prep.depart_now"), style: sTitle, enter: g.Depart, confirm: lang.T("confirm.depart"), desc: lang.T("town.depart.desc")}}
 
 	for s := range game.NumSlots {
 		it := g.Hero.Equip[s]
 		if it == nil {
-			rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: lang.T("hero.no_slot", s.Glyph(), lang.T(slotNames[s])), style: sMuted})
+			rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: lang.T("hero.no_slot", s.Glyph(), lang.T(slotNames[s])), style: sMuted, desc: lang.T("town.no_slot.desc")})
 			continue
 		}
 		next := *it
@@ -139,7 +141,7 @@ func (m Model) townRows() []prepRow {
 		cost := g.UpgradeCost(s)
 		text := lang.T("prep.smith_row", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade), next.StatLabel(), cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: m.priced(sPlain, cost),
-			enter: func() { g.Upgrade(s) }})
+			enter: func() { g.Upgrade(s) }, desc: lang.T("town.smith.desc")})
 	}
 
 	for t := range game.NumTraits {
@@ -147,7 +149,7 @@ func (m Model) townRows() []prepRow {
 		cost := game.TrainCost(t, lvl)
 		text := lang.T("prep.train_row", t.Name(), lvl, t.Effect(), cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.priced(sPlain, cost),
-			enter: func() { g.Train(t) }})
+			enter: func() { g.Train(t) }, desc: m.trainDesc(t)})
 	}
 
 	for i, it := range g.Shop {
@@ -159,7 +161,7 @@ func (m Model) townRows() []prepRow {
 			st = sMuted
 		}
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: st,
-			enter: func() { g.BuyShop(i) }})
+			enter: func() { g.BuyShop(i) }, desc: m.itemDesc(it)})
 	}
 	if len(g.Shop) == 0 {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.sold_out"), style: sMuted})
@@ -167,7 +169,7 @@ func (m Model) townRows() []prepRow {
 	if size, cost, ok := g.NextBag(); ok {
 		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.priced(sPlain, cost),
-			enter: g.UpgradeBag})
+			enter: g.UpgradeBag, desc: lang.T("town.bag.desc")})
 	} else {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.bag_max", size-game.BagSlotsPerLevel), style: sMuted})
 	}
@@ -179,7 +181,7 @@ func (m Model) townRows() []prepRow {
 				continue
 			}
 			rows = append(rows, prepRow{section: chest, text: lang.T("prep.equipped_row", it.Slot.Glyph(), it.Title(), it.StatLabel()),
-				style: rarityStyle(it.Rarity), enter: func() { g.Unequip(game.Slot(s)) }})
+				style: rarityStyle(it.Rarity), enter: func() { g.Unequip(game.Slot(s)) }, desc: lang.T("chest.equipped.desc")})
 		}
 		for i, it := range g.Stash {
 			text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.Value(), m.compare(it))
@@ -189,10 +191,46 @@ func (m Model) townRows() []prepRow {
 				st = sMuted
 			}
 			rows = append(rows, prepRow{section: chest, text: text, style: st,
-				enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }})
+				enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }, desc: m.itemDesc(it) + " " + lang.T("chest.desc", it.Value())})
 		}
 	}
 	return rows
+}
+
+// trainDesc explains a trait and previews what one more training level changes.
+func (m Model) trainDesc(t game.Trait) string {
+	before := *m.g.Hero
+	after := before
+	after.Training[t]++
+	stats := []struct {
+		key string
+		f   func(*game.Hero) int
+	}{
+		{"stat.atk", (*game.Hero).Atk}, {"stat.spell", (*game.Hero).SpellAtk}, {"stat.spd", (*game.Hero).Spd},
+		{"stat.hp", (*game.Hero).MaxHP}, {"stat.mp", (*game.Hero).MaxMP},
+	}
+	var diffs []string
+	for _, s := range stats {
+		if a, b := s.f(&before), s.f(&after); a != b {
+			diffs = append(diffs, fmt.Sprintf("%s %d → %d", lang.T(s.key), a, b))
+		}
+	}
+	effect := lang.T("train.no_effect")
+	if len(diffs) > 0 {
+		effect = strings.Join(diffs, " · ")
+	}
+	return lang.T([...]string{"train.str.desc", "train.dex.desc", "train.int.desc", "train.con.desc"}[t]) + " " + lang.T("train.effect", effect)
+}
+
+// itemDesc says how an item compares with what the hero has equipped in that slot.
+func (m Model) itemDesc(it *game.Item) string {
+	if !m.g.Hero.Class.CanUse(it) {
+		return lang.T("item.other_class.desc")
+	}
+	if cur := m.g.Hero.Equip[it.Slot]; cur != nil && cur.ID != it.ID {
+		return lang.T("item.vs.desc", cur.Title(), cur.StatLabel())
+	}
+	return lang.T("item.vs_none.desc")
 }
 
 func (m Model) priced(st lipgloss.Style, cost int) lipgloss.Style {
@@ -244,6 +282,13 @@ func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {
 	for i := range head {
 		head[i] = truncate(head[i], w)
 	}
+	var foot []string
+	if m.cursor < len(rows) && rows[m.cursor].desc != "" {
+		foot = append([]string{""}, strings.Split(sMuted.Width(w).Render(rows[m.cursor].desc), "\n")...)
+		if len(head)+len(foot) >= h {
+			foot = nil
+		}
+	}
 	var lines []string
 	cursorLine := 0
 	section := ""
@@ -260,8 +305,11 @@ func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {
 			lines = append(lines, "  "+r.style.Render(text))
 		}
 	}
-	avail := max(1, h-len(head))
+	avail := max(1, h-len(head)-len(foot))
 	top := clamp(cursorLine-avail/2, 0, max(0, len(lines)-avail))
 	lines = lines[top:min(len(lines), top+avail)]
-	return strings.Join(append(head, lines...), "\n")
+	for len(foot) > 0 && len(lines) < avail {
+		lines = append(lines, "")
+	}
+	return strings.Join(append(append(head, lines...), foot...), "\n")
 }
