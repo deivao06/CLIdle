@@ -53,12 +53,12 @@ var BossKinds = []MonsterKind{
 var MonsterKinds = []MonsterKind{
 	{'r', "monster.rat", "180", 6, 3, 0, 4, 3, 1, false},
 	{'b', "monster.bat", "137", 5, 3, 0, 7, 4, 1, false},
-	{'k', "monster.kobold", "172", 10, 4, 1, 4, 6, 1, false},
+	{'k', "monster.kobold", "166", 10, 4, 1, 4, 6, 1, false},
 	{'g', "monster.goblin", "70", 14, 6, 2, 4, 9, 4, false},
 	{'w', "monster.wolf", "247", 16, 7, 1, 6, 12, 6, false},
 	{'z', "monster.zombie", "107", 28, 8, 3, 2, 15, 8, true},
 	{'o', "monster.orc", "28", 30, 11, 5, 4, 22, 11, false},
-	{'e', "monster.skeleton", "255", 26, 13, 6, 4, 28, 14, true},
+	{'e', "monster.skeleton", "189", 26, 13, 6, 4, 28, 14, true},
 	{'l', "monster.werewolf", "130", 45, 17, 7, 6, 40, 18, false},
 	{'d', "monster.young_dragon", "160", 70, 22, 10, 5, 60, 24, false},
 }

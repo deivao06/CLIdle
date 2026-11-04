@@ -182,7 +182,7 @@ func (m Model) viewDungeon(h int) string {
 		left = lipgloss.JoinVertical(lipgloss.Left, left, m.statsLine(mapW))
 		logH--
 	}
-	doingStyle := sHero
+	doingStyle := sDoing
 	if g.Exp.Retreating {
 		doingStyle = sWarn
 	}
@@ -327,7 +327,7 @@ func (m Model) statsLine(w int) string {
 	if e := m.g.Exp; e != nil {
 		s += lang.T("stats.bag", len(e.Bag), m.g.BagCap())
 	}
-	return sSection.Render(truncate(s, w))
+	return sStats.Render(truncate(s, w))
 }
 
 func (m Model) renderMap(w, h int) string {

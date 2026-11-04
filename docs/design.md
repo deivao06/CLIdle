@@ -33,6 +33,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Linha de status** acima do log, em todos os tamanhos: o que o herói está fazendo (explorando, lutando com X, indo pegar item, indo para a escada, indo enfrentar o chefe, voltando para a cidade e o motivo).
 - **Ajuda (`?`)** é um manual com páginas (←→ troca, ↑↓ rola): **Símbolos** (legenda de cada caractere), **Como funciona** (expedição, ordem das ações do herói, retirada, cidade, morte, chefes, auto, offline) e **Atributos** (FOR/DES/INT/CON, números do herói, raridade, classes).
 - Monstros por letra (`r`, `g`, `o`...); chefes em letra maiúscula com cor própria. ~8–10 tipos na v1.
+- **Tema único (clássico corrigido):** cada tipo de informação tem cor própria. Laranja só em abas, títulos e cursor; seções em branco negrito; linha de atributos em bege; herói `@` em amarelo forte e linha `▸` em amarelo claro (ouro é outro amarelo); XP em ciano; paredes mais escuras que o texto do log; lendário vermelho-alaranjado para não parecer título.
 - Raridade de itens por cor: Comum (branco), Mágico (azul), Raro (verde), Épico (roxo), Lendário (laranja).
   - No mesmo andar, raridade maior nunca sai mais fraca que a menor (variação de ±10%; botas sem variação).
 - **Efeitos:** épico tem 1 efeito, lendário 2 (diferentes): roubo de vida, crítico (dano dobrado), HP extra, ouro extra, cura de poção extra, XP extra. Valores em `EffectRange`.

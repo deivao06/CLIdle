@@ -8,11 +8,12 @@ import (
 
 var (
 	sDim    = lipgloss.NewStyle().Foreground(lipgloss.Color("238"))
-	sWall   = lipgloss.NewStyle().Foreground(lipgloss.Color("250"))
-	sFloor  = lipgloss.NewStyle().Foreground(lipgloss.Color("242"))
+	sWall   = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
+	sFloor  = lipgloss.NewStyle().Foreground(lipgloss.Color("238"))
 	sDoor   = lipgloss.NewStyle().Foreground(lipgloss.Color("136"))
 	sStairs = lipgloss.NewStyle().Foreground(lipgloss.Color("15")).Bold(true)
-	sHero   = lipgloss.NewStyle().Foreground(lipgloss.Color("11")).Bold(true)
+	sHero   = lipgloss.NewStyle().Foreground(lipgloss.Color("226")).Bold(true)
+	sDoing  = lipgloss.NewStyle().Foreground(lipgloss.Color("229")).Bold(true)
 	sPlain  = lipgloss.NewStyle()
 
 	sTitle   = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true)
@@ -21,8 +22,9 @@ var (
 	sTabOff  = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
 	sWarn    = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true)
 	sPanel   = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, false, true).BorderForeground(lipgloss.Color("238")).PaddingLeft(1)
-	sSection = lipgloss.NewStyle().Foreground(lipgloss.Color("214"))
-	sXP      = lipgloss.NewStyle().Foreground(lipgloss.Color("141"))
+	sSection = lipgloss.NewStyle().Foreground(lipgloss.Color("15")).Bold(true)
+	sStats   = lipgloss.NewStyle().Foreground(lipgloss.Color("180"))
+	sXP      = lipgloss.NewStyle().Foreground(lipgloss.Color("87"))
 	sMP      = lipgloss.NewStyle().Foreground(lipgloss.Color("75"))
 	sHPGood  = lipgloss.NewStyle().Foreground(lipgloss.Color("114"))
 	sHPMid   = lipgloss.NewStyle().Foreground(lipgloss.Color("220"))
@@ -37,7 +39,7 @@ var rarityStyles = [...]lipgloss.Style{
 	lipgloss.NewStyle().Foreground(lipgloss.Color("75")),
 	lipgloss.NewStyle().Foreground(lipgloss.Color("42")),
 	lipgloss.NewStyle().Foreground(lipgloss.Color("177")),
-	lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Bold(true),
+	lipgloss.NewStyle().Foreground(lipgloss.Color("202")).Bold(true),
 }
 
 func rarityStyle(r game.Rarity) lipgloss.Style { return rarityStyles[r] }
@@ -81,7 +83,7 @@ var logStyles = map[game.LogKind]lipgloss.Style{
 	game.LogMagic:     lipgloss.NewStyle().Foreground(lipgloss.Color("75")),
 	game.LogEpic:      lipgloss.NewStyle().Foreground(lipgloss.Color("177")),
 	game.LogRare:      lipgloss.NewStyle().Foreground(lipgloss.Color("42")),
-	game.LogLegendary: lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Bold(true),
+	game.LogLegendary: lipgloss.NewStyle().Foreground(lipgloss.Color("202")).Bold(true),
 }
 
 func tileStyle(t game.Tile) *lipgloss.Style {
