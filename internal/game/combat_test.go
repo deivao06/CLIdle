@@ -85,3 +85,33 @@ func departed(seed uint64) *Game {
 	g.Depart()
 	return g
 }
+
+func TestDexSetsMissAndCritForEveryone(t *testing.T) {
+	if MissChance(0) != MissBase || MissChance(1000) != MissMin || CritChance(0) != 0 || CritChance(1000) != CritMax {
+		t.Fatal("miss/crit limits")
+	}
+	if MissChance(10) >= MissChance(0) || CritChance(10) <= CritChance(0) {
+		t.Fatal("dex does not help")
+	}
+	rng := NewRNG(1)
+	shallow, deep := spawnMonster(rng, 1), spawnMonster(rng, 40)
+	if deep.Dex <= MonsterKinds[deep.Kind].Dex || shallow.Dex != MonsterKinds[shallow.Kind].Dex+(1-MonsterKinds[shallow.Kind].MinDepth)/MonsterDexEvery {
+		t.Fatalf("monster dex %d/%d", shallow.Dex, deep.Dex)
+	}
+}
+
+func TestIntSpeedsUpManaRegen(t *testing.T) {
+	regen := func(n int) int {
+		g := departed(1)
+		g.Hero.Class = Mage
+		g.Hero.Training[Int] = n
+		g.Hero.MP = 0
+		for range 20 {
+			g.regenMana()
+		}
+		return g.Hero.MP
+	}
+	if regen(20) <= regen(0) {
+		t.Fatal("int does not speed up mana")
+	}
+}

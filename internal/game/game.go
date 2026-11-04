@@ -299,12 +299,12 @@ func (g *Game) returnToTown() {
 	e := g.Exp
 	sold, kept := 0, 0
 	for _, it := range e.Bag {
-		if g.Config.KeepLoot && len(g.Stash) < StashSize {
+		if it.Rarity == Legendary || g.Config.KeepLoot && len(g.Stash) < StashSize {
 			g.Stash = append(g.Stash, it)
 			kept++
 			continue
 		}
-		sold += it.Value()
+		sold += it.SellPrice()
 	}
 	g.Gold += e.Gold + sold
 	g.Returns++
@@ -490,9 +490,9 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	name := lang.T(m.Info().Name)
 	sneak := h.Has(SneakAttack) && (!m.Awake || m.HP == m.MaxHP)
 	m.Awake = true
-	miss := MissChance
+	miss := MissChance(h.Attr(Dex))
 	if e.Blessed > 0 {
-		miss = BlessMissChance
+		miss /= 2
 	}
 	if e.RNG.Chance(miss) {
 		r.hero = lang.T("combat.hero_miss", name)
@@ -505,7 +505,7 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	}
 	d := damage(e.RNG, h.Atk(), m.Def)
 	key := "combat.hero_hit"
-	if c := h.Effect(Crit); c > 0 && e.RNG.Chance(float64(c)/100) {
+	if c := CritChance(h.Attr(Dex)) + float64(h.Effect(Crit))/100; c > 0 && e.RNG.Chance(c) {
 		d *= 2
 		key = "combat.hero_crit"
 	}
@@ -657,7 +657,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	e := g.Exp
 	h := g.Hero
 	mr := r.of(m)
-	if e.RNG.Chance(MissChance) || h.Has(Dodge) && e.RNG.Chance(min(DodgeCap, float64(h.Attr(Dex))*DodgePerDex)) {
+	if e.RNG.Chance(MissChance(m.Dex)) || h.Has(Dodge) && e.RNG.Chance(min(DodgeCap, float64(h.Attr(Dex))*DodgePerDex)) {
 		mr.misses++
 		return
 	}
@@ -666,6 +666,9 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 		def += BlessDef
 	}
 	d := damage(e.RNG, m.Atk, def)
+	if c := CritChance(m.Dex); c > 0 && e.RNG.Chance(c) {
+		d *= 2
+	}
 	g.emit(Event{Kind: EventHurt, Pos: h.Pos, Value: d, Big: d*BigHitDiv >= h.MaxHP()})
 	h.HP -= d
 	mr.hits = append(mr.hits, d)

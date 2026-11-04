@@ -301,8 +301,11 @@ func (m *Model) prepKey(key string) {
 			r.adjust(1)
 		}
 	case "x":
-		if r.sell != nil {
-			r.sell()
+		switch sell := r.sell; {
+		case sell != nil && r.sellAsk != "":
+			m.ask(r.sellAsk, func(*Model) { sell() })
+		case sell != nil:
+			sell()
 		}
 	case "enter", " ":
 		switch {

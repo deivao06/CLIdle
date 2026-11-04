@@ -519,7 +519,7 @@ func (m Model) heroPanel(w, maxH int) string {
 		avail := maxH - strings.Count(b.String(), "\n") - strings.Count(bottom, "\n")
 		shown, used := 0, 0
 		for i, it := range e.Bag {
-			line := rarityStyle(it.Rarity).Width(w).Render(lang.T("hero.bag_item", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.Value()))
+			line := rarityStyle(it.Rarity).Width(w).Render(lang.T("hero.bag_item", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.SellPrice()))
 			need := lipgloss.Height(line)
 			if i < len(e.Bag)-1 {
 				need++

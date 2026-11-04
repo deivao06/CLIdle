@@ -87,6 +87,16 @@ func (it *Item) Bonus() int { return it.Base + it.Upgrade*max(1, it.Base/Upgrade
 
 func (it *Item) Value() int { return it.Bonus() * ItemValuePerBonus * (int(it.Rarity) + 1) }
 
+func (it *Item) SellPrice() int {
+	spent := 0
+	for lvl := range it.Upgrade {
+		at := *it
+		at.Upgrade = lvl
+		spent += UpgradeCost(&at, lvl)
+	}
+	return max(1, it.Value()*SellPct/100+spent*UpgradeRefundPct/100)
+}
+
 // Label translates the item name; saves from before translation hold the Portuguese name itself.
 func (it *Item) Label() string {
 	if strings.HasPrefix(it.Name, "item.") {

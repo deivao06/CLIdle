@@ -54,6 +54,8 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Mandar o herói voltar manualmente desliga a auto-expedição; a retirada automática não.
 - **Auto-equipar:** ligado por padrão. Desligado, o herói não troca equipamento na dungeon; o jogador equipa pelo baú.
 - **Vender loot na volta:** ligado por padrão, independente do auto-equipar. Desligado, a mochila vai para o **baú** (20 vagas, o que sobra é vendido). Na lista da cidade o baú mostra só os itens guardados (não os equipados): enter equipa (o item que estava equipado vai para o baú) e `x` vende. Saves antigos com auto-equipar desligado começam com a venda desligada (passo v5).
+- **Lendários nunca são vendidos sozinhos:** na volta vão sempre para o baú (mesmo com a venda ligada e o baú cheio); trocados por compra na loja, também vão para o baú. Na dungeon segue a regra normal: com a mochila cheia, o item trocado fica para trás. Só saem vendidos com `x` e confirmação.
+- **Ajuda (`?`) acompanha as regras:** toda regra nova que o jogador sente (combate, venda, mana, monstros) entra no manual.
 - **Filtro de loot:** "Pegar itens" (comum+ por padrão) define a raridade mínima que vai para a mochila. Item que o herói vai equipar é pego sempre.
 - **Itens de outra classe:** desligado por padrão; o herói só pega o que a classe dele usa.
 - **Limite de mortes:** configurável (padrão sem limite). Depois de N mortes desde que a auto-expedição foi ligada, ela desliga e o herói fica na cidade. Religar zera a contagem.
@@ -63,6 +65,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 ## Dungeon
 
 - Andares infinitos, cada vez mais fundos. Chefe a cada 10 andares.
+- Ouro: 1 a 3 pilhas por andar. Itens vendem por 60% do valor (o valor cheio é a base do preço da loja e do ferreiro), mais 20% do ouro gasto no ferreiro naquele item.
 - Monstros ficam 15% mais fortes por andar abaixo do primeiro andar em que aparecem; a partir do andar 20, 12% por andar, para a parede do fim do jogo vir mais tarde.
 - Geração estilo Rogue: salas retangulares + corredores, escada `>`.
 - O chefe fica na sala da escada `>`; só dá para descer depois de derrotá-lo. Ele deixa cair um item épico.
@@ -79,6 +82,8 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Um herói, com **classe escolhida no jogo novo**: Guerreiro, Mago, Ladino ou Clérigo. Save antigo vira Guerreiro. Trocar de classe fica para o prestígio.
 - HP base por classe: Guerreiro 30, Clérigo 28, Mago 26, Ladino 25. O mago não pode ser frágil a ponto de morrer nos primeiros andares da primeira expedição.
 - Atributos: **FOR** (dano corpo a corpo), **DES** (velocidade), **INT** (magia e mana), **CON** (vida). Cada classe tem valores iniciais e ganho por nível próprios. O treino da cidade sobe esses quatro.
+- **Precisão e crítico (herói e monstros, mesma regra):** erra 20% − 0,5% por DES (mínimo 5%); crítico 0,5% por DES (máximo 25%), dano dobrado, somado ao efeito de crítico dos itens. A bênção corta a chance de erro pela metade. Cada monstro tem DES própria (ágeis: morcego, lobo, lobisomem) que sobe 1 a cada 2 andares abaixo do primeiro em que aparece; chefes têm +5. Magias não erram.
+- **Mana:** recupera 0,25 + 0,04 × INT por passo.
 - Derivados: Ataque = arma + atributo de dano da classe; Defesa = armadura + capacete + escudo + nível; Velocidade = DES + botas (explorando, a DES conta só metade); Mana só para Mago e Clérigo, recupera um pouco por passo.
 - Fontes de poder: nível/XP, equipamento (achado ou comprado), melhorias permanentes na cidade.
 - Equipamento: arma, armadura, botas, capacete, escudo. Armas por classe (Guerreiro e Clérigo: espadas/machados e maças; Mago cajados; Ladino adagas). Armadura leve/média/pesada (mais pesada = mais Defesa).

@@ -15,7 +15,7 @@ func TestBuyInTownEquipsAndSellsOld(t *testing.T) {
 	g.Shop = []*Item{{Slot: Weapon, Base: 10}}
 	price := ShopPrice(g.Shop[0])
 	g.BuyShop(0)
-	if g.Hero.Equip[Weapon].Base != 10 || g.Gold != 100000-price+old.Value() {
+	if g.Hero.Equip[Weapon].Base != 10 || g.Gold != 100000-price+old.SellPrice() {
 		t.Fatalf("equip %+v gold %d", g.Hero.Equip[Weapon], g.Gold)
 	}
 }

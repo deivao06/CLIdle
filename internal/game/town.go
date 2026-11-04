@@ -85,9 +85,12 @@ func (g *Game) BuyShop(i int) {
 func (g *Game) equipBought(it *Item) {
 	h := g.Hero
 	msg := lang.T("log.hero_equips", it.Title(), it.StatLabel())
-	if old := h.Equip[it.Slot]; old != nil {
-		g.Gold += old.Value()
-		msg += lang.T("log.sold_old", old.Title(), old.Value())
+	if old := h.Equip[it.Slot]; old != nil && old.Rarity == Legendary {
+		g.Stash = append(g.Stash, old)
+		msg += lang.T("log.kept_old", old.Title())
+	} else if old != nil {
+		g.Gold += old.SellPrice()
+		msg += lang.T("log.sold_old", old.Title(), old.SellPrice())
 	}
 	h.Equip[it.Slot] = it
 	h.HP = min(h.HP, h.MaxHP())
@@ -201,6 +204,6 @@ func (g *Game) SellStash(i int) {
 	}
 	it := g.Stash[i]
 	g.Stash = slices.Delete(g.Stash, i, i+1)
-	g.Gold += it.Value()
-	g.logf(LogInfo, "%s", lang.T("log.sell_item", it.Title(), it.Value()))
+	g.Gold += it.SellPrice()
+	g.logf(LogInfo, "%s", lang.T("log.sell_item", it.Title(), it.SellPrice()))
 }

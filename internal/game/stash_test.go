@@ -33,7 +33,7 @@ func TestManualEquipStillSellsByDefault(t *testing.T) {
 	it := &Item{Slot: Weapon, Base: 5}
 	g.Exp.Bag = []*Item{it}
 	g.returnToTown()
-	if len(g.Stash) != 0 || g.Gold != it.Value() {
+	if len(g.Stash) != 0 || g.Gold != it.SellPrice() {
 		t.Fatalf("stash %v gold %d", g.Stash, g.Gold)
 	}
 }
@@ -46,7 +46,7 @@ func TestStashOverflowIsSold(t *testing.T) {
 	it := &Item{Slot: Weapon, Base: 5}
 	g.Exp.Bag = []*Item{it}
 	g.returnToTown()
-	if len(g.Stash) != StashSize || g.Gold != it.Value() {
+	if len(g.Stash) != StashSize || g.Gold != it.SellPrice() {
 		t.Fatalf("stash %d gold %d", len(g.Stash), g.Gold)
 	}
 }
@@ -88,7 +88,35 @@ func TestUnequipAndSellStash(t *testing.T) {
 		t.Fatalf("equip %v stash %v", g.Hero.Equip[Armor], g.Stash)
 	}
 	g.SellStash(0)
-	if len(g.Stash) != 0 || g.Gold != it.Value() {
+	if len(g.Stash) != 0 || g.Gold != it.SellPrice() {
 		t.Fatalf("stash %v gold %d", g.Stash, g.Gold)
+	}
+}
+
+func TestLegendaryIsNeverSoldOnItsOwn(t *testing.T) {
+	g := New(1, Warrior)
+	g.Stash = make([]*Item, StashSize)
+	g.Depart()
+	leg := &Item{Slot: Weapon, Base: 5, Rarity: Legendary}
+	g.Exp.Bag = []*Item{leg, {Slot: Weapon, Base: 5}}
+	g.returnToTown()
+	if len(g.Stash) != StashSize+1 || g.Stash[StashSize] != leg {
+		t.Fatalf("legendary sold on return, stash %d", len(g.Stash))
+	}
+	old := &Item{Slot: Armor, Base: 2, Rarity: Legendary}
+	g.Hero.Equip[Armor] = old
+	g.Gold = 0
+	g.equipBought(&Item{Slot: Armor, Base: 9})
+	if g.Gold != 0 || g.Stash[len(g.Stash)-1] != old {
+		t.Fatalf("legendary sold when buying, gold %d", g.Gold)
+	}
+}
+
+func TestUpgradesRaiseSellPriceFairly(t *testing.T) {
+	plain := &Item{Slot: Weapon, Base: 20}
+	up := &Item{Slot: Weapon, Base: 20, Upgrade: 2}
+	spent := UpgradeCost(&Item{Slot: Weapon, Base: 20}, 0) + UpgradeCost(&Item{Slot: Weapon, Base: 20, Upgrade: 1}, 1)
+	if got, want := up.SellPrice(), up.Value()*SellPct/100+spent*UpgradeRefundPct/100; got != want || got <= plain.SellPrice() || got >= spent {
+		t.Fatalf("sell %d want %d plain %d spent %d", got, want, plain.SellPrice(), spent)
 	}
 }

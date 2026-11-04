@@ -133,3 +133,23 @@ func TestEffectsOffDrawsNoLampOrFx(t *testing.T) {
 		t.Fatal("effects off still lights the lamp")
 	}
 }
+
+func TestSellingLegendaryAsksFirst(t *testing.T) {
+	g := game.New(1, game.Warrior)
+	g.Stash = []*game.Item{{Slot: game.Armor, Base: 3, Rarity: game.Legendary}}
+	m := New(g)
+	m.tab = tabDungeon
+	for i, r := range m.townRows() {
+		if r.sell != nil {
+			m.cursor = i
+		}
+	}
+	m.prepKey("x")
+	if len(g.Stash) != 1 || m.confirmDo == nil {
+		t.Fatalf("legendary sold without asking: stash %d", len(g.Stash))
+	}
+	m.confirmDo(&m)
+	if len(g.Stash) != 0 || g.Gold == 0 {
+		t.Fatalf("confirming did not sell: stash %d gold %d", len(g.Stash), g.Gold)
+	}
+}

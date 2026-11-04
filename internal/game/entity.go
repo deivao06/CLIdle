@@ -11,6 +11,7 @@ type MonsterKind struct {
 	XP       int
 	MinDepth int
 	Undead   bool
+	Dex      int
 }
 
 type Monster struct {
@@ -21,6 +22,7 @@ type Monster struct {
 	Atk    int
 	Def    int
 	Spd    int
+	Dex    int
 	XP     int
 	Awake  bool
 	Energy float64
@@ -55,6 +57,7 @@ func spawnMonster(rng *RNG, depth int) *Monster {
 		Atk:   scaled(k.Atk, s*MonsterAtkMult),
 		Def:   scaled(k.Def, s),
 		Spd:   k.Spd,
+		Dex:   k.Dex + (depth-k.MinDepth)/MonsterDexEvery,
 		XP:    scaled(k.XP, s),
 	}
 }
@@ -76,6 +79,7 @@ func spawnBoss(rng *RNG, depth int) *Monster {
 		Atk:   int(float64(base.Atk) * BossAtkMult),
 		Def:   int(float64(base.Def) * BossDefMult),
 		Spd:   max(base.Spd, BossMinSpd),
+		Dex:   base.Dex + BossDexBonus,
 		XP:    base.XP * BossXPMult,
 	}
 }

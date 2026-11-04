@@ -11,7 +11,11 @@ const (
 	HeroBaseSpd   = 4
 	ExploreDexDiv = 2
 
-	MissChance     = 0.1
+	MissBase       = 0.20
+	MissPerDex     = 0.005
+	MissMin        = 0.05
+	CritPerDex     = 0.005
+	CritMax        = 0.25
 	CombatRoundMs  = 1000
 	MonsterWindow  = 4
 	MonsterAtkMult = 1.3
@@ -38,15 +42,23 @@ func MonsterScale(depth, minDepth int) float64 {
 	return math.Pow(MonsterGrowth, float64(shallow)) * math.Pow(MonsterGrowthDeep, float64(deep))
 }
 
+// MissChance and CritChance are the same for heroes and monsters.
+func MissChance(dex int) float64 { return max(MissMin, MissBase-MissPerDex*float64(dex)) }
+func CritChance(dex int) float64 { return min(CritMax, CritPerDex*float64(dex)) }
+
+// MonsterDexEvery is how many floors below its first floor a monster needs to gain 1 dexterity.
+const MonsterDexEvery = 2
+
 func MonstersPerLevel(depth int) int { return min(max(5, 3+depth/2), 12) }
 
 const (
-	BossEvery   = 10
-	BossHPMult  = 5
-	BossAtkMult = 1.4
-	BossDefMult = 1.3
-	BossXPMult  = 8
-	BossMinSpd  = 5
+	BossEvery    = 10
+	BossHPMult   = 5
+	BossAtkMult  = 1.4
+	BossDefMult  = 1.3
+	BossXPMult   = 8
+	BossMinSpd   = 5
+	BossDexBonus = 5
 
 	BossWakeDist = 1
 
@@ -63,16 +75,16 @@ var BossKinds = []MonsterKind{
 }
 
 var MonsterKinds = []MonsterKind{
-	{'r', "monster.rat", "180", 6, 3, 0, 4, 3, 1, false},
-	{'b', "monster.bat", "137", 5, 3, 0, 7, 4, 1, false},
-	{'k', "monster.kobold", "166", 10, 4, 1, 4, 6, 1, false},
-	{'g', "monster.goblin", "70", 14, 6, 2, 4, 9, 4, false},
-	{'w', "monster.wolf", "247", 16, 7, 1, 6, 12, 6, false},
-	{'z', "monster.zombie", "107", 28, 8, 3, 2, 15, 8, true},
-	{'o', "monster.orc", "28", 30, 11, 5, 4, 22, 11, false},
-	{'e', "monster.skeleton", "189", 26, 13, 6, 4, 28, 14, true},
-	{'l', "monster.werewolf", "130", 45, 17, 7, 6, 40, 18, false},
-	{'d', "monster.young_dragon", "160", 70, 22, 10, 5, 60, 24, false},
+	{'r', "monster.rat", "180", 6, 3, 0, 4, 3, 1, false, 3},
+	{'b', "monster.bat", "137", 5, 3, 0, 7, 4, 1, false, 8},
+	{'k', "monster.kobold", "166", 10, 4, 1, 4, 6, 1, false, 2},
+	{'g', "monster.goblin", "70", 14, 6, 2, 4, 9, 4, false, 4},
+	{'w', "monster.wolf", "247", 16, 7, 1, 6, 12, 6, false, 6},
+	{'z', "monster.zombie", "107", 28, 8, 3, 2, 15, 8, true, 0},
+	{'o', "monster.orc", "28", 30, 11, 5, 4, 22, 11, false, 2},
+	{'e', "monster.skeleton", "189", 26, 13, 6, 4, 28, 14, true, 4},
+	{'l', "monster.werewolf", "130", 45, 17, 7, 6, 40, 18, false, 8},
+	{'d', "monster.young_dragon", "160", 70, 22, 10, 5, 60, 24, false, 6},
 }
 
 const (
@@ -81,12 +93,14 @@ const (
 	StartPotions      = 2
 	PotionHealPct     = 35
 	PotionChance      = 0.2
-	GoldPilesMin      = 2
-	GoldPilesMax      = 4
+	GoldPilesMin      = 1
+	GoldPilesMax      = 3
 	ItemsMin          = 0
 	ItemsMax          = 2
 	UpgradeDivisor    = 10
 	ItemValuePerBonus = 4
+	SellPct           = 60
+	UpgradeRefundPct  = 20
 )
 
 func GoldPerPile(depth int) float64 { return 5 * math.Pow(1.12, float64(depth-1)) }
@@ -188,11 +202,10 @@ const (
 	FrostSlowRounds = 5
 	BlinkHPPct      = 35
 
-	HealPct         = 35
-	BlessRounds     = 8
-	BlessMissChance = 0.03
-	BlessDef        = 3
-	TurnUndeadMult  = 3
+	HealPct        = 35
+	BlessRounds    = 8
+	BlessDef       = 3
+	TurnUndeadMult = 3
 )
 
 var SpellPower = [NumAbilities]int{MagicMissile: 4, Fireball: 4, FrostRay: 6}
@@ -243,8 +256,9 @@ var ClassMana = [NumClasses]int{Mage: 10, Cleric: 8}
 
 const (
 	ManaPerInt       = 2
-	ManaRegenPerStep = 1
-	ManaRegenDiv     = 4
+	ManaRegenPerStep = 25
+	ManaRegenPerInt  = 4
+	ManaRegenDiv     = 100
 )
 
 var ClassHP = [NumClasses]classHP{Warrior: {30, 8}, Mage: {26, 5}, Rogue: {25, 6}, Cleric: {28, 7}}

@@ -12,7 +12,7 @@ func TestReturnDepositsGoldAndSellsBag(t *testing.T) {
 	g.Exp.Gold = 10
 	g.Exp.Bag = []*Item{it}
 	g.returnToTown()
-	if g.Exp != nil || g.Gold != 10+it.Value() {
+	if g.Exp != nil || g.Gold != 10+it.SellPrice() {
 		t.Fatalf("gold %d, exp %v", g.Gold, g.Exp)
 	}
 }
@@ -26,7 +26,9 @@ func TestDeathLosesFoundLootButKeepsStartEquip(t *testing.T) {
 	g.Exp.Gold = 50
 	g.Hero.HP = 1
 	m := &Monster{HP: 9, Atk: 100, Spd: 4}
-	g.monsterAttack(m, &round{})
+	for i := 0; i < 50 && g.Exp != nil; i++ {
+		g.monsterAttack(m, &round{})
+	}
 	if g.Exp != nil || g.Gold != 50*DeathKeepGoldPct/100 || g.Hero.Equip[Weapon] != start {
 		t.Fatalf("gold %d, weapon %+v", g.Gold, g.Hero.Equip[Weapon])
 	}

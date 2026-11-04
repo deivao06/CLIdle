@@ -126,7 +126,7 @@ Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cida
 - O binário passou de 3,7 para 7,2 MB por causa do `net/http`/TLS do auto-update. O de Windows tem ~11 MB: é compilado sem `-s -w` e com recursos (ícone `assets/icon.png`, versão e manifesto de `winres/winres.json`, gerados no workflow pelo `go-winres`) para o Windows Defender desconfiar menos. Os `.syso` gerados são ignorados pelo git. Mesmo assim o SmartScreen mostra "Unknown publisher" (sem assinatura); o README ensina o "Run anyway". Assinar de graça pela SignPath Foundation (open source) fica para depois.
 - Modo gráfico (Ebitengine + shader CRT) foi avaliado e descartado pelo dono: ~14 MB, cgo obrigatório e ~25% de CPU num teste mínimo.
 - Números das classes não-guerreiro são provisórios. O ladino ainda faz ~1,7× mais expedições que as outras classes.
-- DES ainda não afeta acerto nem crítico; o respingo da bola de fogo ignora paredes; segundo fôlego quase nunca dispara (a poção vem antes).
+- O respingo da bola de fogo ignora paredes; segundo fôlego quase nunca dispara (a poção vem antes).
 
 **Ideias já combinadas para depois** (ver `docs/design.md` → "Para depois"):
 - Grupo de heróis (vários `@` com cores diferentes)

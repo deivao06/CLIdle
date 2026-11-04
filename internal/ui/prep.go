@@ -19,6 +19,7 @@ type prepRow struct {
 	enter   func()
 	do      func(*Model)
 	sell    func()
+	sellAsk string
 	confirm string
 	desc    string
 }
@@ -182,14 +183,18 @@ func (m Model) townRows() []prepRow {
 
 	chest := lang.T("prep.section.chest", len(g.Stash), game.StashSize)
 	for i, it := range g.Stash {
-		text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.Value(), m.compare(it))
+		text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.SellPrice(), m.compare(it))
 		st := rarityStyle(it.Rarity)
 		if !g.Hero.Class.CanUse(it) {
 			text += lang.T("prep.other_class")
 			st = sMuted
 		}
-		rows = append(rows, prepRow{section: chest, text: text, style: st,
-			enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }, desc: m.itemDesc(it) + " " + lang.T("chest.desc", it.Value())})
+		row := prepRow{section: chest, text: text, style: st,
+			enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }, desc: m.itemDesc(it) + " " + lang.T("chest.desc", it.SellPrice())}
+		if it.Rarity == game.Legendary {
+			row.sellAsk = lang.T("confirm.sell_legendary", it.Title(), it.SellPrice())
+		}
+		rows = append(rows, row)
 	}
 	return rows
 }
