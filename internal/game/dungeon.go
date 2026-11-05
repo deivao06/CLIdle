@@ -164,14 +164,29 @@ func (l *Level) Reveal(from Pos) {
 	}
 }
 
+const floorTries = 100
+
+// RandomFloor picks a free floor tile in the room, or the first free one in this or the next rooms when it is crowded.
 func (l *Level) RandomFloor(rng *RNG, room int) Pos {
+	free := func(p Pos) bool { return l.At(p) == Floor && l.MonsterAt(p) == nil && l.ItemAt(p) < 0 }
 	r := l.Rooms[room]
-	for {
+	for range floorTries {
 		p := Pos{rng.Range(r.X+1, r.X+r.W-2), rng.Range(r.Y+1, r.Y+r.H-2)}
-		if l.At(p) == Floor && l.MonsterAt(p) == nil && l.ItemAt(p) < 0 {
+		if free(p) {
 			return p
 		}
 	}
+	for i := range l.Rooms {
+		r := l.Rooms[(room+i)%len(l.Rooms)]
+		for y := r.Y + 1; y <= r.Y+r.H-2; y++ {
+			for x := r.X + 1; x <= r.X+r.W-2; x++ {
+				if p := (Pos{x, y}); free(p) {
+					return p
+				}
+			}
+		}
+	}
+	return Pos{r.X + 1, r.Y + 1}
 }
 
 const gridCols, gridRows = 3, 3
