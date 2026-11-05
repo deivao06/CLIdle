@@ -109,7 +109,8 @@ func NewHero(c Class) *Hero {
 
 func (h *Hero) MaxHP() int {
 	c := ClassHP[h.Class]
-	return (c.Base + (h.Level-1)*c.PerLevel + h.Attr(Con)*TrainHP) * (100 + h.Effect(Vigor)) / 100
+	armor := h.bonus(Armor) + h.bonus(Helmet) + h.bonus(Shield)
+	return (c.Base + (h.Level-1)*c.PerLevel + h.Attr(Con)*TrainHP + armor*ArmorHPPct/100) * (100 + h.Effect(Vigor)) / 100
 }
 
 func (h *Hero) Effect(k Effect) int {

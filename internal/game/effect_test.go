@@ -31,7 +31,7 @@ func TestVigorRaisesMaxHP(t *testing.T) {
 	g := New(1, Warrior)
 	base := g.Hero.MaxHP()
 	withEffect(g, Vigor, 10)
-	if g.Hero.MaxHP() != base*110/100 {
+	if want := (base + g.Hero.Equip[Helmet].Bonus()*ArmorHPPct/100) * 110 / 100; g.Hero.MaxHP() != want {
 		t.Fatalf("max hp %d, base %d", g.Hero.MaxHP(), base)
 	}
 }

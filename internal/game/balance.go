@@ -235,6 +235,7 @@ const (
 	PotionSellPrice = 5
 	MaxPotions      = 10
 	TrainHP         = 5
+	ArmorHPPct      = 50
 
 	BagSlotsPerLevel = 2
 	BagMaxLevel      = 8
