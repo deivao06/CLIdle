@@ -68,7 +68,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 
 - Andares infinitos, cada vez mais fundos. Chefe a cada 10 andares.
 - Ouro: 1 a 3 pilhas por andar. Itens vendem por 60% do valor (o valor cheio é a base do preço da loja e do ferreiro), mais 20% do ouro gasto no ferreiro naquele item.
-- Monstros ficam 15% mais fortes por andar abaixo do primeiro andar em que aparecem; a partir do andar 20, 12% por andar, para a parede do fim do jogo vir mais tarde.
+- Monstros crescem de forma linear: +45% dos atributos-base por andar abaixo do primeiro andar em que aparecem (`MonsterScale = 1 + 0,45·n`). A curva exponencial anterior (15%/12% por andar) criava uma parede no andar 36–45; ver `docs/balance-audit/`.
 - Geração estilo Rogue: salas retangulares + corredores, escada `>`.
 - O chefe fica na sala da escada `>`; só dá para descer depois de derrotá-lo. Ele deixa cair um item épico.
 - O chefe dorme até o herói encostar nele. O herói **não sabe** se vence o chefe: não há estimativa nem recuo por chefe forte; ele luta como contra qualquer monstro (só recua pelas regras normais, como HP baixo sem poções).
