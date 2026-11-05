@@ -83,6 +83,8 @@ func (m Model) view() string {
 		body = m.viewPrep(bodyH)
 	case m.tab == tabSettings:
 		body = m.viewSettings(bodyH)
+	case m.tab == tabNerd:
+		body = m.viewNerd(bodyH)
 	case m.tab == tabHero:
 		lines := m.heroLines()
 		top := clamp(m.heroTop, 0, max(0, len(lines)-bodyH))
@@ -114,6 +116,9 @@ func (m Model) viewHeader() string {
 	right := m.updateNotice() + m.statusLine()
 	full := []string{"1 " + lang.T("tab.main"), "2 " + lang.T("tab.prep"), "3 " + lang.T("tab.hero"), "4 " + lang.T("tab.settings")}
 	short := []string{"1", "2", "3", "4"}
+	if m.g.Nerd {
+		full, short = append(full, "5 "+lang.T("tab.nerd")), append(short, "5")
+	}
 	active := slices.Clone(short)
 	if !m.help {
 		active[m.tab] = full[m.tab]
@@ -151,9 +156,13 @@ func (m Model) viewFooter() string {
 	if m.g.Auto {
 		auto = lang.T("prep.on")
 	}
-	keys := lang.T("footer.dungeon", auto)
+	tabs := 4
+	if m.g.Nerd {
+		tabs = 5
+	}
+	keys := lang.T("footer.dungeon", tabs, auto)
 	if m.g.InTown() {
-		keys = lang.T("footer.town", auto)
+		keys = lang.T("footer.town", tabs, auto)
 	}
 	if m.confirmDo != nil {
 		return truncate(sMuted.Render(lang.T("footer.confirm")), m.w)

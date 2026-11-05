@@ -57,6 +57,8 @@ func (m Model) rows() []prepRow {
 		return m.settingsRows()
 	case tabDungeon:
 		return m.townRows()
+	case tabNerd:
+		return m.nerdRows()
 	}
 	return m.prepRows()
 }
@@ -67,6 +69,7 @@ func (m Model) settingsRows() []prepRow {
 	return []prepRow{
 		cfgRow(sec, "prep.bell", onOff(g.Bell), func(int) { g.Bell = !g.Bell }),
 		cfgRow(sec, "prep.crt", crtLabel(g.CRT), func(int) { g.CRT = !g.CRT }),
+		cfgRow(sec, "prep.nerd", crtLabel(g.Nerd), func(int) { g.Nerd = !g.Nerd }),
 		cfgRow(sec, "prep.effects", lang.T([...]string{"prep.effects_full", "prep.effects_subtle", "prep.effects_off"}[g.Effects]), func(d int) {
 			g.Effects = (g.Effects + game.Effects(d) + game.NumEffectLevels) % game.NumEffectLevels
 		}),

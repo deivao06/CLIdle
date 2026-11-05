@@ -17,6 +17,7 @@ const (
 	tabPrep
 	tabHero
 	tabSettings
+	tabNerd
 )
 
 const (
@@ -217,6 +218,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.tab, m.help = tabHero, false
 		case "4":
 			m.tab, m.help, m.cursor = tabSettings, false, 0
+		case "5":
+			if m.g.Nerd {
+				m.tab, m.help, m.cursor = tabNerd, false, 0
+			}
 		case "r":
 			if e := m.g.Exp; e != nil && !e.Retreating {
 				m.ask(lang.T("confirm.retreat"), func(m *Model) { m.g.Retreat() })
@@ -241,7 +246,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.help {
 				m.helpKey(msg.String())
 			}
-			if (m.tab == tabPrep || m.tab == tabSettings || m.tab == tabDungeon && m.g.InTown()) && !m.help {
+			if (m.tab == tabPrep || m.tab == tabSettings || m.tab == tabNerd || m.tab == tabDungeon && m.g.InTown()) && !m.help {
 				m.prepKey(msg.String())
 			}
 			if m.tab == tabHero && !m.help {

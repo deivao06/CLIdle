@@ -74,6 +74,7 @@ type Game struct {
 	Stash      []*Item
 	Bell       bool
 	CRT        bool
+	Nerd       bool
 	Effects    Effects
 	Lang       string
 	BagLevel   int

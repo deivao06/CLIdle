@@ -18,7 +18,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
   - **Médio:** + log.
   - **Grande:** + stats/inventário e legenda em painel lateral.
 - Abaixo de **40×10**: aviso "janela muito pequena".
-- Telas: `1` Principal · `2` Preparação · `3` Herói · `4` Config · `?` legenda/ajuda · `q` sair.
+- Telas: `1` Principal · `2` Preparação · `3` Herói · `4` Config · `5` Nerd (só com a opção ligada) · `?` legenda/ajuda · `q` sair.
 - **Principal** muda sozinha: mostra a dungeon durante a expedição e a cidade quando o herói volta.
 - **Preparação** fica sempre disponível e só configura as expedições, em 4 grupos: Expedição · Poções · Retirada · Loot. Mudanças valem na hora, inclusive com o herói na dungeon; só poções e andar inicial esperam a próxima partida.
 - **Cidade (tela 1 com o herói na cidade):** à esquerda, o `@` descansa junto a uma fogueira animada numa salinha no estilo do mapa; à direita, a lista navegável: Partir agora, Ferreiro, Treino, Loja (com a mochila) e Baú. Em tela estreita (< 100 colunas), a sala da fogueira fica em cima e a lista embaixo, se sobrarem 10+ linhas para a lista; senão, só a lista. Ferreiro, treino, loja, mochila e baú **só funcionam na cidade**; não há fila. Para comprar no meio de uma expedição, o jogador força a volta (`r`). A auto-expedição não espera o jogador.
@@ -113,6 +113,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Testes automatizados na lógica (geração, combate, simulação); sem testar a UI.
 - Bip do terminal (morte/chefe) desligado por padrão, com opção para ligar.
 - **Efeito CRT** desligado por padrão (opção na tela Config): camada estética de terminal antigo (Fallout), sem virar monocromático. As cores originais são mantidas, um pouco desbotadas e com tom verde-fósforo (o texto na cor padrão do terminal também ganha o tom); linhas alternadas ficam um pouco mais escuras (scanlines); de vez em quando os elementos cinzas (texto secundário, paredes, bordas) oscilam de brilho; raramente uma borda da interface aparece "rasgada" (`│` → `╎`) por um instante. Nada muda texto nem layout.
+- **Aba Nerd** desligada por padrão (opção "Coisas de nerd" na Config): lista só de leitura com todos os números de balanceamento, agrupados por tema, e a descrição embaixo explicando o impacto de cada um. É a única fonte das explicações; `balance.go` não tem comentários por constante.
 - **Idioma:** inglês por padrão, português como opção na tela Config. Fica no save. Ao trocar, nomes de itens mudam junto; linhas antigas do log ficam no idioma em que foram escritas.
 
 ## Marcos

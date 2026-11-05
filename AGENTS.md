@@ -47,6 +47,7 @@ internal/ui/            Bubble Tea
   prep.go               Preparação (só config), lista da cidade (`townRows`), Config, resetar save
   style.go              estilos/cores
   updater.go            aviso de versão nova, tecla u, confirmação e reinício (checa ao chegar na cidade, máx. 1×/hora)
+  nerd.go               aba 5 Nerd (opção "Coisas de nerd" na Config, Game.Nerd, zero = desligada): lê os números de balance.go ao vivo, um texto por linha em lang
   crt.go                efeito CRT: envelhece as cores ANSI da saída da View (tom verde-fósforo, desbota, scanlines, flicker dos cinzas, borda rasgada) (Game.CRT, zero = desligado)
 ```
 
@@ -98,7 +99,7 @@ Quase não há testes de UI (só `internal/ui/model_test.go`). Para ver telas:
 - **Texto do jogo só em `internal/lang/en.json` e `pt.json`**, acessado por `lang.T("chave", args...)`. Toda chave nova vai nos dois arquivos (um teste confere). Identificadores e comentários de código em inglês.
 - **Comentários só quando o porquê não é óbvio.** Regras de negócio ficam no `docs/design.md`, não em comentários.
 - **Mudanças mínimas.** Diffs pequenos e focados.
-- **Números de balanceamento só em `balance.go`.**
+- **Números de balanceamento só em `balance.go`.** Número novo ou fórmula nova ganha uma linha na aba Nerd (`ui/nerd.go`, chaves `nerd.*` nos dois idiomas). Funções aparecem por valores calculados (base e razão), nunca com o número copiado.
 - Commits no estilo `feat: ...` / `fix: ...` / `docs: ...` **em inglês**, terminando com a linha `Co-Authored-By` do agente. `feat:` e `fix:` viram as notas da release, então escreva para o jogador. Notas de release sem ícones/emojis nos títulos.
 - Rode `gofmt`, `go vet` e `go test ./...` antes de commitar.
 
