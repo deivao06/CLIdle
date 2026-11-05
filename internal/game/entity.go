@@ -70,13 +70,14 @@ func spawnBoss(rng *RNG, depth int) *Monster {
 			base = m
 		}
 	}
-	hp := int(float64(base.MaxHP) * BossHPMult)
+	k := float64(depth/BossEvery - 1)
+	hp := int(float64(base.MaxHP) * (BossHPMult + BossHPPerBoss*k))
 	return &Monster{
 		Kind:  (depth/BossEvery - 1) % len(BossKinds),
 		Boss:  true,
 		HP:    hp,
 		MaxHP: hp,
-		Atk:   int(float64(base.Atk) * BossAtkMult),
+		Atk:   int(float64(base.Atk) * (BossAtkMult + BossAtkPerBoss*k)),
 		Def:   int(float64(base.Def) * BossDefMult),
 		Spd:   max(base.Spd, BossMinSpd),
 		Dex:   base.Dex + BossDexBonus,

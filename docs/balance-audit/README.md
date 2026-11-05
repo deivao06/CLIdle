@@ -5,7 +5,8 @@ Base: commit `2d21a25` (v0.2.1) e o experimento não commitado do dono (`Monster
 **Depois da auditoria (decisões do dono):**
 - R0 feito: congelamento em `RandomFloor` corrigido (`1ea41fd`).
 - Curva **B45** aplicada (`b9415f0`). O dono não quer metas de tempo e pediu algo parecido com o B35, mas sem ficar fácil. Calibração em [`data/calibration-B35-B45.md`](data/calibration-B35-B45.md).
-- Próximas da fila: R5 (chefes; só 4% das mortes em chefe no B45), R6–R11.
+- R5 aplicada: chefes mais fortes a cada chefe (HP ×(5+N−1), Atk ×(1,4+0,1·(N−1))). Mortes em chefe passaram de 4% para 22%. Dados em [`data/calibration-bosses-R5.md`](data/calibration-bosses-R5.md).
+- Próximas da fila: R6–R11.
 
 ## Resumo executivo
 

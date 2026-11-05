@@ -72,6 +72,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Geração estilo Rogue: salas retangulares + corredores, escada `>`.
 - O chefe fica na sala da escada `>`; só dá para descer depois de derrotá-lo. Ele deixa cair um item épico.
 - O chefe dorme até o herói encostar nele. O herói **não sabe** se vence o chefe: não há estimativa nem recuo por chefe forte; ele luta como contra qualquer monstro (só recua pelas regras normais, como HP baixo sem poções).
+- O chefe fica mais forte a cada chefe vencido: o N-ésimo chefe tem HP ×(5 + N−1) e ataque ×(1,4 + 0,1·(N−1)) do monstro mais forte do andar. Os chefes são os marcos de dificuldade; os monstros comuns crescem de forma linear (ver `docs/balance-audit/data/calibration-bosses-R5.md`).
 - Matar um chefe desbloqueia atalho para o andar seguinte (começar no andar 11, 21...).
 - Comportamento por andar configurável: explorar tudo (padrão) ou descer direto ao achar `>`.
 - Combate roguelike: esbarra no monstro e ataca, por turnos, automático.
