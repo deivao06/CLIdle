@@ -133,7 +133,7 @@ func (h *Hero) MaxMP() int {
 	if ClassMana[h.Class] == 0 {
 		return 0
 	}
-	return ClassMana[h.Class] + h.Attr(Int)*ManaPerInt
+	return ClassMana[h.Class] + h.Attr(Int)*ClassManaPerInt[h.Class]
 }
 
 func (h *Hero) Attr(t Trait) int {
@@ -166,7 +166,7 @@ func (h *Hero) ManaPerStep() float64 {
 	if h.MaxMP() == 0 {
 		return 0
 	}
-	return float64(ManaRegenPerStep+h.Attr(Int)*ManaRegenPerInt) / ManaRegenDiv
+	return float64(ManaRegenPerStep+h.Attr(Int)*ClassManaRegenPerInt[h.Class]) / ManaRegenDiv
 }
 
 func (h *Hero) bonus(s Slot) int {

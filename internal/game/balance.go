@@ -250,10 +250,14 @@ type classHP struct{ Base, PerLevel int }
 
 var ClassMana = [NumClasses]int{Mage: 10, Cleric: 8}
 
+// ClassManaPerInt and ClassManaRegenPerInt are the max mana and the mana regen each INT point gives.
+var (
+	ClassManaPerInt      = [NumClasses]int{Mage: 3, Cleric: 2}
+	ClassManaRegenPerInt = [NumClasses]int{Mage: 6, Cleric: 4}
+)
+
 const (
-	ManaPerInt       = 2
 	ManaRegenPerStep = 25
-	ManaRegenPerInt  = 4
 	ManaRegenDiv     = 100
 )
 
@@ -264,7 +268,7 @@ type classStats struct{ Start, Growth [NumTraits]int }
 
 var ClassStats = [NumClasses]classStats{
 	Warrior: {Growth: [NumTraits]int{Str: 3}},
-	Mage:    {Start: [NumTraits]int{Int: 2}, Growth: [NumTraits]int{Int: 3}},
+	Mage:    {Start: [NumTraits]int{Int: 2}, Growth: [NumTraits]int{Int: 4}},
 	Rogue:   {Start: [NumTraits]int{Dex: 1}, Growth: [NumTraits]int{Dex: 1}},
 	Cleric:  {Growth: [NumTraits]int{Str: 2, Int: 1}},
 }
