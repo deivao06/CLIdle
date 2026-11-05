@@ -351,13 +351,10 @@ func (g *Game) readyToDescend() bool {
 	if g.Exp.Level.boss() != nil {
 		return false
 	}
-	if g.Config.Mode == DescendFast {
-		return true
-	}
 	if _, ok := g.Exp.Level.pathStep(g.Hero.Pos, g.passable, g.wantedItem); ok {
 		return false
 	}
-	return g.explored()
+	return g.Config.Mode == DescendFast || g.explored()
 }
 
 func (g *Game) pickup(r *round) {
