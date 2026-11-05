@@ -1,0 +1,25 @@
+diff --git a/internal/game/balance.go b/internal/game/balance.go
+index e57928b..6a6c67e 100644
+--- a/internal/game/balance.go
++++ b/internal/game/balance.go
+@@ -29,17 +29,11 @@ func StepsPerSec(spd int) float64 { return 1 + float64(spd)*0.5 }
+ 
+ func XPToNext(level int) int { return int(20 * math.Pow(1.5, float64(level-1))) }
+ 
+-const (
+-	MonsterGrowth     = 1.15
+-	MonsterGrowthDeep = 1.12
+-	MonsterDeepFrom   = 20
+-)
++const MonsterGrowthLin = 0.15
+ 
+-// MonsterScale grows a monster by MonsterGrowth per floor below its first floor, and by MonsterGrowthDeep past MonsterDeepFrom.
++// MonsterScale grows a monster linearly with the floors below its first floor.
+ func MonsterScale(depth, minDepth int) float64 {
+-	shallow := max(0, min(depth, MonsterDeepFrom)-min(minDepth, MonsterDeepFrom))
+-	deep := max(0, depth-max(minDepth, MonsterDeepFrom))
+-	return math.Pow(MonsterGrowth, float64(shallow)) * math.Pow(MonsterGrowthDeep, float64(deep))
++	return 1 + MonsterGrowthLin*float64(max(0, depth-minDepth))
+ }
+ 
+ // MissChance and CritChance are the same for heroes and monsters.
