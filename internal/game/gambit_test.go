@@ -1,0 +1,177 @@
+package game
+
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"slices"
+	"testing"
+	"time"
+)
+
+func TestV5RetreatOptionsBecomeGambits(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := New(1, Warrior)
+	raw, _ := json.Marshal(saveFile{5, time.Now(), g})
+	var f map[string]any
+	json.Unmarshal(raw, &f)
+	cfg := f["Game"].(map[string]any)["Config"].(map[string]any)
+	delete(cfg, "Gambits")
+	cfg["PotionAtPct"], cfg["RetreatHPPct"], cfg["RetreatBagFull"], cfg["LastFloor"] = 55, 20, false, 7
+	data, _ := json.Marshal(f)
+	os.WriteFile(path, data, 0o644)
+	got, _, err := Load(path)
+	want := gambitsV5(configV5{PotionAtPct: 55, RetreatHPPct: 20, LastFloor: 7})
+	if err != nil || !slices.Equal(got.Config.Gambits, want) {
+		t.Fatalf("gambits %+v err %v", got.Config.Gambits, err)
+	}
+}
+
+func TestGambitsSurviveSaveAndLoad(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := New(1, Mage)
+	g.Config.Gambits = []Gambit{{If: [2]Cond{{CondManaBelow, 20}}, Do: ActIdle, Exit: ExitCond, Until: Cond{CondManaAtLeast, 80}}}
+	g.Save(path, time.Now())
+	got, _, err := Load(path)
+	if err != nil || !slices.Equal(got.Config.Gambits, g.Config.Gambits) {
+		t.Fatalf("gambits %+v err %v", got.Config.Gambits, err)
+	}
+}
+
+func TestIdleRestsUntilManaRecovers(t *testing.T) {
+	g := heroAt(Mage, 5, 3)
+	g.Config.Gambits = []Gambit{
+		{If: [2]Cond{{CondManaBelow, 20}}, Do: ActIdle, Exit: ExitCond, Until: Cond{CondManaAtLeast, 80}},
+		{Do: ActExplore},
+	}
+	h := g.Hero
+	h.MP = 0
+	start := h.Pos
+	for h.MP*100 < h.MaxMP()*80 {
+		g.step()
+		if h.Pos != start && h.MP*100 < h.MaxMP()*80 {
+			t.Fatalf("moved at %d/%d mana", h.MP, h.MaxMP())
+		}
+	}
+	for range 5 {
+		g.step()
+	}
+	if h.Pos == start {
+		t.Fatal("still idle after the mana came back")
+	}
+}
+
+func TestFleeGainsDistance(t *testing.T) {
+	g := heroAt(Warrior, 1, 4)
+	m := g.besideHero(dummy())
+	g.Config.Gambits = []Gambit{{If: [2]Cond{{CondVisibleAtLeast, 1}}, Do: ActFlee}, {Do: ActExplore}}
+	p, ok := g.fleeStep()
+	if !ok || p.Dist(m.Pos) <= 1 {
+		t.Fatalf("flee step %v ok %v monster %v", p, ok, m.Pos)
+	}
+	start := g.Hero.Pos
+	g.step()
+	if g.Hero.Pos == start || g.Hero.Pos.Dist(m.Pos) <= 1 {
+		t.Fatalf("hero %v monster %v", g.Hero.Pos, m.Pos)
+	}
+}
+
+func TestHuntWalksToTheTarget(t *testing.T) {
+	g := heroAt(Warrior, 1, 5)
+	l := g.Exp.Level
+	r := l.Rooms[l.RoomAt(g.Hero.Pos)]
+	var far Pos
+	for y := r.Y + 1; y < r.Y+r.H-1; y++ {
+		for x := r.X + 1; x < r.X+r.W-1; x++ {
+			if p := (Pos{x, y}); p.Dist(g.Hero.Pos) > far.Dist(g.Hero.Pos) && l.At(p).Walkable() {
+				far = p
+			}
+		}
+	}
+	m := dummy()
+	m.Pos = far
+	l.Mons = []*Monster{m}
+	g.Config.Gambits = []Gambit{{If: [2]Cond{{CondVisibleAtLeast, 1}}, Do: ActHunt}}
+	before := g.Hero.Pos.Dist(m.Pos)
+	if before < 2 {
+		t.Skip("room too small")
+	}
+	g.step()
+	if g.Hero.Pos.Dist(m.Pos) >= before {
+		t.Fatalf("distance %d → %d", before, g.Hero.Pos.Dist(m.Pos))
+	}
+}
+
+func TestHigherRuleInterruptsTheActiveOne(t *testing.T) {
+	g := heroAt(Warrior, 1, 6)
+	g.Config.Gambits = []Gambit{
+		{If: [2]Cond{{CondVisibleAtLeast, 1}}, Do: ActFlee},
+		{Do: ActIdle, Exit: ExitTime, Secs: 600},
+	}
+	g.step()
+	if g.Exp.ActiveRule != 2 {
+		t.Fatalf("active %d, want idle", g.Exp.ActiveRule)
+	}
+	g.besideHero(dummy())
+	g.step()
+	if g.Exp.ActiveRule != 1 {
+		t.Fatalf("active %d, want flee", g.Exp.ActiveRule)
+	}
+}
+
+func TestTimedBehaviorEndsAndStaysOff(t *testing.T) {
+	g := heroAt(Warrior, 1, 7)
+	g.Config.Gambits = []Gambit{{Do: ActIdle, Exit: ExitTime, Secs: 1}, {Do: ActExplore}}
+	start := g.Hero.Pos
+	g.Advance(900)
+	if g.Hero.Pos != start || g.Exp.ActiveRule != 1 {
+		t.Fatalf("pos %v active %d", g.Hero.Pos, g.Exp.ActiveRule)
+	}
+	g.Advance(5000)
+	if g.Hero.Pos == start || g.Exp.ActiveRule != 2 {
+		t.Fatalf("pos %v active %d", g.Hero.Pos, g.Exp.ActiveRule)
+	}
+}
+
+func TestEmptyTacticsStillExplore(t *testing.T) {
+	g := heroAt(Warrior, 1, 8)
+	g.Config.Gambits = nil
+	start := g.Hero.Pos
+	g.Advance(5000)
+	if g.Exp != nil && g.Hero.Pos == start {
+		t.Fatal("hero froze without tactics")
+	}
+}
+
+func TestEveryConditionHasALabel(t *testing.T) {
+	for k := range NumConds {
+		if condKeys[k] == "" {
+			t.Fatalf("condition %d has no key", k)
+		}
+	}
+}
+
+func TestRandomTacticsNeverBreakTheGame(t *testing.T) {
+	rng := NewRNG(42)
+	pick := func(n int) int { return rng.Intn(n) }
+	for c := range NumClasses {
+		for range 12 {
+			g := New(uint64(pick(1<<30)), c)
+			g.Auto = true
+			var gs []Gambit
+			for range 1 + pick(MaxGambits) {
+				cond := func() Cond { k := CondKind(pick(int(NumConds))); return Cond{k, k.DefaultN()} }
+				gs = append(gs, Gambit{If: [2]Cond{cond(), cond()}, Do: Action(pick(int(NumActions))),
+					Target: Target(pick(int(NumTargets))), Exit: ExitKind(pick(int(NumExits))), Until: cond(), Secs: 1 + pick(30)})
+			}
+			g.Config.Gambits = gs
+			g.Depart()
+			for range 20 {
+				g.Advance(30_000)
+			}
+			if g.ExpNum == 0 {
+				t.Fatalf("class %d never set out with %+v", c, gs)
+			}
+		}
+	}
+}

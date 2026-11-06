@@ -734,7 +734,7 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 	return b.String() + bottom
 }
 
-var helpPages = []string{"help.page.symbols", "help.page.how", "help.page.attrs", "help.page.classes"}
+var helpPages = []string{"help.page.symbols", "help.page.how", "help.page.tactics", "help.page.attrs", "help.page.classes"}
 
 func (m Model) viewHelp(h int) string {
 	var tabs []string
@@ -743,11 +743,12 @@ func (m Model) viewHelp(h int) string {
 		if i == m.helpPage {
 			st = sTabOn
 		}
-		tabs = append(tabs, zone.Mark(fmt.Sprintf("help:%d", i), st.Render(" "+lang.T(p)+" ")))
+		name := strings.ReplaceAll(lang.T(p), " ", "\u00a0")
+		tabs = append(tabs, zone.Mark(fmt.Sprintf("help:%d", i), st.Render(" "+name+" ")))
 	}
-	head := strings.Join(tabs, " ") + "\n\n"
+	head := lipgloss.NewStyle().Width(m.w).Render(strings.Join(tabs, " ")) + "\n\n"
 	foot := "\n" + sMuted.Render(truncate(lang.T("help.footer"), m.w))
-	bodyH := max(1, h-3)
+	bodyH := max(1, h-lipgloss.Height(head))
 	if m.helpPage == 0 {
 		return head + m.viewSymbols(bodyH) + "\n" + sMuted.Render(truncate(lang.T("help.footer_symbols"), m.w))
 	}

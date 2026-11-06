@@ -41,6 +41,9 @@ func (m Model) barActions() []barAction {
 		return []barAction{{"?", lang.T("bar.close")}}
 	}
 	var a []barAction
+	if m.tab == tabPrep && m.editing() {
+		a = append(a, barAction{"esc", lang.T("bar.back")})
+	}
 	switch {
 	case g.InTown():
 		a = append(a, barAction{"e", lang.T("bar.depart")})
@@ -261,7 +264,7 @@ func (m Model) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 			return m.Update(keyMsg(fmt.Sprint(i + 1)))
 		}
 	}
-	for _, a := range []string{"e", "r", "a", "x", "u", "?"} {
+	for _, a := range []string{"esc", "e", "r", "a", "x", "u", "?"} {
 		if hit("key:"+a, msg) {
 			return m.Update(keyMsg(a))
 		}

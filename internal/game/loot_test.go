@@ -41,7 +41,7 @@ func TestBagFullTriggersRetreatAndHeroLeaves(t *testing.T) {
 		g.Exp.Bag = append(g.Exp.Bag, &Item{Base: 1})
 	}
 	g.Exp.Level.Mons = nil
-	g.checkRetreat()
+	g.behavior()
 	if !g.Exp.Retreating {
 		t.Fatal("expected retreat")
 	}
@@ -90,7 +90,7 @@ func TestAutomaticRetreatKeepsAuto(t *testing.T) {
 	for range BagSize {
 		g.Exp.Bag = append(g.Exp.Bag, &Item{Base: 1})
 	}
-	g.checkRetreat()
+	g.behavior()
 	if !g.Exp.Retreating || !g.Auto {
 		t.Fatalf("retreating %v auto %v", g.Exp.Retreating, g.Auto)
 	}

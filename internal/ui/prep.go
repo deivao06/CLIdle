@@ -20,6 +20,7 @@ type prepRow struct {
 	style   lipgloss.Style
 	adjust  func(delta int)
 	enter   func()
+	act     func(*Model)
 	do      func(*Model)
 	sell    func()
 	sellAsk string
@@ -64,6 +65,9 @@ func (m Model) rows() []prepRow {
 		return m.townRows()
 	case tabNerd:
 		return m.nerdRows()
+	}
+	if m.editing() {
+		return m.ruleRows(m.edit - 1)
 	}
 	return m.prepRows()
 }
@@ -115,22 +119,9 @@ func (m Model) prepRows() []prepRow {
 	cfg("prep.start_floor", lang.T("prep.start_floor_value", floors[at], len(floors)-1), func(d int) {
 		c.StartFloor = floors[(at+d+len(floors))%len(floors)]
 	})
-	last := lang.T("prep.no_limit")
-	if c.LastFloor > 0 {
-		last = lang.T("status.floor", c.LastFloor)
-	}
-	cfg("prep.last_floor", last, func(d int) { step(&c.LastFloor, d, 1, 0, 999) })
 	section = lang.T("prep.section.potions")
 	cfg("prep.potions", lang.T("prep.potions_value", c.PotionsToBring, game.PotionPrice),
 		func(d int) { step(&c.PotionsToBring, d, 1, 0, game.MaxPotions) })
-	cfg("prep.potion_at", fmt.Sprintf("%d%%", c.PotionAtPct), func(d int) { step(&c.PotionAtPct, d, 5, 5, 90) })
-	section = lang.T("prep.section.retreat")
-	retreat := lang.T("prep.never")
-	if c.RetreatHPPct > 0 {
-		retreat = fmt.Sprintf("%d%%", c.RetreatHPPct)
-	}
-	cfg("prep.retreat_hp", retreat, func(d int) { step(&c.RetreatHPPct, d, 5, 0, 90) })
-	cfg("prep.retreat_bag", onOff(c.RetreatBagFull), func(int) { c.RetreatBagFull = !c.RetreatBagFull })
 	section = lang.T("prep.section.loot")
 	cfg("prep.auto_equip", onOff(!c.ManualEquip), func(int) { c.ManualEquip = !c.ManualEquip })
 	cfg("prep.auto_sell", onOff(!c.KeepLoot), func(int) { c.KeepLoot = !c.KeepLoot })
@@ -138,7 +129,7 @@ func (m Model) prepRows() []prepRow {
 		c.MinRarity = (c.MinRarity + game.Rarity(d) + game.NumRarities) % game.NumRarities
 	})
 	cfg("prep.any_class", onOff(c.AnyClass), func(int) { c.AnyClass = !c.AnyClass })
-	return rows
+	return append(rows, m.tacticsRows(len(rows))...)
 }
 
 func (m Model) townRows() []prepRow {
@@ -272,6 +263,9 @@ func (m Model) compare(it *game.Item) string {
 }
 
 func (m Model) viewPrep(h int) string {
+	if m.editing() {
+		return m.viewRule(h)
+	}
 	g := m.g
 	rows := m.prepRows()
 	head := []string{sGold.Render(lang.T("prep.gold", g.Gold))}

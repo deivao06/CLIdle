@@ -25,6 +25,11 @@ type Expedition struct {
 	ManaAcc        int
 	Blessed        int
 	Fighting       bool
+
+	ActiveRule  int
+	ActiveMs    int64
+	RetreatRule int
+	Disarmed    int
 }
 
 type ExploreMode int
@@ -36,10 +41,7 @@ const (
 
 type Config struct {
 	Mode           ExploreMode
-	PotionAtPct    int
-	RetreatHPPct   int
-	RetreatBagFull bool
-	LastFloor      int
+	Gambits        []Gambit
 	PotionsToBring int
 	StartFloor     int
 	DeathLimit     int
@@ -50,7 +52,7 @@ type Config struct {
 }
 
 func DefaultConfig() Config {
-	return Config{Mode: ExploreAll, PotionAtPct: 40, RetreatHPPct: 30, RetreatBagFull: true, PotionsToBring: 3}
+	return Config{Mode: ExploreAll, Gambits: DefaultGambits(), PotionsToBring: 3}
 }
 
 type Game struct {
@@ -81,8 +83,9 @@ type Game struct {
 	LastDeath  []LogEntry
 	DeathScene *DeathScene `json:",omitempty"`
 
-	Events []Event `json:"-"`
-	strong bool
+	Events   []Event `json:"-"`
+	strong   bool
+	atStairs bool
 }
 
 func New(seed uint64, c Class) *Game {
@@ -129,6 +132,9 @@ func (g *Game) Advance(ms int64) {
 			return
 		}
 		g.AccMs -= step
+		if g.Exp.ActiveRule > 0 {
+			g.Exp.ActiveMs += step
+		}
 		g.step()
 	}
 }
@@ -184,29 +190,12 @@ func (g *Game) step() {
 		g.Exp.Blessed--
 	}
 	g.monstersAct(r, true)
+	drive := ActExplore
 	if g.Exp != nil {
-		g.checkRetreat()
-		m := g.adjacentMonster()
-		switch {
-		case g.secondWind(r):
-		case g.lowHP() && g.healSpell(r):
-		case g.needsPotion():
-			heal := min(g.potionHeal(), h.MaxHP()-h.HP)
-			h.HP += heal
-			h.Potions--
-			r.hero = lang.T("log.drink", heal)
-		case !g.Exp.Retreating && g.cast(r):
-		case m != nil && !g.Exp.Retreating && g.bless(r):
-		case m != nil && !g.Exp.Retreating:
-			g.heroAttack(m, r)
-		default:
-			if next, ok := g.chooseStep(); ok {
-				h.Pos = next
-				l.Reveal(h.Pos)
-				g.pickup(r)
-			} else if m != nil {
-				g.heroAttack(m, r)
-			}
+		b := g.behavior()
+		drive = g.driving(b)
+		if !g.instant(b, r) {
+			g.perform(b, r)
 		}
 		g.monstersAct(r, false)
 	}
@@ -219,26 +208,12 @@ func (g *Game) step() {
 	switch {
 	case g.Exp.Retreating && h.Pos == l.Up:
 		g.returnToTown()
-	case !g.Exp.Retreating && h.Pos == l.Down && g.readyToDescend():
-		if c := g.Config.LastFloor; c > 0 && l.Depth >= c {
-			g.startRetreat(lang.T("retreat.floor_done", l.Depth))
+	case !g.Exp.Retreating && (drive == ActExplore || drive == ActDescend) && h.Pos == l.Down && g.readyToDescend(g.modeFor(drive)):
+		if g.atStairsRule() {
 			return
 		}
 		g.enterLevel(l.Depth + 1)
 	}
-}
-
-func (g *Game) needsPotion() bool {
-	h := g.Hero
-	if h.Potions == 0 {
-		return false
-	}
-	if g.lowHP() {
-		return true
-	}
-	worst, avg := g.incoming()
-	heal := g.potionHeal()
-	return (h.MaxHP()-h.HP)*2 >= heal && worst >= h.HP && avg < heal
 }
 
 func (g *Game) potionHeal() int { return g.Hero.PotionHeal() }
@@ -256,23 +231,6 @@ func (g *Game) incoming() (worst, avg int) {
 		a += max(1, float64(m.Atk)-float64(h.Def())*0.5) * rate
 	}
 	return int(w + 0.5), int(a + 0.5)
-}
-
-func (g *Game) lowHP() bool {
-	h := g.Hero
-	return h.HP*100 < h.MaxHP()*g.Config.PotionAtPct
-}
-
-func (g *Game) checkRetreat() {
-	e := g.Exp
-	h := g.Hero
-	switch {
-	case e.Retreating:
-	case g.Config.RetreatBagFull && len(e.Bag) >= g.BagCap():
-		g.startRetreat(lang.T("retreat.bag_full"))
-	case h.Potions == 0 && h.HP*100 < h.MaxHP()*g.Config.RetreatHPPct:
-		g.startRetreat(lang.T("retreat.low_hp"))
-	}
 }
 
 // Retreat orders the hero back to the exit and keeps him in town afterwards.
@@ -348,14 +306,14 @@ func (l *Level) boss() *Monster {
 	return nil
 }
 
-func (g *Game) readyToDescend() bool {
+func (g *Game) readyToDescend(mode ExploreMode) bool {
 	if g.Exp.Level.boss() != nil {
 		return false
 	}
 	if _, ok := g.Exp.Level.pathStep(g.Hero.Pos, g.passable, g.wantedItem); ok {
 		return false
 	}
-	return g.Config.Mode == DescendFast || g.explored()
+	return mode == DescendFast || g.explored()
 }
 
 func (g *Game) pickup(r *round) {
@@ -733,12 +691,12 @@ func (g *Game) explored() bool {
 	return !ok
 }
 
-func (g *Game) chooseStep() (Pos, bool) {
+func (g *Game) chooseStep(mode ExploreMode) (Pos, bool) {
 	l := g.Exp.Level
 	if g.Exp.Retreating {
 		return l.pathStep(g.Hero.Pos, g.passable, func(p Pos) bool { return p == l.Up })
 	}
-	next, i := g.plan()
+	next, i := g.plan(mode)
 	return next, i >= 0
 }
 
@@ -751,14 +709,14 @@ const (
 )
 
 // plan returns the hero's next step and which goal it leads to.
-func (g *Game) plan() (Pos, int) {
+func (g *Game) plan(mode ExploreMode) (Pos, int) {
 	l := g.Exp.Level
 	h := g.Hero
 	to := func(target Pos) func(Pos) bool { return func(p Pos) bool { return p == target } }
 	boss := l.boss()
 	seenMonster := func(p Pos) bool { return l.MonsterAt(p) != nil && l.Visible(h.Pos, p) }
 	rush := func(p Pos) bool {
-		return g.Config.Mode == DescendFast && boss == nil && l.IsSeen(l.Down) && p == l.Down
+		return mode == DescendFast && boss == nil && l.IsSeen(l.Down) && p == l.Down
 	}
 	last := to(l.Down)
 	if boss != nil {
@@ -773,13 +731,26 @@ func (g *Game) Doing() string {
 		return ""
 	}
 	e := g.Exp
-	if e.Retreating {
+	drive, active := ActExplore, e.ActiveRule-1
+	if active >= 0 && active < len(g.Config.Gambits) {
+		drive = g.Config.Gambits[active].Do
+	}
+	if e.Retreating && (active < 0 || active >= g.retreatIndex()) {
 		return lang.T("doing.retreat", e.RetreatWhy)
+	}
+	switch drive {
+	case ActIdle:
+		return lang.T("doing.idle")
+	case ActFlee:
+		return lang.T("doing.flee")
 	}
 	if m := g.adjacentMonster(); m != nil {
 		return lang.T("doing.fight", lang.T(m.Info().Name))
 	}
-	_, i := g.plan()
+	if drive == ActHunt {
+		return lang.T("doing.hunt")
+	}
+	_, i := g.plan(g.modeFor(drive))
 	switch {
 	case i == goalMonster:
 		return lang.T("doing.hunt")

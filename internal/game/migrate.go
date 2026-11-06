@@ -13,8 +13,15 @@ type queueV3 struct {
 	BagQueued int
 }
 
+// legacy holds the fields older saves had that the current structs dropped.
+type legacy struct {
+	queueV3
+	Config configV5
+}
+
 // migrate brings an older save up to saveVersion, one version at a time.
-func migrate(f *saveFile, q *queueV3) {
+func migrate(f *saveFile, old *legacy) {
+	q := &old.queueV3
 	if f.Version < 2 {
 		migrateV2(f.Game)
 		migrateV2Kinds(f.Game, q)
@@ -27,6 +34,9 @@ func migrate(f *saveFile, q *queueV3) {
 	}
 	if f.Version < 5 {
 		f.Game.Config.KeepLoot = f.Game.Config.ManualEquip
+	}
+	if f.Version < 6 {
+		f.Game.Config.Gambits = gambitsV5(old.Config)
 	}
 	f.Version = saveVersion
 }

@@ -62,17 +62,32 @@ func (g *Game) cast(r *round) bool {
 		return false
 	}
 	h := g.Hero
-	name := lang.T(t.Info().Name)
 	switch {
 	case g.blink(r):
 	case g.ready(Sleep) && t.Awake && t.Asleep == 0 && t.HP*100 > t.MaxHP*SleepMinHPPct && g.awakeInRange() >= 2:
+		g.castSpell(Sleep, t, r)
+	case g.ready(Fireball) && len(g.around(t)) >= 2:
+		g.castSpell(Fireball, t, r)
+	case g.ready(FrostRay) && t.Spd > h.Spd():
+		g.castSpell(FrostRay, t, r)
+	default:
+		g.castSpell(MagicMissile, t, r)
+	}
+	return true
+}
+
+// castSpell casts a targeted spell on t; the caller checks the mana.
+func (g *Game) castSpell(a Ability, t *Monster, r *round) {
+	name := lang.T(t.Info().Name)
+	switch a {
+	case Sleep:
 		g.useMana(Sleep)
 		t.Asleep = SleepRounds
 		if t.Boss {
 			t.Asleep = SleepBossRounds
 		}
 		r.hero = lang.T("spell.sleep.log", name)
-	case g.ready(Fireball) && len(g.around(t)) >= 2:
+	case Fireball:
 		g.useMana(Fireball)
 		var hits []string
 		for _, m := range g.around(t) {
@@ -81,7 +96,7 @@ func (g *Game) cast(r *round) bool {
 			g.hurt(m, d, r)
 		}
 		r.hero = lang.T("spell.fireball.log", strings.Join(hits, ", "))
-	case g.ready(FrostRay) && t.Spd > h.Spd():
+	case FrostRay:
 		g.useMana(FrostRay)
 		d := g.spellDamage(FrostRay, t)
 		t.Slowed = FrostSlowRounds
@@ -93,7 +108,6 @@ func (g *Game) cast(r *round) bool {
 		r.hero = lang.T("spell.magic_missile.log", name, d)
 		g.hurt(t, d, r)
 	}
-	return true
 }
 
 func (g *Game) spellDamage(a Ability, m *Monster) int {
@@ -140,10 +154,15 @@ func (g *Game) around(t *Monster) []*Monster {
 // blink jumps to the visible tile in range farthest from the nearest monster.
 func (g *Game) blink(r *round) bool {
 	h := g.Hero
-	l := g.Exp.Level
 	if !g.ready(Blink) || len(g.adjacentMonsters()) < 2 || h.HP*100 >= h.MaxHP()*BlinkHPPct {
 		return false
 	}
+	return g.blinkAway(r)
+}
+
+func (g *Game) blinkAway(r *round) bool {
+	h := g.Hero
+	l := g.Exp.Level
 	best, bestD := h.Pos, 1
 	for y := h.Pos.Y - SpellRange; y <= h.Pos.Y+SpellRange; y++ {
 		for x := h.Pos.X - SpellRange; x <= h.Pos.X+SpellRange; x++ {

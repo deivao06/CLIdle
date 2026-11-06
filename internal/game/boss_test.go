@@ -11,7 +11,7 @@ func TestBossGuardsTenthFloor(t *testing.T) {
 		t.Fatalf("boss missing or away from stairs: %+v", b)
 	}
 	g.Hero.Pos = l.Down
-	if g.readyToDescend() {
+	if g.readyToDescend(g.Config.Mode) {
 		t.Fatal("cannot descend while the boss lives")
 	}
 }

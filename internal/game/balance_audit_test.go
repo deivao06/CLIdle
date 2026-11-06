@@ -245,7 +245,7 @@ func auditFight(h *Hero, ms []*Monster, depth int, seed uint64, raw bool, d *aud
 	cfg := DefaultConfig()
 	if raw {
 		hero.Potions = 0
-		cfg.RetreatHPPct = 0
+		cfg.Gambits = gambitsV5(configV5{PotionAtPct: 40, RetreatBagFull: true})
 	} else {
 		hero.Potions = cfg.PotionsToBring
 	}

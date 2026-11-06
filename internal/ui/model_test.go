@@ -181,3 +181,61 @@ func TestHangLineKeepsDetailUnderTheValue(t *testing.T) {
 		}
 	}
 }
+
+func press(m Model, keys ...string) Model {
+	for _, k := range keys {
+		next, _ := m.Update(keyMsg(k))
+		m = next.(Model)
+	}
+	return m
+}
+
+func TestRuleEditorChangesAndClosesARule(t *testing.T) {
+	g := game.New(1, game.Warrior)
+	m := New(g)
+	m.w, m.h = 100, 30
+	m = press(m, "2")
+	rows := m.rows()
+	first := len(rows) - len(g.Config.Gambits) - 2
+	m.cursor = first
+	m = press(m, "enter")
+	if m.edit != 1 {
+		t.Fatalf("editor not open: edit %d", m.edit)
+	}
+	for i, r := range m.rows() {
+		if r.label == lang.T("tactics.field.do") {
+			m.cursor = i
+		}
+	}
+	before := g.Config.Gambits[0].Do
+	m = press(m, "right")
+	if g.Config.Gambits[0].Do != before+1 {
+		t.Fatalf("action %v, want %v", g.Config.Gambits[0].Do, before+1)
+	}
+	m = press(m, "esc")
+	if m.edit != 0 || m.cursor != first {
+		t.Fatalf("edit %d cursor %d, want list at %d", m.edit, m.cursor, first)
+	}
+}
+
+func TestAddAndDeleteRule(t *testing.T) {
+	g := game.New(1, game.Warrior)
+	m := New(g)
+	m.w, m.h = 100, 30
+	m = press(m, "2")
+	n := len(g.Config.Gambits)
+	m.cursor = len(m.rows()) - 2
+	m = press(m, "enter")
+	if len(g.Config.Gambits) != n+1 || m.edit != n+1 {
+		t.Fatalf("rules %d edit %d", len(g.Config.Gambits), m.edit)
+	}
+	for i, r := range m.rows() {
+		if r.text == lang.T("tactics.delete") {
+			m.cursor = i
+		}
+	}
+	m = press(m, "enter", "y")
+	if len(g.Config.Gambits) != n || m.edit != 0 {
+		t.Fatalf("rules %d edit %d after delete", len(g.Config.Gambits), m.edit)
+	}
+}
