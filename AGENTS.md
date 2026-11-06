@@ -49,6 +49,7 @@ internal/ui/            Bubble Tea
   style.go              estilos/cores
   updater.go            aviso de versão nova, tecla u, confirmação e reinício (checa ao chegar na cidade, máx. 1×/hora)
   nerd.go               aba 5 Nerd (opção "Coisas de nerd" na Config, Game.Nerd, zero = desligada): lê os números de balance.go ao vivo, um texto por linha em lang
+  touch.go              mouse/toque (bubblezone: zonas `tab:`, `row:i.j`, `val`, `btn:`, `key:`, `help:`, `class:` viram teclas) e layout estreito (< 60 colunas): status no topo, ações + abas embaixo
   yield*.go             no navegador, a simulação offline pausa 1 ms por minuto simulado para a página redesenhar
   crt.go                efeito CRT: envelhece as cores ANSI da saída da View (tom verde-fósforo, desbota, scanlines, flicker dos cinzas, borda rasgada) (Game.CRT, zero = desligado)
 web/                    versão de navegador (WASM + xterm.js): main.go (ponte JS ↔ Bubble Tea), index.html, build.sh;
