@@ -52,7 +52,7 @@ type Config struct {
 }
 
 func DefaultConfig() Config {
-	return Config{Mode: ExploreAll, Gambits: DefaultGambits(), PotionsToBring: 3}
+	return Config{Mode: ExploreAll, Gambits: defaultV5(), PotionsToBring: 3}
 }
 
 type Game struct {
@@ -94,6 +94,7 @@ func New(seed uint64, c Class) *Game {
 		Hero:   NewHero(c),
 		Config: DefaultConfig(),
 	}
+	g.Config.Gambits = DefaultGambits(c)
 	g.refreshShop()
 	g.logf(LogInfo, "%s", lang.T("log.welcome"))
 	return g

@@ -122,8 +122,48 @@ func gambitsV5(c configV5) []Gambit {
 	)
 }
 
-func DefaultGambits() []Gambit {
+func defaultV5() []Gambit {
 	return gambitsV5(configV5{PotionAtPct: 40, RetreatHPPct: 30, RetreatBagFull: true})
+}
+
+// DefaultGambits is the default list without the rules class c can never use.
+func DefaultGambits(c Class) []Gambit { return classGambits(defaultV5(), c) }
+
+func classGambits(gs []Gambit, c Class) []Gambit {
+	return slices.DeleteFunc(slices.Clone(gs), func(gb Gambit) bool { return !gb.Fits(c) })
+}
+
+var actionAbility = map[Action]Ability{ActSecondWind: SecondWind, ActHeal: Heal, ActBless: Bless, ActSpells: MagicMissile,
+	ActMissile: MagicMissile, ActFireball: Fireball, ActFrost: FrostRay, ActSleep: Sleep, ActBlink: Blink}
+
+// Fits reports whether class c can ever use the action.
+func (a Action) Fits(c Class) bool {
+	ab, ok := actionAbility[a]
+	return !ok || AbilityInfo[ab].Class == c
+}
+
+func usesMana(c Class) bool {
+	for _, a := range ClassAbilities(c) {
+		if AbilityInfo[a].Mana > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// Fits reports whether the condition means anything for class c.
+func (k CondKind) Fits(c Class) bool {
+	switch k {
+	case CondManaBelow, CondManaAtLeast:
+		return usesMana(c)
+	case CondInRange:
+		return AbilityInfo[MagicMissile].Class == c
+	}
+	return true
+}
+
+func (gb Gambit) Fits(c Class) bool {
+	return gb.Do.Fits(c) && gb.If[0].Kind.Fits(c) && gb.If[1].Kind.Fits(c)
 }
 
 func (g *Game) visibleMonsters() int {
@@ -579,7 +619,7 @@ func (g *Game) MoveGambit(i, d int) int {
 }
 
 func (g *Game) ResetGambits() {
-	g.Config.Gambits = DefaultGambits()
+	g.Config.Gambits = DefaultGambits(g.Hero.Class)
 	g.TacticsChanged()
 }
 

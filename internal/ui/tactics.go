@@ -61,6 +61,7 @@ func condValue(c game.Cond) string {
 func (m Model) ruleRows(i int) []prepRow {
 	g := m.g
 	gb := &g.Config.Gambits[i]
+	class := g.Hero.Class
 	sec := lang.T("tactics.edit", i+1)
 	var rows []prepRow
 	field := func(key, value string, adjust func(int)) {
@@ -70,7 +71,12 @@ func (m Model) ruleRows(i int) []prepRow {
 		field(key, condValue(*c), func(d int) {
 			n := game.NumConds - first
 			k := c.Kind - first
-			cycle(&k, d, n)
+			for {
+				cycle(&k, d, n)
+				if (k + first).Fits(class) {
+					break
+				}
+			}
 			c.Kind, c.N = k+first, (k + first).DefaultN()
 		})
 		if c.Kind.HasN() {
@@ -79,7 +85,14 @@ func (m Model) ruleRows(i int) []prepRow {
 	}
 	cond("tactics.field.if", &gb.If[0], game.CondNone)
 	cond("tactics.field.and", &gb.If[1], game.CondNone)
-	field("tactics.field.do", gb.Do.Label(), func(d int) { cycle(&gb.Do, d, game.NumActions) })
+	field("tactics.field.do", gb.Do.Label(), func(d int) {
+		for {
+			cycle(&gb.Do, d, game.NumActions)
+			if gb.Do.Fits(class) {
+				break
+			}
+		}
+	})
 	rows[len(rows)-1].desc = gb.Do.Desc()
 	if gb.Do.HasTarget() {
 		field("tactics.field.target", gb.Target.Label(), func(d int) { cycle(&gb.Target, d, game.NumTargets) })

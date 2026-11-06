@@ -207,10 +207,12 @@ func TestRuleEditorChangesAndClosesARule(t *testing.T) {
 			m.cursor = i
 		}
 	}
-	before := g.Config.Gambits[0].Do
+	if g.Config.Gambits[0].Do != game.ActSecondWind {
+		t.Fatalf("rule 1 is %v", g.Config.Gambits[0].Do)
+	}
 	m = press(m, "right")
-	if g.Config.Gambits[0].Do != before+1 {
-		t.Fatalf("action %v, want %v", g.Config.Gambits[0].Do, before+1)
+	if g.Config.Gambits[0].Do != game.ActAttack {
+		t.Fatalf("action %v, want attack (heal and bless are cleric-only)", g.Config.Gambits[0].Do)
 	}
 	m = press(m, "esc")
 	if m.edit != 0 || m.cursor != first {

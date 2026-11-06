@@ -36,7 +36,7 @@ func migrate(f *saveFile, old *legacy) {
 		f.Game.Config.KeepLoot = f.Game.Config.ManualEquip
 	}
 	if f.Version < 6 {
-		f.Game.Config.Gambits = gambitsV5(old.Config)
+		f.Game.Config.Gambits = classGambits(gambitsV5(old.Config), f.Game.Hero.Class)
 	}
 	f.Version = saveVersion
 }

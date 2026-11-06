@@ -21,7 +21,7 @@ func TestV5RetreatOptionsBecomeGambits(t *testing.T) {
 	data, _ := json.Marshal(f)
 	os.WriteFile(path, data, 0o644)
 	got, _, err := Load(path)
-	want := gambitsV5(configV5{PotionAtPct: 55, RetreatHPPct: 20, LastFloor: 7})
+	want := classGambits(gambitsV5(configV5{PotionAtPct: 55, RetreatHPPct: 20, LastFloor: 7}), Warrior)
 	if err != nil || !slices.Equal(got.Config.Gambits, want) {
 		t.Fatalf("gambits %+v err %v", got.Config.Gambits, err)
 	}
@@ -173,5 +173,27 @@ func TestRandomTacticsNeverBreakTheGame(t *testing.T) {
 				t.Fatalf("class %d never set out with %+v", c, gs)
 			}
 		}
+	}
+}
+
+func TestDefaultTacticsOnlyHoldWhatTheClassUses(t *testing.T) {
+	for c := range NumClasses {
+		g := New(1, c)
+		for _, gb := range g.Config.Gambits {
+			if !gb.Fits(c) {
+				t.Errorf("class %d default has %v", c, gb.Do)
+			}
+		}
+	}
+	has := func(c Class, a Action) bool {
+		return slices.ContainsFunc(DefaultGambits(c), func(gb Gambit) bool { return gb.Do == a })
+	}
+	if has(Warrior, ActSpells) || has(Mage, ActSecondWind) || has(Rogue, ActHeal) || !has(Mage, ActSpells) || !has(Cleric, ActBless) {
+		t.Fatal("class filter picked the wrong rules")
+	}
+	g := New(1, Warrior)
+	g.ChooseClass(Mage)
+	if !slices.Equal(g.Config.Gambits, DefaultGambits(Mage)) {
+		t.Fatal("choosing a class did not reset the tactics")
 	}
 }
