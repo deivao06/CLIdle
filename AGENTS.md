@@ -15,6 +15,7 @@ go test -short ./...     # pula o teste de desempenho
 go vet ./...
 gofmt -l .               # precisa sair vazio
 GOOS=windows go vet ./...   # o update tem código só de Windows
+./web/build.sh           # versão web em web/dist (servir com: cd web/dist && python3 -m http.server)
 git tag vX.Y.Z && git push origin vX.Y.Z   # publica uma release (pergunte ao dono antes)
 ```
 
@@ -35,7 +36,7 @@ internal/game/          lógica pura, sem I/O de terminal
   death.go              DeathScene: recorte do mapa guardado na morte (aba Herói)
   town.go               loja, ferreiro, treino, mochila, baú, poções, chegada na cidade (tudo só na cidade)
   offline.go            CatchUp (simulação do tempo fora) e Summary
-  save.go               save/load JSON atômico
+  save.go               save/load JSON (store_file.go: arquivo atômico; store_js.go: localStorage no navegador)
   balance.go            TODOS os números de balanceamento e tabelas (monstros, chefes, nomes de itens)
   log.go                log do jogo (com contador ×N)
   rng.go                RNG PCG serializável
@@ -48,7 +49,10 @@ internal/ui/            Bubble Tea
   style.go              estilos/cores
   updater.go            aviso de versão nova, tecla u, confirmação e reinício (checa ao chegar na cidade, máx. 1×/hora)
   nerd.go               aba 5 Nerd (opção "Coisas de nerd" na Config, Game.Nerd, zero = desligada): lê os números de balance.go ao vivo, um texto por linha em lang
+  yield*.go             no navegador, a simulação offline pausa 1 ms por minuto simulado para a página redesenhar
   crt.go                efeito CRT: envelhece as cores ANSI da saída da View (tom verde-fósforo, desbota, scanlines, flicker dos cinzas, borda rasgada) (Game.CRT, zero = desligado)
+web/                    versão de navegador (WASM + xterm.js): main.go (ponte JS ↔ Bubble Tea), index.html, build.sh;
+                        _bubbletea/tty_js.go completa o Bubble Tea v1 (sem suporte a js) só nesse build
 ```
 
 ## Invariantes que não podem quebrar
