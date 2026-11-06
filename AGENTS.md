@@ -27,6 +27,7 @@ internal/game/          lógica pura, sem I/O de terminal
   game.go               Game, Expedition, Config, loop (Advance/step), IA do herói, combate, retirada
   class.go              Class, atributos de dano, o que cada classe pode usar, escolha da classe
   ability.go            habilidades (Has), mana, golpe forte, segundo fôlego
+  gambit.go             táticas (gambits): Gambit/Cond/Action, lista padrão (`gambitsV5`), escolha do comportamento (`behavior`), ações (`instant`/`act`), comportamentos (`perform`), editar a lista
   spell.go              magias do mago e do clérigo (cast, castTarget, blink, cura, bênção)
   migrate.go            migração de saves antigos (um passo por versão)
   dungeon.go            Level, tiles, geração estilo Rogue (grade 3x3 de salas), visibilidade/névoa
@@ -46,6 +47,7 @@ internal/ui/            Bubble Tea
   model.go              Model, ticks, teclas, autosave, catch-up em goroutine, confirmações
   view.go               layout adaptável, mapa, log, painel do herói, legenda, cidade, resumo
   prep.go               Preparação (só config), lista da cidade (`townRows`), Config, resetar save
+  tactics.go            seção Táticas da Preparação e editor de regra (`ruleRows`, `Model.edit`)
   style.go              estilos/cores
   updater.go            aviso de versão nova, tecla u, confirmação e reinício (checa ao chegar na cidade, máx. 1×/hora)
   nerd.go               aba 5 Nerd (opção "Coisas de nerd" na Config, Game.Nerd, zero = desligada): lê os números de balance.go ao vivo, um texto por linha em lang
@@ -64,25 +66,26 @@ web/                    versão de navegador (WASM + xterm.js): main.go (ponte J
 2. **`Advance` é independente do fatiamento.** `Advance(120000)` precisa dar o mesmo estado que 2400× `Advance(50)`. O tempo é contado em milissegundos inteiros (`AccMs`). Não zere nem arredonde `AccMs` no meio do loop. Há testes para isso (`TestAdvanceChunkingIsDeterministic`, `TestCatchUpMatchesOnlinePlay`).
 3. **Offline usa a mesma lógica do jogo ao vivo.** `CatchUp` só chama `Advance`. Não crie atalhos estatísticos.
 4. **Save/load preserva a simulação.** `TestSaveLoadRoundTripKeepsSimulationIdentical` garante que carregar e continuar dá o mesmo resultado. Ponteiros não sobrevivem ao JSON: identidade de item é por `Item.ID`, não por ponteiro.
-5. **Compatibilidade do save.** `saveVersion = 5`. Campos novos devem funcionar com valor zero (ex.: `Shortcuts` vazio vira `ShortcutList() == [1]`). O que valor zero não resolve ganha um passo em `migrate.go`; nunca edite um passo já publicado. Não renomeie campos exportados de structs salvas sem migração.
+5. **Compatibilidade do save.** `saveVersion = 6`. Campos novos devem funcionar com valor zero (ex.: `Shortcuts` vazio vira `ShortcutList() == [1]`). O que valor zero não resolve ganha um passo em `migrate.go`; nunca edite um passo já publicado. Não renomeie campos exportados de structs salvas sem migração.
 6. **Concorrência.** `path.go` usa um buffer global (`scratch`) e o jogo não é thread-safe. Enquanto `Model.catching` for verdadeiro, a UI não pode tocar em `m.g` (a goroutine do `CatchUp` está rodando). `View` retorna cedo nesse estado.
 7. **Desempenho.** 12h offline devem simular em poucos segundos (`TestTwelveHoursIsFastEnough`, limite de 15s). O custo está no `search` por passo. Evite BFS extras por passo.
 8. **Bubble Tea:** `Init` tem receiver por valor; mudanças no model feitas ali se perdem. Configure o estado no construtor (`NewWithSave`).
 
 ## Mecânicas importantes (resumo)
 
-- **Passo do herói** (`step`): mana regenera, monstros rápidos agem, herói checa retirada e faz **uma** ação na ordem: segundo fôlego, cura por magia, poção, magia à distância (mago), bênção, ataque, andar. Depois monstros lentos agem. Tudo de um passo vira **uma linha de log** (`round` + `flush`).
+- **Passo do herói** (`step`): mana regenera, monstros rápidos agem, `behavior()` escolhe o comportamento que dirige (pode iniciar a retirada), `instant()` tenta as ações **acima** dele na lista de táticas e, se nenhuma agir, `perform()` faz o comportamento. Depois monstros lentos agem. A descida na `>` só acontece com Explorar/Descer e passa antes por `atStairsRule()` (regras "escada do andar ≥ N").
+- **Táticas (gambits):** `Config.Gambits`, lidas ao vivo. A lista padrão (`gambitsV5`) reproduz **exatamente** a ordem fixa antiga (segundo fôlego, cura, poção, poção contra golpe letal, retiradas, magias auto, bênção, ataque, explorar); qualquer mudança no motor precisa manter isso (compare o estado final de várias seeds/classes antes e depois). Estado na `Expedition`: `ActiveRule`, `ActiveMs`, `RetreatRule`, `Disarmed` (índice+1, zero = nenhum). O passo v6 de `migrate.go` monta a lista a partir das opções antigas (`configV5`). Tudo de um passo vira **uma linha de log** (`round` + `flush`).
 - **Classes:** `Hero.Class` (zero = Guerreiro). Habilidades liberam por nível (`AbilityInfo` em `balance.go`, `Hero.Has`). Estado de habilidade da expedição (`Attacks`, `SecondWindUsed`, `ManaAcc`, `Blessed`) fica na `Expedition`; sono/lentidão ficam no `Monster`. Mana regenera em inteiros (`ManaAcc`) para não quebrar o determinismo.
 - **Ritmo:** explorar segue `StepsPerSec(Velocidade)`; combate é fixo em `CombatRoundMs` (também quando o mago tem alvo e mana para atacar de longe). Velocidade em combate = iniciativa e ataques extras (sistema de energia).
 - **IA do herói** (`chooseStep` → `plan`): uma BFS com prioridade: monstro visível > item desejado > escada (modo descer direto) > fronteira inexplorada > chefe ou escada. `Game.Doing()` usa o mesmo `plan` para a linha de status (`▸ ...`) acima do log; só a UI chama.
-- **Config da expedição:** a IA lê `Game.Config` ao vivo; mudanças valem na hora. Só poções e andar inicial são usados na partida.
+- **Config da expedição:** a IA lê `Game.Config` ao vivo (inclusive as táticas); mudanças valem na hora. Só poções e andar inicial são usados na partida. Mexer na ordem da lista chama `TacticsChanged()`.
 - **Compras só na cidade:** loja, ferreiro, treino, mochila e baú não fazem nada com o herói fora; não há fila. Na tela 1, com o herói na cidade, `viewTownScreen` mostra a fogueira (`campfire`, animada pelo relógio da UI, nunca pelo `RNG`) e a lista `townRows`. O passo v4 de `migrate.go` devolve o ouro da antiga fila (`queueV3`).
 - **Efeitos de item:** `Item.Effects` (só épico e lendário), somados por `Hero.Effect`. Aparecem no `StatLabel`. Crítico só gasta RNG se o herói tiver o efeito, para não mudar a sequência de quem não tem.
 - **Baú:** `Game.Stash`. Só enche com `Config.KeepLoot` (vender loot desligado): `returnToTown` guarda a mochila no baú em vez de vender. `Config.ManualEquip` (auto-equipar desligado) é separado: `better()` devolve falso. O passo v5 de `migrate.go` liga `KeepLoot` em quem tinha `ManualEquip`.
 - **Mochila:** tamanho é `Game.BagCap()` (`BagSize` + `BagLevel`×2), nunca a constante `BagSize` direto. `Config.MinRarity` filtra o que vai para a mochila em `wants`.
 - **Morte:** restaura `StartEquip`, perde ouro e mochila da expedição; mantém poções e XP.
-- **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item épico e libera atalho para `andar+1`. Dorme até o herói encostar (`BossWakeDist`). O herói não estima a luta com o chefe (o dono quis que ele não soubesse): não há recuo por chefe forte. Recuando (por qualquer motivo), o herói não luta: só se cura e anda para `<`; ataca apenas se um monstro bloqueia o único caminho.
-- **Poção:** além do limite de HP, `needsPotion` bebe se o golpe máximo dos vizinhos (`incoming`) pode matar, desde que a cura supere o dano médio e não seja desperdiçada.
+- **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item épico e libera atalho para `andar+1`. Dorme até o herói encostar (`BossWakeDist`). O herói não estima a luta com o chefe (o dono quis que ele não soubesse): não há recuo por chefe forte. Recuando (por qualquer motivo), só rodam as regras acima do recuo (por padrão, a cura) e ele anda para `<`; ataca apenas se um monstro bloqueia o único caminho.
+- **Poção:** regras de tática. A condição "um golpe pode me matar" (`CondLethal`) usa o golpe máximo dos vizinhos (`incoming`) e só vale se a cura supera o dano médio e não é desperdiçada.
 - **Morte:** `LastDeath` guarda as últimas linhas do log (aba Herói); metade do ouro da expedição fica (`DeathKeepGoldPct`).
 
 ## Testando a UI

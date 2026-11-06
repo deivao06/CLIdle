@@ -20,7 +20,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Abaixo de **40×10**: aviso "janela muito pequena".
 - Telas: `1` Principal · `2` Preparação · `3` Herói · `4` Config · `5` Nerd (só com a opção ligada) · `?` legenda/ajuda · `q` sair.
 - **Principal** muda sozinha: mostra a dungeon durante a expedição e a cidade quando o herói volta.
-- **Preparação** fica sempre disponível e só configura as expedições, em 4 grupos: Expedição · Poções · Retirada · Loot. Mudanças valem na hora, inclusive com o herói na dungeon; só poções e andar inicial esperam a próxima partida.
+- **Preparação** fica sempre disponível e só configura as expedições, em 4 grupos: Expedição · Poções · Loot · Táticas. Mudanças valem na hora, inclusive com o herói na dungeon; só poções e andar inicial esperam a próxima partida.
 - **Cidade (tela 1 com o herói na cidade):** à esquerda, o `@` descansa junto a uma fogueira animada numa salinha no estilo do mapa; à direita, a lista navegável: Partir agora, Ferreiro, Treino, Loja (com a mochila) e Baú. Em tela estreita (< 100 colunas), a sala da fogueira fica em cima e a lista embaixo, se sobrarem 10+ linhas para a lista; senão, só a lista. Ferreiro, treino, loja, mochila e baú **só funcionam na cidade**; não há fila. Para comprar no meio de uma expedição, o jogador força a volta (`r`). A auto-expedição não espera o jogador.
 - **Cores na cidade:** ferreiro, loja e baú mostram o item na cor da raridade; o que custa mais que o ouro atual fica esmaecido, sem perder a cor. Treino e mochila ficam no branco dos itens comuns quando dá para pagar e cinza quando não dá.
 - **Versão:** no canto direito do rodapé, em todas as telas, quando cabe.
@@ -49,20 +49,20 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - O herói entra na dungeon, sai quando quiser e guarda o loot.
 - **Morte:** perde metade do ouro e os itens achados na expedição; mantém nível/XP, poções e o equipamento que saiu da cidade. Volta para a cidade.
 - **Volta:** o herói sai pela escada `<` do andar atual. Na retirada (qualquer motivo) ele foge: ignora combate, só se cura (poção, magia de cura, segundo fôlego) e ataca apenas o monstro que bloqueia o único caminho; o ouro é guardado e a mochila é vendida automaticamente.
-- **Retirada automática:** 2–3 regras simples configuráveis (ex: HP < X% sem poções, mochila cheia, chegou ao andar X).
+- **Retirada automática:** regras Recuar nas táticas (padrão: mochila cheia; sem poções com HP < 30%; "último andar" é uma regra "escada do andar ≥ N → Recuar", que vale ao chegar na escada `>`).
 - **Início:** o jogo começa na cidade; a expedição parte com `e` ou "Partir agora" na lista da cidade.
 - **Auto-expedição:** liga/desliga (desligada por padrão). Ao terminar, inicia outra com a mesma configuração.
 - Mandar o herói voltar manualmente desliga a auto-expedição; a retirada automática não.
 - **Auto-equipar:** ligado por padrão. Desligado, o herói não troca equipamento na dungeon; o jogador equipa pelo baú.
 - **Vender loot na volta:** ligado por padrão, independente do auto-equipar. Desligado, a mochila vai para o **baú** (20 vagas, o que sobra é vendido). Na lista da cidade o baú mostra só os itens guardados (não os equipados): enter equipa (o item que estava equipado vai para o baú) e `x` vende. Saves antigos com auto-equipar desligado começam com a venda desligada (passo v5).
 - **Lendários nunca são vendidos sozinhos:** na volta vão sempre para o baú (mesmo com a venda ligada e o baú cheio); trocados por compra na loja, também vão para o baú. Na dungeon segue a regra normal: com a mochila cheia, o item trocado fica para trás. Só saem vendidos com `x` e confirmação.
-- **Ajuda (`?`) tem 4 páginas:** Símbolos, Como funciona, Atributos e Classes. A página Atributos explica cada efeito de item épico/lendário (com o mesmo nome que aparece no item e a faixa de valores). A página Classes é montada da tabela de habilidades (nunca fica desatualizada): armas de cada classe, atributo principal e cada habilidade com nível, MP e descrição.
+- **Ajuda (`?`) tem 5 páginas:** Símbolos, Como funciona, Táticas, Atributos e Classes. A página Atributos explica cada efeito de item épico/lendário (com o mesmo nome que aparece no item e a faixa de valores). A página Classes é montada da tabela de habilidades (nunca fica desatualizada): armas de cada classe, atributo principal e cada habilidade com nível, MP e descrição.
 - **Ajuda (`?`) acompanha as regras:** toda regra nova que o jogador sente (combate, venda, mana, monstros) entra no manual.
 - **Filtro de loot:** "Pegar itens" (comum+ por padrão) define a raridade mínima que vai para a mochila. Item que o herói vai equipar é pego sempre.
 - **Itens de outra classe:** desligado por padrão; o herói só pega o que a classe dele usa.
 - **Limite de mortes:** configurável (padrão sem limite). Depois de N mortes desde que a auto-expedição foi ligada, ela desliga e o herói fica na cidade. Religar zera a contagem.
 - Antes de partir, o herói compra poções até completar o número configurado (se tiver ouro).
-- **Poções:** bebidas automaticamente abaixo de um limite de HP configurável. Também bebe quando o golpe máximo dos monstros ao lado pode matar, se a poção curar mais que o dano médio da rodada e não for desperdiçada (falta ao menos metade da cura). O herói guarda no máximo 10; o que passar disso é vendido ao chegar na cidade (metade do preço).
+- **Poções:** por padrão, bebidas abaixo de 40% de HP (regra das táticas). Também bebe quando o golpe máximo dos monstros ao lado pode matar, se a poção curar mais que o dano médio da rodada e não for desperdiçada (falta ao menos metade da cura). O herói guarda no máximo 10; o que passar disso é vendido ao chegar na cidade (metade do preço).
 
 ## Dungeon
 
@@ -124,6 +124,17 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 4. Cidade (loja, ferreiro), auto-expedição, save.
 5. Offline, chefes, atalhos, legenda.
 
+## Táticas (gambits)
+
+- **O que são:** a IA do herói é uma lista de regras na Preparação (até 16), sem progressão: tudo liberado desde o início. Cada regra é **quando** (até 2 condições, as duas precisam valer) → **fazer** (ação + alvo) → **até** (saída).
+- **Ações** duram 1 passo: poção, segundo fôlego, cura, bênção, ataque, magias separadas e "Magias (auto)" (a escolha de magia de sempre). **Comportamentos** continuam até a saída: Descansar (idle), Fugir, Caçar, Explorar, Descer e Recuar.
+- **Prioridade:** a cada passo a lista é lida de cima para baixo. Uma regra mais alta cuja entrada vale assume no lugar do comportamento ativo; uma mais baixa espera ele sair. Só as ações acima do comportamento ativo rodam (por isso, recuando, ele só se cura). Regra que não pode agir agora (sem mana, sem alvo, habilidade não aprendida) é pulada.
+- **Saídas:** enquanto valer (padrão) · até uma condição · por N segundos · até terminar (Caçar/Fugir: nenhum monstro à vista; Explorar: andar explorado). Depois de sair por tempo ou condição, a regra fica desarmada até a entrada deixar de valer, para não religar no passo seguinte. Recuar só termina na cidade.
+- **Lista padrão = herói de sempre:** segundo fôlego (HP < 30%), cura e poção (HP < 40%), poção contra golpe letal, recuar com mochila cheia, recuar sem poções com HP < 30%, magias (auto), bênção e ataque com inimigo ao lado, explorar. Foi conferida rodando 56 simulações antes e depois (mesmo RNG, mesmo resultado). "Restaurar táticas padrão" volta para ela.
+- **Save v6:** as opções antigas (beber poção com HP <, recuar sem poção, recuar com mochila cheia, último andar) viram as regras padrão com os mesmos números.
+- **Sem regra que se aplique,** o herói explora (nunca fica travado). O `r` do jogador continua acima de tudo.
+- O herói **não recupera HP** na dungeon, só mana: por isso existe a saída por tempo.
+
 ## Para depois
 
 - Grupo (vários `@` com cores diferentes).
@@ -132,4 +143,4 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Cavernas e outras variações de andar.
 - Magias por loot (livros/pergaminhos).
 - Materiais, outros prédios.
-- Herói autônomo o bastante para explorar sem preocupação (regras de retirada mais elaboradas).
+- ~~Regras de retirada mais elaboradas~~ (feito com as táticas).
