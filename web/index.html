@@ -71,22 +71,24 @@
   }, { capture: true, passive: false });
 
   window.clidle = {
-    cols: term.cols,
-    rows: term.rows,
+    get cols() { return term.cols; },
+    get rows() { return term.rows; },
     write: (bytes) => term.write(bytes),
     fail: (text) => { msg.textContent = text; },
     exit: () => { term.reset(); msg.textContent = "Saved. Reload the page to play again."; },
   };
 
+  term.onResize(({ cols, rows }) => window.clidle.resize && window.clidle.resize(cols, rows));
   let pending;
-  window.addEventListener("resize", () => {
+  const refit = () => {
     clearTimeout(pending);
     pending = setTimeout(() => {
       term.options.fontSize = fontSize();
       fit.fit();
-      if (window.clidle.resize) window.clidle.resize(term.cols, term.rows);
     }, 100);
-  });
+  };
+  window.addEventListener("resize", refit);
+  new ResizeObserver(refit).observe(el);
 
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 
