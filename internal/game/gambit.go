@@ -97,14 +97,13 @@ type configV5 struct {
 	LastFloor      int
 }
 
-// gambitsV5 builds the tactics that play exactly like the fixed hero AI of v5 with these options.
+// gambitsV5 builds the default tactics from the v5 options: the fixed hero AI of v5, without its potion before a lethal hit.
 func gambitsV5(c configV5) []Gambit {
 	when := func(k CondKind, n int) [2]Cond { return [2]Cond{{k, n}} }
 	gs := []Gambit{
 		{If: when(CondHPBelow, SecondWindPct), Do: ActSecondWind},
 		{If: when(CondHPBelow, c.PotionAtPct), Do: ActHeal},
 		{If: when(CondHPBelow, c.PotionAtPct), Do: ActPotion},
-		{If: when(CondLethal, 0), Do: ActPotion},
 	}
 	if c.RetreatBagFull {
 		gs = append(gs, Gambit{If: when(CondBagFull, 0), Do: ActRetreat})

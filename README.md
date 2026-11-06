@@ -92,7 +92,7 @@ Builds locais mostram a versão `dev` e não procuram atualizações.
 
 Na **Preparação**: `↑↓` ou `j/k` escolhem, `←→` ou `h/l` ajustam, `enter` alterna.
 
-**Táticas** (fim da Preparação): a IA do herói é uma lista de regras **quando → fazer → até**, lida de cima para baixo a cada passo (ex.: `Mana < 20% → Descansar, até Mana ≥ 80%` ou `3+ inimigos à vista → Fugir`). `enter` numa regra abre o editor (`←→` mudam cada campo, `esc` volta). A lista padrão joga como o herói sempre jogou; a página **Táticas** da ajuda (`?`) explica tudo.
+**Táticas** (fim da Preparação): a IA do herói é uma lista de regras **quando → fazer → até**, lida de cima para baixo a cada passo (ex.: `Mana < 20% → Descansar, até Mana ≥ 80%` ou `3+ inimigos à vista → Fugir`). `enter` numa regra abre o editor (`←→` mudam cada campo, `esc` volta). A lista padrão é o jeito de sempre do herói (cura, poção com HP < 40%, recuo, ataque, explorar); a página **Táticas** da ajuda (`?`) explica tudo.
 
 Na **cidade** (tela 1): `↑↓` escolhem, `enter` compra ou equipa, `x` vende do baú.
 
