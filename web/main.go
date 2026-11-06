@@ -54,7 +54,7 @@ func main() {
 		}
 	}()
 	p := tea.NewProgram(ui.NewWithSave(g, savePath, away, fresh),
-		tea.WithAltScreen(), tea.WithInput(in), tea.WithOutput(termWriter{page.Get("write")}),
+		tea.WithAltScreen(), tea.WithMouseCellMotion(), tea.WithInput(in), tea.WithOutput(termWriter{page.Get("write")}),
 		tea.WithoutSignalHandler())
 
 	page.Set("input", js.FuncOf(func(_ js.Value, args []js.Value) any {

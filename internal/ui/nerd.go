@@ -190,7 +190,7 @@ func classStats(c game.Class) string {
 }
 
 func (m Model) viewNerd(h int) string {
-	return m.viewRows([]string{sMuted.Render(lang.T("nerd.keys"))}, m.nerdRows(), m.w, h)
+	return m.viewRows([]string{sMuted.Render(m.keysHint("nerd.keys"))}, m.nerdRows(), m.w, h)
 }
 
 func statName(t game.Trait) string {

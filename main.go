@@ -31,7 +31,7 @@ func main() {
 		away = time.Since(savedAt)
 	}
 	lang.Set(g.Lang)
-	final, err := tea.NewProgram(ui.NewWithSave(g, path, away, fresh), tea.WithAltScreen()).Run()
+	final, err := tea.NewProgram(ui.NewWithSave(g, path, away, fresh), tea.WithAltScreen(), tea.WithMouseCellMotion()).Run()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

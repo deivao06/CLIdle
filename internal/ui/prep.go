@@ -9,11 +9,14 @@ import (
 	"clidle/internal/lang"
 
 	"github.com/charmbracelet/lipgloss"
+	zone "github.com/lrstanley/bubblezone"
 )
 
 type prepRow struct {
 	section string
 	text    string
+	label   string
+	value   string
 	style   lipgloss.Style
 	adjust  func(delta int)
 	enter   func()
@@ -44,6 +47,8 @@ func cfgRow(section, label, value string, adjust func(int)) prepRow {
 	return prepRow{
 		section: section,
 		text:    fmt.Sprintf("%-24s %s", lang.T(label), value),
+		label:   lang.T(label),
+		value:   value,
 		style:   sPlain,
 		adjust:  adjust,
 		enter:   func() { adjust(1) },
@@ -273,23 +278,46 @@ func (m Model) viewPrep(h int) string {
 	if !g.InTown() {
 		head = append(head, sMuted.Render(lang.T("prep.away_config")))
 	}
-	head = append(head, sMuted.Render(lang.T("prep.keys")))
+	head = append(head, sMuted.Render(m.keysHint("prep.keys")))
 	return m.viewRows(head, rows, m.w, h)
 }
 
 func (m Model) viewTownList(w, h int) string {
-	head := []string{sGold.Render(lang.T("prep.gold", m.g.Gold)), sMuted.Render(lang.T("town.keys"))}
+	head := []string{sGold.Render(lang.T("prep.gold", m.g.Gold)), sMuted.Render(m.keysHint("town.keys"))}
 	return m.viewRows(head, m.townRows(), w, h)
 }
 
 func (m Model) viewSettings(h int) string {
-	return m.viewRows([]string{sMuted.Render(lang.T("settings.keys"))}, m.settingsRows(), m.w, h)
+	return m.viewRows([]string{sMuted.Render(m.keysHint("settings.keys"))}, m.settingsRows(), m.w, h)
+}
+
+// rowLines styles a row; the selected adjustable row shows ‹ value › so a tap on either side changes it.
+func (m Model) rowLines(r prepRow, selected bool, w int) []string {
+	if !selected || r.adjust == nil || r.value == "" {
+		lines := m.rowText(r.text, w)
+		for i := range lines {
+			lines[i] = r.style.Render(lines[i])
+		}
+		return lines
+	}
+	val := zone.Mark("val", sTitle.Render("‹ ")+r.style.Render(r.value)+sTitle.Render(" ›"))
+	label := fmt.Sprintf("%-24s ", r.label)
+	if lipgloss.Width(label)+lipgloss.Width(val) <= w {
+		return []string{r.style.Render(label) + val}
+	}
+	return []string{r.style.Render(truncate(r.label, w)), "  " + val}
 }
 
 func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {
-	for i := range head {
-		head[i] = truncate(head[i], w)
+	var fit []string
+	for _, l := range head {
+		if m.narrow() {
+			fit = append(fit, strings.Split(lipgloss.NewStyle().Width(w).Render(l), "\n")...)
+		} else {
+			fit = append(fit, truncate(l, w))
+		}
 	}
+	head = fit
 	var foot []string
 	if m.cursor < len(rows) && rows[m.cursor].desc != "" {
 		foot = append([]string{""}, strings.Split(sMuted.Width(w).Render(rows[m.cursor].desc), "\n")...)
@@ -305,12 +333,18 @@ func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {
 			section = r.section
 			lines = append(lines, "", sSection.Render(section))
 		}
-		text := truncate(r.text, w-4)
+		prefix := "  "
 		if i == m.cursor {
 			cursorLine = len(lines)
-			lines = append(lines, sTabOn.Render("›")+" "+r.style.Render(text))
-		} else {
-			lines = append(lines, "  "+r.style.Render(text))
+			prefix = sTabOn.Render("›") + " "
+		}
+		for j, text := range m.rowLines(r, i == m.cursor, w-4) {
+			line := "  " + text
+			if j == 0 {
+				line = prefix + text
+			}
+			line += strings.Repeat(" ", max(0, w-lipgloss.Width(line)))
+			lines = append(lines, zone.Mark(fmt.Sprintf("row:%d.%d", i, j), line))
 		}
 	}
 	avail := max(1, h-len(head)-len(foot))

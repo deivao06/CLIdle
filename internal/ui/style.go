@@ -23,6 +23,7 @@ var (
 	sTabOff  = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
 	sWarn    = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true)
 	sPanel   = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, false, true).BorderForeground(lipgloss.Color("238")).PaddingLeft(1)
+	sBar     = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	sSection = lipgloss.NewStyle().Foreground(lipgloss.Color("15")).Bold(true)
 	sStats   = lipgloss.NewStyle().Foreground(lipgloss.Color("180"))
 	sXP      = lipgloss.NewStyle().Foreground(lipgloss.Color("87"))

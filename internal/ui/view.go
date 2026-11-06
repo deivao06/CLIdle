@@ -13,6 +13,7 @@ import (
 	"clidle/internal/update"
 
 	"github.com/charmbracelet/lipgloss"
+	zone "github.com/lrstanley/bubblezone"
 )
 
 const (
@@ -40,7 +41,7 @@ const (
 )
 
 func (m Model) View() string {
-	s := m.view()
+	s := zone.Scan(m.view())
 	if !m.crt || lipgloss.ColorProfile() == termenv.Ascii {
 		return s
 	}
@@ -69,7 +70,8 @@ func (m Model) view() string {
 	var body string
 	switch {
 	case m.confirmDo != nil:
-		box := sBox.Render(sTitle.Render(m.confirmText) + "\n\n" + sMuted.Render(lang.T("ui.confirm_hint")))
+		title := sTitle.Width(min(lipgloss.Width(m.confirmText), m.w-12)).Render(m.confirmText)
+		box := sBox.Render(title + "\n\n" + m.confirmButtons())
 		body = lipgloss.Place(m.w, bodyH, lipgloss.Center, lipgloss.Center, box)
 	case m.summary != nil:
 		block := m.viewSummary()
@@ -97,6 +99,9 @@ func (m Model) view() string {
 		body = sMuted.Render(lang.T("ui.soon"))
 	}
 	body = lipgloss.NewStyle().Width(m.w).Height(bodyH).MaxHeight(bodyH).Render(body)
+	if m.narrow() {
+		return lipgloss.JoinVertical(lipgloss.Left, truncate(m.updateNotice()+m.statusLine(), m.w), body, m.viewBar())
+	}
 	header := m.viewHeader()
 	if m.h-2 > bodyH {
 		header += "\n"
@@ -106,10 +111,20 @@ func (m Model) view() string {
 
 // bodyH leaves a blank line under the tabs when the terminal is tall enough.
 func (m Model) bodyH() int {
+	if m.narrow() {
+		return m.h - 1 - m.barH()
+	}
 	if m.h >= gapMinH {
 		return m.h - 3
 	}
 	return m.h - 2
+}
+
+func (m Model) confirmButtons() string {
+	btn := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0, 3)
+	yes := btn.BorderForeground(lipgloss.Color("214")).Render(sTitle.Render(lang.T("ui.yes")))
+	no := btn.BorderForeground(lipgloss.Color("240")).Render(sMuted.Render(lang.T("ui.no")))
+	return lipgloss.JoinHorizontal(lipgloss.Top, zone.Mark("btn:y", yes), "   ", zone.Mark("btn:n", no))
 }
 
 func (m Model) viewHeader() string {
@@ -126,11 +141,11 @@ func (m Model) viewHeader() string {
 	for _, tabs := range [][]string{full, active, short} {
 		var parts []string
 		for i, t := range tabs {
+			st := sTabOff
 			if i == m.tab && !m.help {
-				parts = append(parts, sTabOn.Render(" "+t+" "))
-			} else {
-				parts = append(parts, sTabOff.Render(" "+t+" "))
+				st = sTabOn
 			}
+			parts = append(parts, zone.Mark(fmt.Sprintf("tab:%d", i), st.Render(" "+t+" ")))
 		}
 		left := strings.Join(parts, "")
 		if gap := m.w - lipgloss.Width(left) - lipgloss.Width(right); gap >= 1 {
@@ -198,8 +213,9 @@ func (m Model) viewDungeon(h int) string {
 	}
 	left := m.renderMap(mapW, mapH)
 	if !side && logH >= 3 {
-		left = lipgloss.JoinVertical(lipgloss.Left, left, m.statsLine(mapW))
-		logH--
+		stats := m.statsLine(mapW)
+		left = lipgloss.JoinVertical(lipgloss.Left, left, stats)
+		logH -= lipgloss.Height(stats)
 	}
 	doingStyle := sDoing
 	if g.Exp.Retreating {
@@ -352,6 +368,9 @@ func (m Model) statsLine(w int) string {
 	}
 	if e := m.g.Exp; e != nil {
 		s += lang.T("stats.bag", len(e.Bag), m.g.BagCap())
+	}
+	if m.narrow() {
+		return sStats.Width(w).Render(s)
 	}
 	return sStats.Render(truncate(s, w))
 }
@@ -690,7 +709,7 @@ func (m Model) viewHelp(h int) string {
 		if i == m.helpPage {
 			st = sTabOn
 		}
-		tabs = append(tabs, st.Render(" "+lang.T(p)+" "))
+		tabs = append(tabs, zone.Mark(fmt.Sprintf("help:%d", i), st.Render(" "+lang.T(p)+" ")))
 	}
 	head := strings.Join(tabs, " ") + "\n\n"
 	foot := "\n" + sMuted.Render(truncate(lang.T("help.footer"), m.w))
@@ -796,7 +815,11 @@ func (m Model) viewSymbols(h int) string {
 		cols = append(cols, col.String())
 	}
 	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, cols...))
-	b.WriteString("\n" + sMuted.Render(truncate(lang.T("help.rarity"), m.w)))
+	rarity := truncate(lang.T("help.rarity"), m.w)
+	if m.narrow() {
+		rarity = lipgloss.NewStyle().Width(m.w).Render(lang.T("help.rarity"))
+	}
+	b.WriteString("\n" + sMuted.Render(rarity))
 	return b.String()
 }
 
