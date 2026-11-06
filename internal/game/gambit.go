@@ -10,25 +10,51 @@ type CondKind int
 
 const (
 	CondNone CondKind = iota
-	CondHPBelow
-	CondHPAtLeast
-	CondManaBelow
-	CondManaAtLeast
-	CondVisibleAtLeast
-	CondAdjacentAtLeast
+	CondHP
+	CondMana
+	CondVisible
+	CondAdjacent
 	CondInRange
 	CondLethal
 	CondBossVisible
 	CondBagFull
-	CondPotionsAtMost
-	CondFloorAtLeast
+	CondPotions
+	CondFloor
 	CondAtStairs
 	NumConds
 )
 
-// Cond is one test on the hero's situation; N is a percent, a count or a floor, depending on Kind.
+type Op int
+
+const (
+	OpLess Op = iota
+	OpGreater
+	OpAtMost
+	OpAtLeast
+	NumOps
+)
+
+var opSymbols = [NumOps]string{"<", ">", "≤", "≥"}
+
+func (o Op) String() string { return opSymbols[o] }
+
+func (o Op) cmp(a, b int) bool {
+	switch o {
+	case OpGreater:
+		return a > b
+	case OpAtMost:
+		return a <= b
+	case OpAtLeast:
+		return a >= b
+	}
+	return a < b
+}
+
+// Cond is one test on the hero's situation: what Kind measures compared with N by Op.
+// N is a percent for HP and mana, a count or a floor otherwise.
 type Cond struct {
 	Kind CondKind
+	Op   Op
 	N    int
 }
 
@@ -99,25 +125,25 @@ type configV5 struct {
 
 // gambitsV5 builds the default tactics from the v5 options: the fixed hero AI of v5, without its potion before a lethal hit.
 func gambitsV5(c configV5) []Gambit {
-	when := func(k CondKind, n int) [2]Cond { return [2]Cond{{k, n}} }
+	when := func(k CondKind, op Op, n int) [2]Cond { return [2]Cond{{k, op, n}} }
 	gs := []Gambit{
-		{If: when(CondHPBelow, SecondWindPct), Do: ActSecondWind},
-		{If: when(CondHPBelow, c.PotionAtPct), Do: ActHeal},
-		{If: when(CondHPBelow, c.PotionAtPct), Do: ActPotion},
+		{If: when(CondHP, OpLess, SecondWindPct), Do: ActSecondWind},
+		{If: when(CondHP, OpLess, c.PotionAtPct), Do: ActHeal},
+		{If: when(CondHP, OpLess, c.PotionAtPct), Do: ActPotion},
 	}
 	if c.RetreatBagFull {
-		gs = append(gs, Gambit{If: when(CondBagFull, 0), Do: ActRetreat})
+		gs = append(gs, Gambit{If: when(CondBagFull, 0, 0), Do: ActRetreat})
 	}
 	if c.RetreatHPPct > 0 {
-		gs = append(gs, Gambit{If: [2]Cond{{CondPotionsAtMost, 0}, {CondHPBelow, c.RetreatHPPct}}, Do: ActRetreat})
+		gs = append(gs, Gambit{If: [2]Cond{{CondPotions, OpAtMost, 0}, {CondHP, OpLess, c.RetreatHPPct}}, Do: ActRetreat})
 	}
 	if c.LastFloor > 0 {
-		gs = append(gs, Gambit{If: when(CondAtStairs, c.LastFloor), Do: ActRetreat})
+		gs = append(gs, Gambit{If: when(CondAtStairs, OpAtLeast, c.LastFloor), Do: ActRetreat})
 	}
 	return append(gs,
-		Gambit{If: when(CondInRange, 0), Do: ActSpells},
-		Gambit{If: when(CondAdjacentAtLeast, 1), Do: ActBless},
-		Gambit{If: when(CondAdjacentAtLeast, 1), Do: ActAttack},
+		Gambit{If: when(CondInRange, 0, 0), Do: ActSpells},
+		Gambit{If: when(CondAdjacent, OpAtLeast, 1), Do: ActBless},
+		Gambit{If: when(CondAdjacent, OpAtLeast, 1), Do: ActAttack},
 		Gambit{Do: ActExplore},
 	)
 }
@@ -154,7 +180,7 @@ func usesMana(c Class) bool {
 // Fits reports whether the condition means anything for class c.
 func (k CondKind) Fits(c Class) bool {
 	switch k {
-	case CondManaBelow, CondManaAtLeast:
+	case CondMana:
 		return usesMana(c)
 	case CondInRange:
 		return AbilityInfo[MagicMissile].Class == c
@@ -182,18 +208,14 @@ func (g *Game) holds(c Cond) bool {
 	switch c.Kind {
 	case CondNone:
 		return true
-	case CondHPBelow:
-		return h.HP*100 < h.MaxHP()*c.N
-	case CondHPAtLeast:
-		return h.HP*100 >= h.MaxHP()*c.N
-	case CondManaBelow:
-		return h.MaxMP() > 0 && h.MP*100 < h.MaxMP()*c.N
-	case CondManaAtLeast:
-		return h.MaxMP() > 0 && h.MP*100 >= h.MaxMP()*c.N
-	case CondVisibleAtLeast:
-		return g.visibleMonsters() >= c.N
-	case CondAdjacentAtLeast:
-		return len(g.adjacentMonsters()) >= max(1, c.N)
+	case CondHP:
+		return c.Op.cmp(h.HP*100, h.MaxHP()*c.N)
+	case CondMana:
+		return h.MaxMP() > 0 && c.Op.cmp(h.MP*100, h.MaxMP()*c.N)
+	case CondVisible:
+		return c.Op.cmp(g.visibleMonsters(), c.N)
+	case CondAdjacent:
+		return c.Op.cmp(len(g.adjacentMonsters()), c.N)
 	case CondInRange:
 		return g.castTarget() != nil
 	case CondLethal:
@@ -205,12 +227,12 @@ func (g *Game) holds(c Cond) bool {
 		return b != nil && e.Level.Visible(h.Pos, b.Pos)
 	case CondBagFull:
 		return len(e.Bag) >= g.BagCap()
-	case CondPotionsAtMost:
-		return h.Potions <= c.N
-	case CondFloorAtLeast:
-		return e.Level.Depth >= c.N
+	case CondPotions:
+		return c.Op.cmp(h.Potions, c.N)
+	case CondFloor:
+		return c.Op.cmp(e.Level.Depth, c.N)
 	case CondAtStairs:
-		return g.atStairs && e.Level.Depth >= c.N
+		return g.atStairs && c.Op.cmp(e.Level.Depth, c.N)
 	}
 	return false
 }
@@ -342,7 +364,7 @@ func (g *Game) retreatWhy(gb Gambit) string {
 			return lang.T("retreat.floor_done", g.Exp.Level.Depth)
 		}
 	}
-	if gb.If[0].Kind == CondPotionsAtMost && gb.If[1].Kind == CondHPBelow {
+	if gb.If[0].Kind == CondPotions && gb.If[1].Kind == CondHP {
 		return lang.T("retreat.low_hp")
 	}
 	return lang.T("retreat.rule", gb.CondLabel())
@@ -547,8 +569,8 @@ func (g *Game) driving(i int) Action {
 	return ActExplore
 }
 
-var condKeys = [NumConds]string{"none", "hp_below", "hp_at_least", "mana_below", "mana_at_least", "visible", "adjacent",
-	"in_range", "lethal", "boss_visible", "bag_full", "potions_at_most", "floor", "at_stairs"}
+var condKeys = [NumConds]string{"none", "hp", "mana", "visible", "adjacent",
+	"in_range", "lethal", "boss_visible", "bag_full", "potions", "floor", "at_stairs"}
 
 // HasN reports whether the condition takes a number.
 func (k CondKind) HasN() bool {
@@ -562,7 +584,7 @@ func (k CondKind) HasN() bool {
 func (c Cond) Label() string {
 	key := "gambit.cond." + condKeys[c.Kind]
 	if c.Kind.HasN() {
-		return lang.T(key, c.N)
+		return lang.T(key, c.Op, c.N)
 	}
 	return lang.T(key)
 }
@@ -596,7 +618,7 @@ func (g *Game) AddGambit() int {
 	if len(*gs) >= MaxGambits {
 		return -1
 	}
-	*gs = append(*gs, Gambit{If: [2]Cond{{CondHPBelow, 50}}, Do: ActPotion})
+	*gs = append(*gs, Gambit{If: [2]Cond{{CondHP, OpLess, 50}}, Do: ActPotion})
 	g.TacticsChanged()
 	return len(*gs) - 1
 }
@@ -661,30 +683,32 @@ func (gb Gambit) Label() string {
 	return s
 }
 
-// DefaultN is the starting number when a condition kind is picked in the editor.
-func (k CondKind) DefaultN() int {
+// DefaultCond is the starting comparison when a condition kind is picked in the editor.
+func (k CondKind) DefaultCond() Cond {
 	switch k {
-	case CondVisibleAtLeast:
-		return 2
-	case CondAdjacentAtLeast:
-		return 1
-	case CondPotionsAtMost:
-		return 0
-	case CondFloorAtLeast, CondAtStairs:
-		return 10
+	case CondHP, CondMana:
+		return Cond{k, OpLess, 50}
+	case CondVisible:
+		return Cond{k, OpAtLeast, 2}
+	case CondAdjacent:
+		return Cond{k, OpAtLeast, 1}
+	case CondPotions:
+		return Cond{k, OpAtMost, 0}
+	case CondFloor, CondAtStairs:
+		return Cond{k, OpAtLeast, 10}
 	}
-	return 50
+	return Cond{Kind: k}
 }
 
 // StepN changes a condition number by d steps within its range.
 func (c *Cond) StepN(d int) {
 	lo, hi, by := 0, 100, 5
 	switch c.Kind {
-	case CondVisibleAtLeast, CondAdjacentAtLeast:
-		lo, hi, by = 1, 20, 1
-	case CondPotionsAtMost:
+	case CondVisible, CondAdjacent:
+		hi, by = 20, 1
+	case CondPotions:
 		hi, by = MaxPotions, 1
-	case CondFloorAtLeast, CondAtStairs:
+	case CondFloor, CondAtStairs:
 		lo, hi, by = 1, 999, 1
 	}
 	c.N = max(lo, min(hi, c.N+d*by))

@@ -30,7 +30,7 @@ func TestV5RetreatOptionsBecomeGambits(t *testing.T) {
 func TestGambitsSurviveSaveAndLoad(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "save.json")
 	g := New(1, Mage)
-	g.Config.Gambits = []Gambit{{If: [2]Cond{{CondManaBelow, 20}}, Do: ActIdle, Exit: ExitCond, Until: Cond{CondManaAtLeast, 80}}}
+	g.Config.Gambits = []Gambit{{If: [2]Cond{{CondMana, OpLess, 20}}, Do: ActIdle, Exit: ExitCond, Until: Cond{CondMana, OpAtLeast, 80}}}
 	g.Save(path, time.Now())
 	got, _, err := Load(path)
 	if err != nil || !slices.Equal(got.Config.Gambits, g.Config.Gambits) {
@@ -41,7 +41,7 @@ func TestGambitsSurviveSaveAndLoad(t *testing.T) {
 func TestIdleRestsUntilManaRecovers(t *testing.T) {
 	g := heroAt(Mage, 5, 3)
 	g.Config.Gambits = []Gambit{
-		{If: [2]Cond{{CondManaBelow, 20}}, Do: ActIdle, Exit: ExitCond, Until: Cond{CondManaAtLeast, 80}},
+		{If: [2]Cond{{CondMana, OpLess, 20}}, Do: ActIdle, Exit: ExitCond, Until: Cond{CondMana, OpAtLeast, 80}},
 		{Do: ActExplore},
 	}
 	h := g.Hero
@@ -64,7 +64,7 @@ func TestIdleRestsUntilManaRecovers(t *testing.T) {
 func TestFleeGainsDistance(t *testing.T) {
 	g := heroAt(Warrior, 1, 4)
 	m := g.besideHero(dummy())
-	g.Config.Gambits = []Gambit{{If: [2]Cond{{CondVisibleAtLeast, 1}}, Do: ActFlee}, {Do: ActExplore}}
+	g.Config.Gambits = []Gambit{{If: [2]Cond{{CondVisible, OpAtLeast, 1}}, Do: ActFlee}, {Do: ActExplore}}
 	p, ok := g.fleeStep()
 	if !ok || p.Dist(m.Pos) <= 1 {
 		t.Fatalf("flee step %v ok %v monster %v", p, ok, m.Pos)
@@ -91,7 +91,7 @@ func TestHuntWalksToTheTarget(t *testing.T) {
 	m := dummy()
 	m.Pos = far
 	l.Mons = []*Monster{m}
-	g.Config.Gambits = []Gambit{{If: [2]Cond{{CondVisibleAtLeast, 1}}, Do: ActHunt}}
+	g.Config.Gambits = []Gambit{{If: [2]Cond{{CondVisible, OpAtLeast, 1}}, Do: ActHunt}}
 	before := g.Hero.Pos.Dist(m.Pos)
 	if before < 2 {
 		t.Skip("room too small")
@@ -105,7 +105,7 @@ func TestHuntWalksToTheTarget(t *testing.T) {
 func TestHigherRuleInterruptsTheActiveOne(t *testing.T) {
 	g := heroAt(Warrior, 1, 6)
 	g.Config.Gambits = []Gambit{
-		{If: [2]Cond{{CondVisibleAtLeast, 1}}, Do: ActFlee},
+		{If: [2]Cond{{CondVisible, OpAtLeast, 1}}, Do: ActFlee},
 		{Do: ActIdle, Exit: ExitTime, Secs: 600},
 	}
 	g.step()
@@ -160,7 +160,11 @@ func TestRandomTacticsNeverBreakTheGame(t *testing.T) {
 			g.Auto = true
 			var gs []Gambit
 			for range 1 + pick(MaxGambits) {
-				cond := func() Cond { k := CondKind(pick(int(NumConds))); return Cond{k, k.DefaultN()} }
+				cond := func() Cond {
+					c := CondKind(pick(int(NumConds))).DefaultCond()
+					c.Op = Op(pick(int(NumOps)))
+					return c
+				}
 				gs = append(gs, Gambit{If: [2]Cond{cond(), cond()}, Do: Action(pick(int(NumActions))),
 					Target: Target(pick(int(NumTargets))), Exit: ExitKind(pick(int(NumExits))), Until: cond(), Secs: 1 + pick(30)})
 			}
@@ -195,5 +199,21 @@ func TestDefaultTacticsOnlyHoldWhatTheClassUses(t *testing.T) {
 	g.ChooseClass(Mage)
 	if !slices.Equal(g.Config.Gambits, DefaultGambits(Mage)) {
 		t.Fatal("choosing a class did not reset the tactics")
+	}
+}
+
+func TestEveryOperatorCompares(t *testing.T) {
+	g := heroAt(Warrior, 1, 9)
+	g.Hero.Potions = 2
+	cases := []struct {
+		op   Op
+		n    int
+		want bool
+	}{{OpLess, 2, false}, {OpLess, 3, true}, {OpGreater, 1, true}, {OpGreater, 2, false},
+		{OpAtMost, 2, true}, {OpAtMost, 1, false}, {OpAtLeast, 2, true}, {OpAtLeast, 3, false}}
+	for _, c := range cases {
+		if got := g.holds(Cond{CondPotions, c.op, c.n}); got != c.want {
+			t.Errorf("potions 2 %s %d = %v, want %v", c.op, c.n, got, c.want)
+		}
 	}
 }

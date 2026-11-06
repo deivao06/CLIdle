@@ -44,7 +44,7 @@ func (m Model) tacticsRows(first int) []prepRow {
 
 func nLabel(c game.Cond) string {
 	switch c.Kind {
-	case game.CondHPBelow, game.CondHPAtLeast, game.CondManaBelow, game.CondManaAtLeast:
+	case game.CondHP, game.CondMana:
 		return fmt.Sprintf("%d%%", c.N)
 	}
 	return fmt.Sprint(c.N)
@@ -77,9 +77,10 @@ func (m Model) ruleRows(i int) []prepRow {
 					break
 				}
 			}
-			c.Kind, c.N = k+first, (k + first).DefaultN()
+			*c = (k + first).DefaultCond()
 		})
 		if c.Kind.HasN() {
+			field("tactics.field.op", c.Op.String(), func(d int) { cycle(&c.Op, d, game.NumOps) })
 			field("tactics.field.n", nLabel(*c), c.StepN)
 		}
 	}
@@ -101,7 +102,7 @@ func (m Model) ruleRows(i int) []prepRow {
 		field("tactics.field.exit", gb.Exit.Label(), func(d int) {
 			cycle(&gb.Exit, d, game.NumExits)
 			if gb.Exit == game.ExitCond && gb.Until.Kind == game.CondNone {
-				gb.Until = game.Cond{Kind: game.CondHPAtLeast, N: 80}
+				gb.Until = game.Cond{Kind: game.CondHP, Op: game.OpAtLeast, N: 80}
 			}
 			if gb.Exit == game.ExitTime && gb.Secs == 0 {
 				gb.Secs = 10

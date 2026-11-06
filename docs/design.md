@@ -126,7 +126,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 
 ## Táticas (gambits)
 
-- **O que são:** a IA do herói é uma lista de regras na Preparação (até 16), sem progressão: tudo liberado desde o início. Cada regra é **quando** (até 2 condições, as duas precisam valer) → **fazer** (ação + alvo) → **até** (saída).
+- **O que são:** a IA do herói é uma lista de regras na Preparação (até 16), sem progressão: tudo liberado desde o início. Cada regra é **quando** (até 2 condições, as duas precisam valer) → **fazer** (ação + alvo) → **até** (saída). Toda condição com número escolhe o operador: `<`, `>`, `≤` ou `≥` (HP%, mana%, inimigos à vista, inimigos ao lado, poções, andar, escada do andar).
 - **Ações** duram 1 passo: poção, segundo fôlego, cura, bênção, ataque, magias separadas e "Magias (auto)" (a escolha de magia de sempre). **Comportamentos** continuam até a saída: Descansar (idle), Fugir, Caçar, Explorar, Descer e Recuar.
 - **Prioridade:** a cada passo a lista é lida de cima para baixo. Uma regra mais alta cuja entrada vale assume no lugar do comportamento ativo; uma mais baixa espera ele sair. Só as ações acima do comportamento ativo rodam (por isso, recuando, ele só se cura). Regra que não pode agir agora (sem mana, sem alvo, habilidade não aprendida) é pulada.
 - **Saídas:** enquanto valer (padrão) · até uma condição · por N segundos · até terminar (Caçar/Fugir: nenhum monstro à vista; Explorar: andar explorado). Depois de sair por tempo ou condição, a regra fica desarmada até a entrada deixar de valer, para não religar no passo seguinte. Recuar só termina na cidade.
