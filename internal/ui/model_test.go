@@ -10,6 +10,7 @@ import (
 	"clidle/internal/lang"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 func TestQuitOnClassScreenDoesNotSave(t *testing.T) {
@@ -161,6 +162,22 @@ func TestClassesHelpListsEveryAbility(t *testing.T) {
 	for a := range game.NumAbilities {
 		if !strings.Contains(text, a.Name()) || !strings.Contains(text, a.Desc()) || strings.HasSuffix(a.Desc(), ".desc") {
 			t.Fatalf("ability %s missing or without description", a.Name())
+		}
+	}
+}
+
+func TestHangLineKeepsDetailUnderTheValue(t *testing.T) {
+	s := "Expeditions  102  (101 returns, 0 deaths)"
+	if got := hangLine(s, 60); got != s {
+		t.Errorf("fitting line changed: %q", got)
+	}
+	want := "Expeditions  102\n             (101 returns, 0 deaths)"
+	if got := hangLine(s, 36); got != want {
+		t.Errorf("hangLine(36) =\n%s\nwant\n%s", got, want)
+	}
+	for _, l := range strings.Split(hangLine(s, 20), "\n") {
+		if lipgloss.Width(l) > 20 {
+			t.Errorf("line %q wider than 20", l)
 		}
 	}
 }

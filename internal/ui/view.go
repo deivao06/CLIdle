@@ -260,7 +260,7 @@ func (m Model) viewSummary() string {
 	title := lang.T("summary.title", fmtDuration(s.Away))
 	var b strings.Builder
 	b.WriteString(sTitle.Render(title) + "\n\n")
-	b.WriteString(lang.T("summary.expeditions", s.Expeditions, s.Returns, s.Deaths))
+	b.WriteString(hangLine(strings.TrimSuffix(lang.T("summary.expeditions", s.Expeditions, s.Returns, s.Deaths), "\n"), m.w) + "\n")
 	b.WriteString(lang.T("summary.kills", s.Kills))
 	if s.BossKills > 0 {
 		b.WriteString(logStyles[game.LogEpic].Render(lang.T("summary.bosses", s.BossKills)) + "\n")
@@ -273,6 +273,40 @@ func (m Model) viewSummary() string {
 	}
 	b.WriteString("\n" + sMuted.Render(lang.T("summary.any_key")))
 	return b.String()
+}
+
+// hangLine fits a "Label  value  detail" line to w: it breaks at the double spaces first and keeps
+// the following lines under the value.
+func hangLine(s string, w int) string {
+	if lipgloss.Width(s) <= w {
+		return s
+	}
+	i := strings.Index(s, "  ")
+	if i < 0 {
+		return lipgloss.NewStyle().Width(w).Render(s)
+	}
+	value := strings.TrimLeft(s[i:], " ")
+	label := s[:len(s)-len(value)]
+	pad := lipgloss.Width(label)
+	if w-pad < 10 {
+		return lipgloss.NewStyle().Width(w).Render(s)
+	}
+	var groups []string
+	for _, seg := range strings.Split(value, "  ") {
+		if n := len(groups); n > 0 && lipgloss.Width(groups[n-1]+"  "+seg) <= w-pad {
+			groups[n-1] += "  " + seg
+		} else {
+			groups = append(groups, seg)
+		}
+	}
+	var lines []string
+	for _, g := range groups {
+		for _, l := range strings.Split(lipgloss.NewStyle().Width(w-pad).Render(g), "\n") {
+			lines = append(lines, strings.Repeat(" ", pad)+strings.TrimRight(l, " "))
+		}
+	}
+	lines[0] = label + lines[0][pad:]
+	return strings.Join(lines, "\n")
 }
 
 func fmtDuration(d time.Duration) string {
