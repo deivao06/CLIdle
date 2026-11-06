@@ -36,8 +36,8 @@ type Release struct {
 	Sums    string
 }
 
-// Enabled is false for local builds, which never look for updates.
-func Enabled() bool { return Version != "dev" }
+// Enabled is false for local and browser builds, which never look for updates.
+func Enabled() bool { return Version != "dev" && runtime.GOOS != "js" }
 
 func AssetName(goos, goarch string) string {
 	name := "clidle-" + goos + "-" + goarch

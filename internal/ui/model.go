@@ -96,7 +96,7 @@ func (m Model) catchUp(away time.Duration) tea.Cmd {
 	m.progress.Store(0)
 	g, progress := m.g, m.progress
 	return func() tea.Msg {
-		return catchUpDoneMsg(g.CatchUp(away, func(f float64) { progress.Store(int64(f * 1000)) }))
+		return catchUpDoneMsg(g.CatchUp(away, func(f float64) { progress.Store(int64(f * 1000)); yieldToBrowser() }))
 	}
 }
 
@@ -111,7 +111,7 @@ func (m *Model) save(now time.Time) {
 // resetSave erases the save and starts a fresh game at the class screen.
 func (m *Model) resetSave() {
 	if m.savePath != "" {
-		os.Remove(m.savePath)
+		game.RemoveSave(m.savePath)
 	}
 	g := game.New(uint64(time.Now().UnixNano()), game.Warrior)
 	g.Lang = lang.Current()

@@ -2,3 +2,4 @@ clidle
 .claude/settings.local.json*
 .impeccable/
 *.syso
+web/dist/

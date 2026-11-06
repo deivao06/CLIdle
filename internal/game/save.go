@@ -25,25 +25,17 @@ func SavePath() string {
 	return filepath.Join(dir, "clidle", "save.json")
 }
 
-// Save writes atomically so a crash mid-write never corrupts the previous save.
 func (g *Game) Save(path string, now time.Time) error {
 	data, err := json.Marshal(saveFile{saveVersion, now, g})
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, data, 0o644); err != nil {
-		return err
-	}
-	return os.Rename(tmp, path)
+	return writeSave(path, data)
 }
 
 // Load returns a nil game when there is no save yet.
 func Load(path string) (*Game, time.Time, error) {
-	data, err := os.ReadFile(path)
+	data, err := readSave(path)
 	if errors.Is(err, os.ErrNotExist) {
 		return nil, time.Time{}, nil
 	}
