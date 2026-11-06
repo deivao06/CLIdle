@@ -5,6 +5,7 @@ set -e
 cd "$(dirname "$0")/.."
 tmp=$(mktemp -d)
 trap 'chmod -R u+w "$tmp"; rm -rf "$tmp"' EXIT
+go mod download github.com/charmbracelet/bubbletea
 mod=$(go list -m -f '{{.Dir}}' github.com/charmbracelet/bubbletea)
 cp -r "$mod" "$tmp/bubbletea"
 chmod -R u+w "$tmp/bubbletea"
