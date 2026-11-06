@@ -54,6 +54,8 @@ internal/ui/            Bubble Tea
   crt.go                efeito CRT: envelhece as cores ANSI da saída da View (tom verde-fósforo, desbota, scanlines, flicker dos cinzas, borda rasgada) (Game.CRT, zero = desligado)
 web/                    versão de navegador (WASM + xterm.js): main.go (ponte JS ↔ Bubble Tea), index.html, build.sh;
                         _bubbletea/tty_js.go completa o Bubble Tea v1 (sem suporte a js) só nesse build
+                        PWA: manifest.webmanifest, sw.js (cache-first; build.sh carimba a versão pelo hash dos arquivos), icons/, vendor/ (xterm.js fixado, sem CDN, para abrir offline)
+                        publicado no GitHub Pages por .github/workflows/pages.yml (a cada tag ou manual)
 ```
 
 ## Invariantes que não podem quebrar

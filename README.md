@@ -54,6 +54,16 @@ Baixe o binário do seu sistema na página de [Releases](https://github.com/deiv
 
 O jogo **avisa sozinho** quando sai uma versão nova: ao voltar à cidade, ele consulta as releases (no máximo 1 vez por hora). Aparece "Nova versão vX · u atualizar" no topo. Com `u` e a confirmação, ele baixa, confere o checksum, troca o binário e reinicia com o save intacto. A versão atual aparece no canto direito do rodapé.
 
+## Jogar no navegador e no celular
+
+Abra **https://deivao06.github.io/CLIdle/**. É o mesmo jogo, compilado para WebAssembly, e funciona **sem internet** depois da primeira visita.
+
+- **iPhone:** abra no Safari → botão **Compartilhar** → **Adicionar à Tela de Início**. Abra sempre pelo ícone: assim ele roda em tela cheia e o Safari não apaga o save.
+- **Android:** no Chrome, menu → **Instalar app** (ou **Adicionar à tela inicial**).
+- **Toque:** toque numa aba, linha ou botão. Numa lista, o 1º toque escolhe e o 2º usa; nos valores, toque em `‹` ou `›`. Arraste o dedo para rolar.
+- O save do navegador é **separado** do save do PC.
+- A primeira abertura baixa uns 3,5 MB. Versões novas chegam sozinhas e valem na próxima vez que o jogo abrir.
+
 ## Compilar do código
 
 ```sh
@@ -88,6 +98,8 @@ No **Herói**: `↑↓` ou `j/k` rolam a tela quando ela não cabe.
 
 Nas **confirmações**: `s`, `y` ou `enter` confirmam; `n` ou `esc` cancelam.
 
+O **mouse** também funciona: clique nas abas, linhas e botões (1º clique escolhe, 2º usa). Para selecionar texto no terminal, segure `Shift`.
+
 ## Legenda
 
 | Símbolo | Significado |
@@ -104,7 +116,7 @@ Cor do item = raridade: branco comum, azul mágico, verde raro, roxo épico, lar
 
 ## Save
 
-- Fica em `~/.local/share/clidle/save.json` (ou `$XDG_DATA_HOME/clidle/save.json`).
+- Fica em `~/.local/share/clidle/save.json` (ou `$XDG_DATA_HOME/clidle/save.json`). No navegador, fica no armazenamento do site.
 - Salva a cada 30 segundos e ao sair.
 - Para recomeçar do zero, use **Resetar save** na tela Config (`4`).
 - O jogo abre em inglês; o idioma muda na tela Config (`4`).
@@ -115,12 +127,15 @@ Cor do item = raridade: branco comum, azul mágico, verde raro, roxo épico, lar
 go test ./...          # testes da lógica do jogo
 go test -short ./...   # pula o teste de desempenho da simulação de 12h
 go vet ./...
+./web/build.sh         # versão web em web/dist
+cd web/dist && python3 -m http.server 8765   # abrir http://127.0.0.1:8765
 ```
 
 - **Estrutura:**
   - `main.go`: carrega o save e abre a interface.
   - `internal/game`: toda a lógica do jogo, sem interface e determinística.
   - `internal/ui`: interface em [Bubble Tea](https://github.com/charmbracelet/bubbletea) e [Lip Gloss](https://github.com/charmbracelet/lipgloss).
+  - `web`: versão de navegador ([xterm.js](https://xtermjs.org/), em `web/vendor` com a licença MIT dele).
 - **Balanceamento:** todos os números ficam em `internal/game/balance.go`.
 - **Design:** decisões de design em [`docs/design.md`](docs/design.md).
 - **Para agentes de IA:** veja [`AGENTS.md`](AGENTS.md).
@@ -133,3 +148,5 @@ git push origin v0.2.0
 ```
 
 O GitHub Actions (`.github/workflows/release.yml`) roda os testes, compila os binários de Linux e Windows com a versão embutida, gera o `SHA256SUMS` e publica a release. As notas são montadas a partir dos commits desde a tag anterior, em inglês: `feat:` vira **What's new** e `fix:` vira **Fixes**.
+
+O `.github/workflows/pages.yml` publica a versão web no GitHub Pages a cada tag (ou manualmente, em **Actions → pages → Run workflow**).
