@@ -120,7 +120,7 @@ func (m Model) prepRows() []prepRow {
 		c.StartFloor = floors[(at+d+len(floors))%len(floors)]
 	})
 	section = lang.T("prep.section.potions")
-	cfg("prep.potions", lang.T("prep.potions_value", c.PotionsToBring, game.PotionPrice),
+	cfg("prep.potions", lang.T("prep.potions_value", c.PotionsToBring),
 		func(d int) { step(&c.PotionsToBring, d, 1, 0, game.MaxPotions) })
 	section = lang.T("prep.section.loot")
 	cfg("prep.auto_equip", onOff(!c.ManualEquip), func(int) { c.ManualEquip = !c.ManualEquip })
@@ -172,6 +172,12 @@ func (m Model) townRows() []prepRow {
 	if len(g.Shop) == 0 {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.sold_out"), style: sMuted})
 	}
+	potion := m.buyable(game.PotionPrice)
+	if g.Hero.Potions >= game.MaxPotions {
+		potion = sMuted
+	}
+	rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.potion_row", g.Hero.Potions, game.MaxPotions, game.PotionPrice),
+		style: potion, enter: g.BuyPotion, desc: lang.T("town.potion.desc", game.MaxPotions)})
 	if size, cost, ok := g.NextBag(); ok {
 		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.buyable(cost),

@@ -139,6 +139,14 @@ func (g *Game) Train(t Trait) {
 	g.logf(LogGood, "%s", lang.T("log.trained", t.Name(), g.Hero.Training[t], t.Effect()))
 }
 
+func (g *Game) BuyPotion() {
+	if !g.InTown() || g.Hero.Potions >= MaxPotions || !g.spend(PotionPrice) {
+		return
+	}
+	g.Hero.Potions++
+	g.logf(LogInfo, "%s", lang.T("log.buy_potion", 1, PotionPrice))
+}
+
 func (g *Game) buyPotions() {
 	h := g.Hero
 	n := min(g.Config.PotionsToBring-h.Potions, g.Gold/PotionPrice)

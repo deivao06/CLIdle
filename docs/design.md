@@ -61,7 +61,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Filtro de loot:** "Pegar itens" (comum+ por padrão) define a raridade mínima que vai para a mochila. Item que o herói vai equipar é pego sempre.
 - **Itens de outra classe:** desligado por padrão; o herói só pega o que a classe dele usa.
 - **Limite de mortes:** configurável (padrão sem limite). Depois de N mortes desde que a auto-expedição foi ligada, ela desliga e o herói fica na cidade. Religar zera a contagem.
-- Antes de partir, o herói compra poções até completar o número configurado (se tiver ouro).
+- Herói novo começa com 5 poções. Na Loja (cidade) dá para comprar 1 por vez, até o limite de 10. Na Preparação, "Comprar automaticamente" define até quantas o herói completa sozinho antes de partir (se tiver ouro); o preço aparece só na Loja.
 - **Poções:** por padrão, bebidas abaixo de 40% de HP (regra das táticas). O herói nunca sabe se um golpe vai matá-lo: não existe regra de poção antes de golpe letal. O herói guarda no máximo 10; o que passar disso é vendido ao chegar na cidade (metade do preço).
 
 ## Dungeon

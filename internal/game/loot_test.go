@@ -220,3 +220,26 @@ func TestDeathKeepsTheSceneAroundTheCorpse(t *testing.T) {
 		t.Fatalf("scene misses corpse or killer:\n%s", strings.Join(sc.Glyphs, "\n"))
 	}
 }
+
+func TestBuyPotionInTownUpToTheCap(t *testing.T) {
+	g := New(1, Warrior)
+	g.Gold = PotionPrice * 20
+	start := g.Hero.Potions
+	g.BuyPotion()
+	if g.Hero.Potions != start+1 || g.Gold != PotionPrice*19 {
+		t.Fatalf("potions %d gold %d", g.Hero.Potions, g.Gold)
+	}
+	for range 20 {
+		g.BuyPotion()
+	}
+	if g.Hero.Potions != MaxPotions {
+		t.Fatalf("potions %d, cap %d", g.Hero.Potions, MaxPotions)
+	}
+	g.Hero.Potions = 0
+	g.StartExpedition()
+	before, gold := g.Hero.Potions, g.Gold
+	g.BuyPotion()
+	if g.Hero.Potions != before || g.Gold != gold {
+		t.Fatal("bought outside town")
+	}
+}
