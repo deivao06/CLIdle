@@ -73,7 +73,7 @@ func (m Model) ruleRows(i int) []prepRow {
 			k := c.Kind - first
 			for {
 				cycle(&k, d, n)
-				if (k + first).Fits(class) {
+				if kk := k + first; kk.Fits(class) && kk.Usable() && (kk != game.CondAtStairs || gb.Do == game.ActRetreat) {
 					break
 				}
 			}
@@ -89,8 +89,13 @@ func (m Model) ruleRows(i int) []prepRow {
 	field("tactics.field.do", gb.Do.Label(), func(d int) {
 		for {
 			cycle(&gb.Do, d, game.NumActions)
-			if gb.Do.Fits(class) {
+			if gb.Do.Fits(class) && gb.Do.Usable() {
 				break
+			}
+		}
+		for j, c := range gb.If {
+			if c.Kind == game.CondAtStairs && gb.Do != game.ActRetreat {
+				gb.If[j] = game.Cond{}
 			}
 		}
 	})

@@ -149,7 +149,23 @@ func gambitsV5(c configV5) []Gambit {
 }
 
 func defaultV5() []Gambit {
-	return gambitsV5(configV5{PotionAtPct: 40, RetreatHPPct: 30, RetreatBagFull: true})
+	return validGambits(gambitsV5(configV5{PotionAtPct: 40, RetreatHPPct: 30, RetreatBagFull: true}))
+}
+
+// Usable reports whether the tactics may hold the action: walking the dungeon follows the expedition mode.
+func (a Action) Usable() bool { return a != ActIdle && a != ActExplore && a != ActDescend }
+
+// Usable reports whether the tactics may test the condition: the hero never knows a hit would kill him.
+func (k CondKind) Usable() bool { return k != CondLethal }
+
+// valid reports whether the rule can stay in the tactics; only a retreat may wait for the stairs.
+func (gb Gambit) valid() bool {
+	conds := gb.If[0].Kind.Usable() && gb.If[1].Kind.Usable() && (gb.Exit != ExitCond || gb.Until.Kind.Usable())
+	return conds && gb.Do.Usable() && (gb.Do == ActRetreat || !gb.waitsForStairs())
+}
+
+func validGambits(gs []Gambit) []Gambit {
+	return slices.DeleteFunc(gs, func(gb Gambit) bool { return !gb.valid() })
 }
 
 // DefaultGambits is the default list without the rules class c can never use.
@@ -218,10 +234,6 @@ func (g *Game) holds(c Cond) bool {
 		return c.Op.cmp(len(g.adjacentMonsters()), c.N)
 	case CondInRange:
 		return g.castTarget() != nil
-	case CondLethal:
-		worst, avg := g.incoming()
-		heal := g.potionHeal()
-		return (h.MaxHP()-h.HP)*2 >= heal && worst >= h.HP && avg < heal
 	case CondBossVisible:
 		b := e.Level.boss()
 		return b != nil && e.Level.Visible(h.Pos, b.Pos)

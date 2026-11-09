@@ -38,6 +38,10 @@ func migrate(f *saveFile, old *legacy) {
 	if f.Version < 6 {
 		f.Game.Config.Gambits = classGambits(gambitsV5(old.Config), f.Game.Hero.Class)
 	}
+	if f.Version < 7 {
+		f.Game.Config.Gambits = validGambits(f.Game.Config.Gambits)
+		f.Game.TacticsChanged()
+	}
 	f.Version = saveVersion
 }
 

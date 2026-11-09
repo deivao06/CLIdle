@@ -62,7 +62,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Itens de outra classe:** desligado por padrão; o herói só pega o que a classe dele usa.
 - **Limite de mortes:** configurável (padrão sem limite). Depois de N mortes desde que a auto-expedição foi ligada, ela desliga e o herói fica na cidade. Religar zera a contagem.
 - Antes de partir, o herói compra poções até completar o número configurado (se tiver ouro).
-- **Poções:** por padrão, bebidas abaixo de 40% de HP (regra das táticas). Beber antes de um golpe que pode matar não vem mais por padrão (o dono tirou); existe como condição "um golpe pode me matar", que só vale se a poção curar mais que o dano médio da rodada e não for desperdiçada (falta ao menos metade da cura). O herói guarda no máximo 10; o que passar disso é vendido ao chegar na cidade (metade do preço).
+- **Poções:** por padrão, bebidas abaixo de 40% de HP (regra das táticas). O herói nunca sabe se um golpe vai matá-lo: não existe regra de poção antes de golpe letal. O herói guarda no máximo 10; o que passar disso é vendido ao chegar na cidade (metade do preço).
 
 ## Dungeon
 
@@ -127,13 +127,15 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 ## Táticas (gambits)
 
 - **O que são:** a IA do herói é uma lista de regras na Preparação (até 16), sem progressão: tudo liberado desde o início. Cada regra é **quando** (até 2 condições, as duas precisam valer) → **fazer** (ação + alvo) → **até** (saída). Toda condição com número escolhe o operador: `<`, `>`, `≤` ou `≥` (HP%, mana%, inimigos à vista, inimigos ao lado, poções, andar, escada do andar).
-- **Ações** duram 1 passo: poção, segundo fôlego, cura, bênção, ataque, magias separadas e "Magias (auto)" (a escolha de magia de sempre). **Comportamentos** continuam até a saída: Descansar (idle), Fugir, Caçar, Explorar, Descer e Recuar.
+- **Ações** duram 1 passo: poção, segundo fôlego, cura, bênção, ataque, magias separadas e "Magias (auto)" (a escolha de magia de sempre). **Comportamentos** continuam até a saída: Fugir, Caçar e Recuar.
+- **Táticas não mudam as regras básicas do jogo:** cuidam de combate e do recuo, não de como o herói anda pela dungeon. Andar segue o **modo da expedição** (explorar tudo ou descer direto). Por isso não existem Explorar, Descer (brigavam com o modo) nem Descansar (com "sempre" travava a expedição). "Escada do andar ≥ N" só existe com Recuar (com outra ação travava o herói na `>`). "Um golpe pode me matar" saiu: o herói não age sabendo que morreria.
 - **Prioridade:** a cada passo a lista é lida de cima para baixo. Uma regra mais alta cuja entrada vale assume no lugar do comportamento ativo; uma mais baixa espera ele sair. Só as ações acima do comportamento ativo rodam (por isso, recuando, ele só se cura). Regra que não pode agir agora (sem mana, sem alvo, habilidade não aprendida) é pulada.
-- **Saídas:** enquanto valer (padrão) · até uma condição · por N segundos · até terminar (Caçar/Fugir: nenhum monstro à vista; Explorar: andar explorado). Depois de sair por tempo ou condição, a regra fica desarmada até a entrada deixar de valer, para não religar no passo seguinte. Recuar só termina na cidade.
+- **Saídas:** enquanto valer (padrão) · até uma condição · por N segundos · até terminar (nenhum monstro à vista). Depois de sair por tempo ou condição, a regra fica desarmada até a entrada deixar de valer, para não religar no passo seguinte. Recuar só termina na cidade.
 - **Só o que a classe usa:** a lista padrão e o editor mostram só ações e condições da classe do herói (sem magias para o guerreiro, sem segundo fôlego para o mago, sem condições de mana para quem não tem mana). Regras de outra classe nunca agiam, então o jogo não muda.
-- **Lista padrão:** segundo fôlego (HP < 30%), cura e poção (HP < 40%), recuar com mochila cheia, recuar sem poções com HP < 30%, magias (auto), bênção e ataque com inimigo ao lado, explorar. É o herói antigo sem a poção antes de golpe letal (o dono tirou essa regra); com ela, a lista foi conferida idêntica ao herói antigo em 56 simulações. "Restaurar táticas padrão" volta para ela.
+- **Lista padrão:** segundo fôlego (HP < 30%), cura e poção (HP < 40%), recuar com mochila cheia, recuar sem poções com HP < 30%, magias (auto), bênção e ataque com inimigo ao lado. É o herói antigo sem a poção antes de golpe letal (o dono tirou essa regra); com ela, a lista foi conferida idêntica ao herói antigo em 56 simulações. "Restaurar táticas padrão" volta para ela.
 - **Save v6:** as opções antigas (beber poção com HP <, recuar sem poção, recuar com mochila cheia, último andar) viram as regras padrão com os mesmos números.
-- **Sem regra que se aplique,** o herói explora (nunca fica travado). O `r` do jogador continua acima de tudo.
+- **Save v7:** apaga as regras Explorar, Descer e Descansar, as de "escada do andar" sem Recuar e as com "um golpe pode me matar". O herói padrão foi conferido idêntico em 56 simulações.
+- **Sem regra que se aplique,** o herói anda pelo modo da expedição (nunca fica travado). O `r` do jogador continua acima de tudo.
 - O herói **não recupera HP** na dungeon, só mana: por isso existe a saída por tempo.
 
 ## Para depois

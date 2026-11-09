@@ -21,8 +21,24 @@ func TestV5RetreatOptionsBecomeGambits(t *testing.T) {
 	data, _ := json.Marshal(f)
 	os.WriteFile(path, data, 0o644)
 	got, _, err := Load(path)
-	want := classGambits(gambitsV5(configV5{PotionAtPct: 55, RetreatHPPct: 20, LastFloor: 7}), Warrior)
+	want := validGambits(classGambits(gambitsV5(configV5{PotionAtPct: 55, RetreatHPPct: 20, LastFloor: 7}), Warrior))
 	if err != nil || !slices.Equal(got.Config.Gambits, want) {
+		t.Fatalf("gambits %+v err %v", got.Config.Gambits, err)
+	}
+}
+
+func TestV6DropsRulesThatBreakTheGame(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := New(1, Warrior)
+	stairs := [2]Cond{{CondAtStairs, OpAtLeast, 5}}
+	keep := []Gambit{{If: stairs, Do: ActRetreat}, {If: [2]Cond{{CondHP, OpLess, 50}}, Do: ActPotion}}
+	g.Config.Gambits = []Gambit{keep[0], {Do: ActIdle}, {If: stairs, Do: ActHunt},
+		{If: [2]Cond{{CondLethal, 0, 0}}, Do: ActPotion}, {Do: ActFlee, Exit: ExitCond, Until: Cond{Kind: CondLethal}},
+		keep[1], {Do: ActDescend}, {Do: ActExplore}}
+	raw, _ := json.Marshal(saveFile{6, time.Now(), g})
+	os.WriteFile(path, raw, 0o644)
+	got, _, err := Load(path)
+	if err != nil || !slices.Equal(got.Config.Gambits, keep) {
 		t.Fatalf("gambits %+v err %v", got.Config.Gambits, err)
 	}
 }
@@ -197,6 +213,11 @@ func TestDefaultTacticsOnlyHoldWhatTheClassUses(t *testing.T) {
 	}
 	g := New(1, Warrior)
 	g.ChooseClass(Mage)
+	for _, gb := range DefaultGambits(Mage) {
+		if !gb.valid() {
+			t.Fatalf("default has %+v", gb)
+		}
+	}
 	if !slices.Equal(g.Config.Gambits, DefaultGambits(Mage)) {
 		t.Fatal("choosing a class did not reset the tactics")
 	}
