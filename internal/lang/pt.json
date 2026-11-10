@@ -411,6 +411,7 @@
   "gambit.cond.potions": "poções %s %d",
   "gambit.cond.floor": "andar %s %d",
   "gambit.cond.at_stairs": "terminou o andar %s %d",
+  "gambit.cond.loot": "melhor item na mochila %s %s",
   "tactics.field.op": "  comparar",
   "tactics.field.op.desc": "Como o número é comparado: < menos, > mais, ≤ no máximo, ≥ no mínimo.",
   "gambit.cond.in_range": "inimigo ao alcance de magia",

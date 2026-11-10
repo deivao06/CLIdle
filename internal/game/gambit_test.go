@@ -252,3 +252,18 @@ func TestUnlockingAnAbilityAddsItsRule(t *testing.T) {
 		t.Fatalf("got %d log lines and %+v", len(r.after), g.Config.Gambits)
 	}
 }
+
+func TestRetreatsWhenTheBagHoldsARareItem(t *testing.T) {
+	g := heroAt(Warrior, 1, 10)
+	g.Config.Gambits = []Gambit{{If: [2]Cond{CondLoot.DefaultCond()}, Do: ActRetreat}, {Do: ActExplore}}
+	g.Exp.Bag = []*Item{{Slot: Armor, Base: 3, Rarity: Magic}}
+	g.step()
+	if g.Exp.Retreating {
+		t.Fatal("retreated with only a magic item")
+	}
+	g.Exp.Bag = append(g.Exp.Bag, &Item{Slot: Armor, Base: 3, Rarity: Rare})
+	g.step()
+	if g.Exp != nil && !g.Exp.Retreating {
+		t.Fatal("kept going with a rare item in the bag")
+	}
+}

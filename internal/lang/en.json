@@ -411,6 +411,7 @@
   "gambit.cond.potions": "potions %s %d",
   "gambit.cond.floor": "floor %s %d",
   "gambit.cond.at_stairs": "finished floor %s %d",
+  "gambit.cond.loot": "best item in bag %s %s",
   "tactics.field.op": "  compare",
   "tactics.field.op.desc": "How the number is compared: < less, > more, ≤ at most, ≥ at least.",
   "gambit.cond.in_range": "enemy in spell range",

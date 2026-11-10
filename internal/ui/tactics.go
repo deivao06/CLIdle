@@ -46,6 +46,8 @@ func nLabel(c game.Cond) string {
 	switch c.Kind {
 	case game.CondHP, game.CondMana:
 		return fmt.Sprintf("%d%%", c.N)
+	case game.CondLoot:
+		return game.Rarity(c.N).Name()
 	}
 	return fmt.Sprint(c.N)
 }

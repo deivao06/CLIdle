@@ -21,6 +21,7 @@ const (
 	CondPotions
 	CondFloor
 	CondAtStairs
+	CondLoot
 	NumConds
 )
 
@@ -285,6 +286,12 @@ func (g *Game) holds(c Cond) bool {
 		return c.Op.cmp(e.Level.Depth, c.N)
 	case CondAtStairs:
 		return g.atStairs && c.Op.cmp(e.Level.Depth, c.N)
+	case CondLoot:
+		best := -1
+		for _, it := range e.Bag {
+			best = max(best, int(it.Rarity))
+		}
+		return c.Op.cmp(best, c.N)
 	}
 	return false
 }
@@ -622,7 +629,7 @@ func (g *Game) driving(i int) Action {
 }
 
 var condKeys = [NumConds]string{"none", "hp", "mana", "visible", "adjacent",
-	"in_range", "lethal", "boss_visible", "bag_full", "potions", "floor", "at_stairs"}
+	"in_range", "lethal", "boss_visible", "bag_full", "potions", "floor", "at_stairs", "loot"}
 
 // HasN reports whether the condition takes a number.
 func (k CondKind) HasN() bool {
@@ -635,6 +642,9 @@ func (k CondKind) HasN() bool {
 
 func (c Cond) Label() string {
 	key := "gambit.cond." + condKeys[c.Kind]
+	if c.Kind == CondLoot {
+		return lang.T(key, c.Op, Rarity(c.N).Name())
+	}
 	if c.Kind.HasN() {
 		return lang.T(key, c.Op, c.N)
 	}
@@ -748,6 +758,8 @@ func (k CondKind) DefaultCond() Cond {
 		return Cond{k, OpAtMost, 0}
 	case CondFloor, CondAtStairs:
 		return Cond{k, OpAtLeast, 10}
+	case CondLoot:
+		return Cond{k, OpAtLeast, int(Rare)}
 	}
 	return Cond{Kind: k}
 }
@@ -762,6 +774,8 @@ func (c *Cond) StepN(d int) {
 		hi, by = MaxPotions, 1
 	case CondFloor, CondAtStairs:
 		lo, hi, by = 1, 999, 1
+	case CondLoot:
+		hi, by = int(NumRarities)-1, 1
 	}
 	c.N = max(lo, min(hi, c.N+d*by))
 }
