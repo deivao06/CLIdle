@@ -661,15 +661,15 @@ func pct(f float64) int { return int(f*100 + 0.5) }
 // heroCombat lists the numbers that decide a fight, from the same formulas the game uses.
 func (m Model) heroCombat() string {
 	h := m.g.Hero
-	s := "\n" + sSection.Render(lang.T("hero.combat")) + "\n" + lang.T("hero.atk_def", h.Atk(), h.Def())
+	s := "\n" + sSection.Render(lang.T("hero.combat")) + "\n" + lang.T("hero.atk", h.Atk()) + lang.T("hero.def", h.Def())
 	if sp := h.SpellAtk(); sp > 0 {
 		s += lang.T("hero.spell", sp)
 	}
-	rates := lang.T("hero.rates", pct(h.MissChance()), pct(h.CritChance()))
+	s += lang.T("hero.rates", pct(h.MissChance()), pct(h.CritChance()))
 	if d := h.DodgeChance(); d > 0 {
-		rates += lang.T("hero.dodge", pct(d))
+		s += lang.T("hero.dodge", pct(d))
 	}
-	s += rates + "\n" + lang.T("hero.speed", h.Spd(), game.StepsPerSec(h.Spd()))
+	s += lang.T("hero.speed", h.Spd(), game.StepsPerSec(h.Spd()))
 	if r := h.ManaPerStep(); r > 0 {
 		s += lang.T("hero.mana_regen", r)
 	}
@@ -716,8 +716,12 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 			b.WriteString(sWarn.Render(lang.T("hero.retreating")) + "\n")
 		}
 	}
+	records := "hero.records_line"
+	if tab {
+		records = "hero.records_tab"
+	}
 	bottom := "\n" + sSection.Render(lang.T("hero.records")) + "\n" +
-		lang.T("hero.records_line", g.MaxDepth, g.BossKills, g.Returns, g.Deaths)
+		lang.T(records, g.MaxDepth, g.BossKills, g.Returns, g.Deaths)
 	if e := g.Exp; e != nil {
 		avail := maxH - strings.Count(b.String(), "\n") - strings.Count(bottom, "\n")
 		shown, used := 0, 0
