@@ -26,6 +26,8 @@ var (
 	sBar     = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	sSection = lipgloss.NewStyle().Foreground(lipgloss.Color("15")).Bold(true)
 	sStats   = lipgloss.NewStyle().Foreground(lipgloss.Color("180"))
+	sValue   = lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
+	sSoft    = lipgloss.NewStyle().Foreground(lipgloss.Color("250"))
 	sXP      = lipgloss.NewStyle().Foreground(lipgloss.Color("87"))
 	sMP      = lipgloss.NewStyle().Foreground(lipgloss.Color("75"))
 	sHPGood  = lipgloss.NewStyle().Foreground(lipgloss.Color("114"))

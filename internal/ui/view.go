@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/muesli/termenv"
 	"math"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
@@ -548,7 +549,7 @@ func (m Model) heroLines() []string {
 func (m Model) heroSide(w int) string {
 	s := m.heroAbilities(w)
 	if d := m.g.LastDeath; len(d) > 0 {
-		s += "\n" + sSection.Render(lang.T("hero.last_death")) + "\n"
+		s += "\n" + sTitle.Render(lang.T("hero.last_death")) + "\n"
 		if sc := m.g.DeathScene; sc != nil {
 			s = strings.TrimSuffix(s, "\n") + sMuted.Render(lang.T("hero.death_floor", sc.Depth)) + "\n" + deathScene(sc, w) + "\n"
 		}
@@ -628,10 +629,10 @@ func kindByGlyph(r rune) game.MonsterKind {
 
 func (m Model) heroAbilities(w int) string {
 	h := m.g.Hero
-	s := "\n" + sSection.Render(lang.T("hero.abilities")) + "\n"
+	s := "\n" + sTitle.Render(lang.T("hero.abilities")) + "\n"
 	desc := lipgloss.NewStyle().Width(w - 2)
 	for _, a := range game.ClassAbilities(h.Class) {
-		mark, name, text := "✓ ", sBuy, sPlain
+		mark, name, text := "✓ ", sValue.Bold(true), sSoft
 		if !h.Has(a) {
 			mark, name, text = "· ", sMuted, sMuted
 		}
@@ -658,22 +659,58 @@ func (m Model) heroAbilityNames(w int) string {
 
 func pct(f float64) int { return int(f*100 + 0.5) }
 
+var verb = regexp.MustCompile(`%[-+# 0-9.]*[a-zA-Z%]`)
+
+// stat renders a text with its words muted and its numbers bright.
+func stat(key string, args ...any) string { return statIn([]lipgloss.Style{sValue}, key, args...) }
+
+// statIn colors the i-th number with styles[i], or with the last style when there are fewer styles.
+func statIn(styles []lipgloss.Style, key string, args ...any) string {
+	tpl := lang.T(key)
+	var b strings.Builder
+	muted := func(s string) {
+		for i, line := range strings.Split(s, "\n") {
+			if i > 0 {
+				b.WriteString("\n")
+			}
+			if line != "" {
+				b.WriteString(sMuted.Render(line))
+			}
+		}
+	}
+	last, n := 0, 0
+	for _, loc := range verb.FindAllStringIndex(tpl, -1) {
+		muted(tpl[last:loc[0]])
+		st := styles[min(max(n-1, 0), len(styles)-1)]
+		if v := tpl[loc[0]:loc[1]]; v == "%%" {
+			b.WriteString(st.Render("%"))
+		} else {
+			st = styles[min(n, len(styles)-1)]
+			b.WriteString(st.Render(fmt.Sprintf(v, args[n])))
+			n++
+		}
+		last = loc[1]
+	}
+	muted(tpl[last:])
+	return b.String()
+}
+
 // heroCombat lists the numbers that decide a fight, from the same formulas the game uses.
 func (m Model) heroCombat() string {
 	h := m.g.Hero
-	s := "\n" + sSection.Render(lang.T("hero.combat")) + "\n" + lang.T("hero.atk", h.Atk()) + lang.T("hero.def", h.Def())
+	s := "\n" + sTitle.Render(lang.T("hero.combat")) + "\n" + stat("hero.atk", h.Atk()) + stat("hero.def", h.Def())
 	if sp := h.SpellAtk(); sp > 0 {
-		s += lang.T("hero.spell", sp)
+		s += statIn([]lipgloss.Style{sMP}, "hero.spell", sp)
 	}
-	s += lang.T("hero.rates", pct(h.MissChance()), pct(h.CritChance()))
+	s += stat("hero.rates", pct(h.MissChance()), pct(h.CritChance()))
 	if d := h.DodgeChance(); d > 0 {
-		s += lang.T("hero.dodge", pct(d))
+		s += stat("hero.dodge", pct(d))
 	}
-	s += lang.T("hero.speed", h.Spd(), game.StepsPerSec(h.Spd()))
+	s += stat("hero.speed", h.Spd(), game.StepsPerSec(h.Spd()))
 	if r := h.ManaPerStep(); r > 0 {
-		s += lang.T("hero.mana_regen", r)
+		s += statIn([]lipgloss.Style{sMP}, "hero.mana_regen", r)
 	}
-	return s + lang.T("hero.potions_heal", h.Potions, h.PotionHeal())
+	return s + statIn([]lipgloss.Style{sPotion, sHPGood}, "hero.potions_heal", h.Potions, h.PotionHeal())
 }
 
 func (m Model) heroPanel(w, maxH int, tab bool) string {
@@ -682,7 +719,7 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s %s\n", sSection.Render(h.Class.Name()), lang.T("hero.level", h.Level))
 	wrap := lipgloss.NewStyle().Width(w)
-	b.WriteString(wrap.Render(lang.T("hero.attrs", h.Attr(game.Str), h.Attr(game.Dex), h.Attr(game.Int), h.Attr(game.Con))) + "\n")
+	b.WriteString(wrap.Render(stat("hero.attrs", h.Attr(game.Str), h.Attr(game.Dex), h.Attr(game.Int), h.Attr(game.Con))) + "\n")
 	fmt.Fprintf(&b, "HP  %s\n", numBar(h.HP, h.MaxHP(), w-4, hpStyle(h.HP, h.MaxHP())))
 	if h.MaxMP() > 0 {
 		fmt.Fprintf(&b, "MP  %s\n", numBar(h.MP, h.MaxMP(), w-4, sMP))
@@ -691,14 +728,14 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 	if tab {
 		b.WriteString(m.heroCombat())
 	} else {
-		b.WriteString(lang.T("hero.atk_def", h.Atk(), h.Def()))
+		b.WriteString(stat("hero.atk_def", h.Atk(), h.Def()))
 		if sp := h.SpellAtk(); sp > 0 {
-			b.WriteString(lang.T("hero.spell", sp))
+			b.WriteString(statIn([]lipgloss.Style{sMP}, "hero.spell", sp))
 		}
-		b.WriteString(lang.T("hero.speed", h.Spd(), game.StepsPerSec(h.Spd())))
-		b.WriteString(lang.T("hero.potions_gold", h.Potions, g.Gold))
+		b.WriteString(stat("hero.speed", h.Spd(), game.StepsPerSec(h.Spd())))
+		b.WriteString(statIn([]lipgloss.Style{sPotion, sGold}, "hero.potions_gold", h.Potions, g.Gold))
 	}
-	b.WriteString("\n" + sSection.Render(lang.T("hero.equipment")) + "\n")
+	b.WriteString("\n" + sTitle.Render(lang.T("hero.equipment")) + "\n")
 	for s, it := range h.Equip {
 		if it == nil {
 			b.WriteString(sMuted.Render(truncate(lang.T("hero.no_slot", game.Slot(s).Glyph(), lang.T(slotNames[s])), w)) + "\n")
@@ -710,8 +747,8 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 		b.WriteString(m.heroAbilityNames(w))
 	}
 	if e := g.Exp; e != nil {
-		fmt.Fprintf(&b, "\n%s %s", sSection.Render(lang.T("hero.expedition")), lang.T("hero.exp_floor", e.Num, e.Level.Depth))
-		b.WriteString(lang.T("hero.exp_loot", e.Gold, len(e.Bag), g.BagCap()))
+		fmt.Fprintf(&b, "\n%s %s", sTitle.Render(lang.T("hero.expedition")), stat("hero.exp_floor", e.Num, e.Level.Depth))
+		b.WriteString(statIn([]lipgloss.Style{sGold, sValue}, "hero.exp_loot", e.Gold, len(e.Bag), g.BagCap()))
 		if e.Retreating {
 			b.WriteString(sWarn.Render(lang.T("hero.retreating")) + "\n")
 		}
@@ -720,8 +757,8 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 	if tab {
 		records = "hero.records_tab"
 	}
-	bottom := "\n" + sSection.Render(lang.T("hero.records")) + "\n" +
-		lang.T(records, g.MaxDepth, g.BossKills, g.Returns, g.Deaths)
+	bottom := "\n" + sTitle.Render(lang.T("hero.records")) + "\n" +
+		stat(records, g.MaxDepth, g.BossKills, g.Returns, g.Deaths)
 	if e := g.Exp; e != nil {
 		avail := maxH - strings.Count(b.String(), "\n") - strings.Count(bottom, "\n")
 		shown, used := 0, 0
