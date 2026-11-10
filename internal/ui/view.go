@@ -360,13 +360,36 @@ func flicker(frame, salt int64) float64 {
 	return float64(x%1000) / 1000
 }
 
+var fireCache struct {
+	frame int64
+	art   string
+}
+
 // campfire draws a small dungeon room lit by the fire the hero rests beside.
 func (m Model) campfire() string {
 	const w, h = 23, 9
 	fx, fy := w/2, h/2
 	frame := m.lastTick.UnixMilli() / campfireFrameMs
+	if fireCache.art != "" && fireCache.frame == frame {
+		return fireCache.art
+	}
 	radius := 5.5 + flicker(frame, 0)*1.5
-	var b strings.Builder
+	var b, run strings.Builder
+	var runStyle lipgloss.Style
+	runKey := ""
+	flush := func() {
+		if run.Len() > 0 {
+			b.WriteString(runStyle.Render(run.String()))
+			run.Reset()
+		}
+	}
+	put := func(key string, st lipgloss.Style, ch string) {
+		if key != runKey {
+			flush()
+			runKey, runStyle = key, st
+		}
+		run.WriteString(ch)
+	}
 	for y := range h {
 		for x := range w {
 			ch := '.'
@@ -381,21 +404,24 @@ func (m Model) campfire() string {
 			switch {
 			case x == fx && y == fy:
 				c := fireColors[int(flicker(frame, 1)*float64(len(fireColors)))]
-				b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color(c)).Bold(true).Render("&"))
+				put("fire", lipgloss.NewStyle().Foreground(lipgloss.Color(c)).Bold(true), "&")
 			case x == fx-1 && y == fy:
-				b.WriteString(sHero.Render("@"))
+				put("hero", sHero, "@")
 			case d > radius:
-				b.WriteString(sDark.Render(string(ch)))
+				put("dark", sDark, string(ch))
 			default:
 				c := lightColors[min(len(lightColors)-1, int(d/radius*float64(len(lightColors))))]
-				b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color(c)).Render(string(ch)))
+				put(c, lipgloss.NewStyle().Foreground(lipgloss.Color(c)), string(ch))
 			}
 		}
+		flush()
+		runKey = ""
 		if y < h-1 {
 			b.WriteByte('\n')
 		}
 	}
-	return b.String()
+	fireCache.frame, fireCache.art = frame, b.String()
+	return fireCache.art
 }
 
 func (m Model) statsLine(w int) string {
