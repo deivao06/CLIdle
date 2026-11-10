@@ -124,6 +124,9 @@ func (it *Item) Title() string {
 
 func (it *Item) StatLabel() string {
 	s := fmt.Sprintf("%s +%d", lang.T([...]string{"stat.atk", "stat.def", "stat.spd", "stat.def", "stat.def"}[it.Slot]), it.Bonus())
+	if it.Upgrade > 0 {
+		s += lang.T("stat.base", it.Base)
+	}
 	for _, f := range it.Effects {
 		s += ", " + f.Label()
 	}

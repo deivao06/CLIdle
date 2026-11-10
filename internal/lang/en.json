@@ -160,6 +160,7 @@
   "stat.atk": "Atk",
   "stat.def": "Def",
   "stat.spd": "Spd",
+  "stat.base": " (base %d)",
   "trait.str": "Strength",
   "trait.dex": "Dexterity",
   "trait.int": "Intelligence",

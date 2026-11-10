@@ -160,6 +160,7 @@
   "stat.atk": "Atq",
   "stat.def": "Def",
   "stat.spd": "Vel",
+  "stat.base": " (base %d)",
   "trait.str": "Força",
   "trait.dex": "Destreza",
   "trait.int": "Inteligência",
