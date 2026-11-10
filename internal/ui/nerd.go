@@ -78,7 +78,7 @@ func (m Model) nerdRows() []prepRow {
 	sec = lang.T("nerd.section.loot")
 	add("gold_piles", fmt.Sprintf("%d–%d", game.GoldPilesMin, game.GoldPilesMax))
 	add("gold_pile", lang.T("nerd.growth.value", num(game.GoldPerPile(1)), ratio(game.GoldPerPile(11), game.GoldPerPile(10))))
-	add("gold_kill", lang.T("nerd.gold_kill.value"))
+	add("gold_kill", lang.T("nerd.gold_kill.value", game.GoldKillDiv))
 	add("items", fmt.Sprintf("%d–%d", game.ItemsMin, game.ItemsMax))
 	add("potion_chance", nerdPct(game.PotionChance))
 	for r := game.Magic; r < game.NumRarities; r++ {

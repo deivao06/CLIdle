@@ -48,7 +48,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 ## Expedições
 
 - O herói entra na dungeon, sai quando quiser e guarda o loot.
-- **Morte:** perde metade do ouro e os itens achados na expedição; mantém nível/XP, poções e o equipamento que saiu da cidade. Volta para a cidade.
+- **Morte:** perde 75% do ouro (`DeathKeepGoldPct`) e os itens achados na expedição; mantém nível/XP, poções e o equipamento que saiu da cidade. Volta para a cidade.
 - **Volta:** o herói sai pela escada `<` do andar atual. Na retirada (qualquer motivo) ele foge: ignora combate, só se cura (poção, magia de cura, segundo fôlego) e ataca apenas o monstro que bloqueia o único caminho; o ouro é guardado e a mochila é vendida automaticamente.
 - **Retirada automática:** regras Recuar nas táticas (padrão: mochila cheia; sem poções com HP < 30%; "último andar" é uma regra "terminou o andar ≥ N → Recuar", que vale ao chegar na escada `>`).
 - **Início:** o jogo começa na cidade; a expedição parte com `e` ou "Partir agora" na lista da cidade.
@@ -68,7 +68,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 ## Dungeon
 
 - Andares infinitos, cada vez mais fundos. Chefe a cada 10 andares.
-- Ouro: 1 a 3 pilhas por andar. Itens vendem por 60% do valor (o valor cheio é a base do preço da loja e do ferreiro), mais 20% do ouro gasto no ferreiro naquele item.
+- Ouro: 1 a 3 pilhas por andar (+8% por andar), mais o XP ÷ 8 de cada monstro morto, que é a maior fonte. O dono achou o ouro fácil demais (2026-11-10): eram XP ÷ 2, +12% por andar e metade do ouro guardada na morte. Itens vendem por 60% do valor (o valor cheio é a base do preço da loja e do ferreiro), mais 20% do ouro gasto no ferreiro naquele item.
 - Monstros crescem de forma linear: +45% dos atributos-base por andar abaixo do primeiro andar em que aparecem (`MonsterScale = 1 + 0,45·n`). A curva exponencial anterior (15%/12% por andar) criava uma parede no andar 36–45; ver `docs/balance-audit/`.
 - Geração estilo Rogue: salas retangulares + corredores, escada `>`.
 - O chefe fica na sala da escada `>`; só dá para descer depois de derrotá-lo. Ele deixa cair um item raro (50%), épico (`BossEpicChance`, 47%) ou lendário (`BossLegendaryChance`, 3%). O jogo é hardcore: épicos e lendários são raros (chão: 1% e 0,2% por item; a loja nunca vende lendário).

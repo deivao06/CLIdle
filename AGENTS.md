@@ -87,7 +87,7 @@ web/                    versão de navegador (WASM + xterm.js): main.go (ponte J
 - **Morte:** restaura `StartEquip`, perde ouro e mochila da expedição; mantém poções e XP.
 - **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item raro, épico ou lendário (`BossEpicChance`, `BossLegendaryChance`) e libera atalho para `andar+1`. Dorme até o herói encostar (`BossWakeDist`). O herói não estima a luta com o chefe (o dono quis que ele não soubesse): não há recuo por chefe forte. Recuando (por qualquer motivo), só rodam as regras acima do recuo (por padrão, a cura) e ele anda para `<`; ataca apenas se um monstro bloqueia o único caminho.
 - **Poção:** regras de tática. O herói nunca sabe se um golpe vai matá-lo (não há condição de golpe letal).
-- **Morte:** `LastDeath` guarda as últimas linhas do log (aba Herói); metade do ouro da expedição fica (`DeathKeepGoldPct`).
+- **Morte:** `LastDeath` guarda as últimas linhas do log (aba Herói); 25% do ouro da expedição fica (`DeathKeepGoldPct`).
 
 ## Testando a UI
 

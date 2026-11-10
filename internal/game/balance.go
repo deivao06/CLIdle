@@ -61,7 +61,7 @@ const (
 	BossEpicChance      = 0.47
 	BossLegendaryChance = 0.03
 
-	DeathKeepGoldPct = 50
+	DeathKeepGoldPct = 25
 	BigHitDiv        = 4
 	DeathLogLines    = 6
 )
@@ -103,9 +103,11 @@ const (
 	UpgradeRefundPct  = 20
 )
 
-func GoldPerPile(depth int) float64 { return 5 * math.Pow(1.12, float64(depth-1)) }
+func GoldPerPile(depth int) float64 { return 5 * math.Pow(1.08, float64(depth-1)) }
 
-func GoldPerKill(xp int) int { return max(1, xp/2) }
+const GoldKillDiv = 8
+
+func GoldPerKill(xp int) int { return max(1, xp/GoldKillDiv) }
 
 var EffectCount = [...]int{Rare: 1, Epic: 2, Legendary: 3}
 
