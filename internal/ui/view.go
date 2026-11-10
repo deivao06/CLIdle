@@ -782,7 +782,7 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 	return b.String() + bottom
 }
 
-var helpPages = []string{"help.page.symbols", "help.page.how", "help.page.tactics", "help.page.attrs", "help.page.classes"}
+var helpPages = []string{"help.page.symbols", "help.page.how", "help.page.tactics", "help.page.attrs", "help.page.classes", newsPage}
 
 func (m Model) viewHelp(h int) string {
 	var tabs []string
@@ -802,7 +802,15 @@ func (m Model) viewHelp(h int) string {
 	}
 	w := min(m.w, 80)
 	var lines []string
-	for _, p := range strings.Split(helpText(helpPages[m.helpPage]), "\n") {
+	text := helpText(helpPages[m.helpPage])
+	if helpPages[m.helpPage] == newsPage {
+		text = m.newsText()
+	}
+	for _, p := range strings.Split(text, "\n") {
+		if title, ok := strings.CutPrefix(p, "## "); ok {
+			lines = append(lines, sTitle.Render(truncate(title, w)))
+			continue
+		}
 		if title, ok := strings.CutPrefix(p, "# "); ok {
 			lines = append(lines, sSection.Render(truncate(title, w)))
 			continue
@@ -819,6 +827,9 @@ func (m Model) viewHelp(h int) string {
 
 // helpText is a help page; the classes page is built from the ability table so it never goes stale.
 func helpText(page string) string {
+	if page == newsPage {
+		return ""
+	}
 	if page != "help.page.classes" {
 		return lang.T(page + ".text")
 	}

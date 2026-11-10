@@ -273,7 +273,7 @@ func (m Model) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 		for i := range helpPages {
 			if hit(fmt.Sprintf("help:%d", i), msg) {
 				m.helpPage, m.helpTop = i, 0
-				return m, nil
+				return m, m.newsCmd()
 			}
 		}
 		return m, nil

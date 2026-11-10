@@ -81,6 +81,7 @@ type Game struct {
 	BagLevel   int
 	LastDeath  []LogEntry
 	DeathScene *DeathScene `json:",omitempty"`
+	SeenNews   string      `json:",omitempty"`
 
 	Events   []Event `json:"-"`
 	strong   bool

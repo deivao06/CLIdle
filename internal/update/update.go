@@ -25,6 +25,8 @@ var Version = "dev"
 
 var API = "https://api.github.com/repos/deivao06/CLIdle/releases/latest"
 
+var NotesAPI = "https://api.github.com/repos/deivao06/CLIdle/releases?per_page=10"
+
 // Site is the page URL in the browser build, which reads the version from the site instead of GitHub.
 var Site string
 
@@ -129,6 +131,35 @@ func Latest(ctx context.Context) (*Release, error) {
 		}
 	}
 	return r, nil
+}
+
+type Note struct {
+	Version, Date, Body string
+}
+
+// Notes fetches the notes of the latest published releases, newest first.
+func Notes(ctx context.Context) ([]Note, error) {
+	resp, err := get(ctx, NotesAPI)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var data []struct {
+		Tag       string `json:"tag_name"`
+		Published string `json:"published_at"`
+		Body      string `json:"body"`
+		Draft     bool   `json:"draft"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return nil, err
+	}
+	var notes []Note
+	for _, d := range data {
+		if !d.Draft {
+			notes = append(notes, Note{d.Tag, d.Published[:min(10, len(d.Published))], d.Body})
+		}
+	}
+	return notes, nil
 }
 
 // Check returns the latest release when it is newer than this build and has a binary for it.

@@ -50,6 +50,7 @@ internal/ui/            Bubble Tea
   tactics.go            seção Táticas da Preparação e editor de regra (`ruleRows`, `Model.edit`)
   style.go              estilos/cores
   updater.go            aviso de versão nova, tecla u, confirmação e reinício (checa ao chegar na cidade, máx. 1×/hora)
+  news.go               página Novidades da ajuda: notas das releases do GitHub (`update.Notes`); abre sozinha uma vez por versão (`Game.SeenNews`, jogo novo não abre)
   nerd.go               aba 5 Nerd (opção "Coisas de nerd" na Config, Game.Nerd, zero = desligada): lê os números de balance.go ao vivo, um texto por linha em lang
   touch.go              mouse/toque (bubblezone: zonas `tab:`, `row:i.j`, `val`, `btn:`, `key:`, `help:`, `class:` viram teclas) e layout estreito (< 60 colunas): status no topo, ações + abas embaixo
   yield*.go             no navegador, a simulação offline pausa 1 ms por minuto simulado para a página redesenhar

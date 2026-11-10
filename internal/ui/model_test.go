@@ -5,9 +5,11 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"clidle/internal/game"
 	"clidle/internal/lang"
+	"clidle/internal/update"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -241,5 +243,25 @@ func TestAddAndDeleteRule(t *testing.T) {
 	m = press(m, "enter", "y")
 	if len(g.Config.Gambits) != n || m.edit != 0 {
 		t.Fatalf("rules %d edit %d after delete", len(g.Config.Gambits), m.edit)
+	}
+}
+
+func TestNewsOpensOnceAfterAnUpdate(t *testing.T) {
+	old := update.Version
+	defer func() { update.Version = old }()
+	update.Version = "v9.9.9"
+	g := game.New(1, game.Warrior)
+	if m := NewWithSave(g, "", 0, true); m.newsAuto || g.SeenNews != update.Version {
+		t.Fatal("a fresh game should not open the news")
+	}
+	g.SeenNews = "v9.9.8"
+	var tm tea.Model = NewWithSave(g, "", 0, false)
+	tm, _ = tm.Update(newsMsg{notes: []update.Note{{Version: "v9.9.9", Body: "* new thing"}}})
+	if m := tm.(Model); !m.help || helpPages[m.helpPage] != newsPage || !strings.Contains(m.newsText(), "new thing") {
+		t.Fatal("news page did not open with the notes")
+	}
+	tm, _ = tm.Update(tickMsg(time.Now()))
+	if g.SeenNews != update.Version || NewWithSave(g, "", 0, false).newsAuto {
+		t.Fatalf("seen %q, the news would open again", g.SeenNews)
 	}
 }

@@ -72,6 +72,13 @@ type Model struct {
 	updateErr   string
 	updateErrAt time.Time
 	restart     bool
+
+	news        []update.Note
+	newsErr     error
+	newsAt      time.Time
+	newsLoading bool
+	newsAuto    bool
+	newsSeen    bool
 }
 
 func (m *Model) ask(text string, do func(*Model)) {
@@ -90,6 +97,11 @@ func NewWithSave(g *game.Game, path string, away time.Duration, fresh bool) Mode
 	m.savePath = path
 	m.away = away
 	m.catching = away >= wakeGap
+	if fresh {
+		g.SeenNews = update.Version
+	}
+	m.newsAuto = wantsNews(g.SeenNews, fresh)
+	m.newsLoading = m.newsAuto
 	return m
 }
 
@@ -127,10 +139,14 @@ func tick() tea.Cmd {
 }
 
 func (m Model) Init() tea.Cmd {
+	cmds := []tea.Cmd{tick()}
 	if m.catching {
-		return tea.Batch(m.catchUp(m.away), tick())
+		cmds = append(cmds, m.catchUp(m.away))
 	}
-	return tick()
+	if m.newsAuto {
+		cmds = append(cmds, fetchNews())
+	}
+	return tea.Batch(cmds...)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -160,6 +176,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.lastTick = now
 			return m, tick()
 		}
+		if m.newsSeen {
+			m.g.SeenNews, m.newsSeen = update.Version, false
+			m.save(now)
+		}
 		gap := now.Sub(m.lastTick)
 		if gap >= wakeGap {
 			m.lastTick = now
@@ -182,6 +202,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.updateFound(msg.r)
 	case updateDoneMsg:
 		return m, m.updateDone(msg.err)
+	case newsMsg:
+		m.newsArrived(msg)
 	case tea.KeyMsg:
 		if m.catching {
 			return m, nil
@@ -261,7 +283,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
-	return m, nil
+	return m, m.newsCmd()
 }
 
 func (m *Model) helpKey(key string) {
