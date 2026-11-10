@@ -7,6 +7,7 @@ import (
 
 	"clidle/internal/game"
 	"clidle/internal/lang"
+	"clidle/internal/update"
 
 	"github.com/charmbracelet/lipgloss"
 	zone "github.com/lrstanley/bubblezone"
@@ -294,7 +295,11 @@ func (m Model) viewTownList(w, h int) string {
 }
 
 func (m Model) viewSettings(h int) string {
-	return m.viewRows([]string{sMuted.Render(m.keysHint("settings.keys"))}, m.settingsRows(), m.w, h)
+	head := []string{sMuted.Render(m.keysHint("settings.keys"))}
+	if m.narrow() {
+		head = append(head, sMuted.Render(lang.T("settings.version", update.Version)))
+	}
+	return m.viewRows(head, m.settingsRows(), m.w, h)
 }
 
 // rowLines styles a row; the selected adjustable row shows ‹ value › so a tap on either side changes it.

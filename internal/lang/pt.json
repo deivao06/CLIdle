@@ -23,6 +23,7 @@
   "tab.settings": "Config",
   "settings.section.save": "Save",
   "settings.reset": "Resetar save",
+  "settings.version": "Versão %s",
   "settings.keys": "↑↓ escolher · ←→ ajustar · enter alternar",
   "tab.hero": "Herói",
 
