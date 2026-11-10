@@ -58,6 +58,9 @@ const (
 
 	BossWakeDist = 1
 
+	BossEpicChance      = 0.47
+	BossLegendaryChance = 0.03
+
 	DeathKeepGoldPct = 50
 	BigHitDiv        = 4
 	DeathLogLines    = 6
@@ -114,7 +117,7 @@ var EffectRange = [NumEffects][2]int{
 	XPBoost:     {5, 15},
 }
 
-var RarityChance = [...]float64{Magic: 0.2, Rare: 0.08, Epic: 0.03, Legendary: 0.01}
+var RarityChance = [...]float64{Magic: 0.2, Rare: 0.08, Epic: 0.01, Legendary: 0.002}
 
 var rarityMult = [...]float64{1, 1.5, 1.85, 2.3, 2.9}
 

@@ -152,17 +152,17 @@ func (f *FloorItem) Glyph() rune {
 	return f.Item.Slot.Glyph()
 }
 
-func newItem(rng *RNG, depth int) *Item {
-	rarity := Common
+func newItem(rng *RNG, depth int) *Item { return newItemOf(rng, depth, rollRarity(rng, Legendary)) }
+
+func rollRarity(rng *RNG, top Rarity) Rarity {
 	roll := rng.Float()
-	for r := Legendary; r > Common; r-- {
+	for r := top; r > Common; r-- {
 		if roll < RarityChance[r] {
-			rarity = r
-			break
+			return r
 		}
 		roll -= RarityChance[r]
 	}
-	return newItemOf(rng, depth, rarity)
+	return Common
 }
 
 func newItemOf(rng *RNG, depth int, rarity Rarity) *Item {

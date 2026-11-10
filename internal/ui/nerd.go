@@ -72,6 +72,8 @@ func (m Model) nerdRows() []prepRow {
 	add("boss_spd", fmt.Sprint(game.BossMinSpd))
 	add("boss_dex", fmt.Sprintf("+%d", game.BossDexBonus))
 	add("boss_wake", fmt.Sprint(game.BossWakeDist))
+	add("boss_epic", nerdPct(game.BossEpicChance))
+	add("boss_legendary", nerdPct(game.BossLegendaryChance))
 
 	sec = lang.T("nerd.section.loot")
 	add("gold_piles", fmt.Sprintf("%d–%d", game.GoldPilesMin, game.GoldPilesMax))

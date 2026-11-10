@@ -130,3 +130,15 @@ func TestAutoStopsAfterDeathLimit(t *testing.T) {
 		t.Fatal("turning auto back on did not reset the count")
 	}
 }
+
+func TestShopNeverSellsLegendaries(t *testing.T) {
+	g := New(1, Warrior)
+	for range 2000 {
+		g.refreshShop()
+		for _, it := range g.Shop {
+			if it.Rarity == Legendary {
+				t.Fatal("shop rolled a legendary")
+			}
+		}
+	}
+}

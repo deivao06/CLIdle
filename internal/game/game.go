@@ -497,7 +497,14 @@ func (g *Game) killBoss(m *Monster, r *round) {
 	e := g.Exp
 	g.BossKills++
 	depth := e.Level.Depth
-	drop := newItemOf(e.RNG, depth, Epic)
+	rarity := Rare
+	switch roll := e.RNG.Float(); {
+	case roll < BossLegendaryChance:
+		rarity = Legendary
+	case roll < BossLegendaryChance+BossEpicChance:
+		rarity = Epic
+	}
+	drop := newItemOf(e.RNG, depth, rarity)
 	e.Level.Items = append(e.Level.Items, &FloorItem{Pos: m.Pos, Item: drop})
 	text := lang.T("log.boss_dead", lang.T(m.Info().Name), drop.Title())
 	if !slices.Contains(g.ShortcutList(), depth+1) {
