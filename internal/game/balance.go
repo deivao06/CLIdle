@@ -97,6 +97,7 @@ const (
 	ItemsMin          = 0
 	ItemsMax          = 2
 	UpgradeDivisor    = 10
+	UpgradeMax        = 10
 	ItemValuePerBonus = 4
 	SellPct           = 60
 	UpgradeRefundPct  = 20
@@ -254,7 +255,8 @@ const (
 )
 
 func UpgradeCost(it *Item, level int) int {
-	return int(float64(it.Value()+10) * math.Pow(1.6, float64(level)))
+	value := (it.ForgeBase() + level*it.UpgradeStep()) * ItemValuePerBonus * (int(it.Rarity) + 1)
+	return int(float64(value+10) * math.Pow(1.6, float64(level)))
 }
 
 var trainBase = [NumTraits]float64{Str: 40, Dex: 120, Int: 40, Con: 30}

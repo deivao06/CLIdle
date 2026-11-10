@@ -142,3 +142,20 @@ func TestShopNeverSellsLegendaries(t *testing.T) {
 		}
 	}
 }
+
+func TestSmithIgnoresRarityAndStopsAtTheMax(t *testing.T) {
+	g := New(1, Warrior)
+	common := &Item{Slot: Weapon, Base: 38}
+	legend := &Item{Slot: Weapon, Rarity: Legendary, Base: 110}
+	if common.UpgradeStep() != legend.UpgradeStep() || UpgradeCost(legend, 3) <= UpgradeCost(common, 3) {
+		t.Fatalf("steps %d/%d", common.UpgradeStep(), legend.UpgradeStep())
+	}
+	g.Hero.Equip[Weapon] = legend
+	g.Gold = 1 << 40
+	for range UpgradeMax + 3 {
+		g.Upgrade(Weapon)
+	}
+	if legend.Upgrade != UpgradeMax || legend.Bonus() != 110+UpgradeMax*legend.UpgradeStep() {
+		t.Fatalf("upgrade +%d bonus %d", legend.Upgrade, legend.Bonus())
+	}
+}

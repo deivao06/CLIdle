@@ -80,10 +80,21 @@ type Item struct {
 	Name    string
 	Base    int
 	Upgrade int
+	Forged  int `json:",omitempty"`
 	Effects []ItemEffect
 }
 
-func (it *Item) Bonus() int { return it.Base + it.Upgrade*max(1, it.Base/UpgradeDivisor) }
+func (it *Item) Bonus() int { return it.Base + it.Forged }
+
+// ForgeBase is the base the item would have as a common, which the blacksmith works from.
+func (it *Item) ForgeBase() int {
+	if it.Slot == Boots {
+		return it.Base
+	}
+	return max(1, int(float64(it.Base)/rarityMult[it.Rarity]+0.5))
+}
+
+func (it *Item) UpgradeStep() int { return max(1, it.ForgeBase()/UpgradeDivisor) }
 
 func (it *Item) Value() int { return it.Bonus() * ItemValuePerBonus * (int(it.Rarity) + 1) }
 

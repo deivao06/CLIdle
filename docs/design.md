@@ -103,7 +103,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 ## Cidade (v1)
 
 - Loja: poções e equipamento básico.
-- Ferreiro: melhora equipamento.
+- Ferreiro: melhora equipamento até +10 (`UpgradeMax`). Cada nível soma 10% da base do item **como se fosse comum** e o preço usa essa base multiplicada pela raridade (×1 comum a ×5 lendário, como o valor de venda): a raridade dá base e efeitos, o ferreiro dá a progressão do andar (o dono achou o upgrade forte demais em bases altas; sem limite, fundo o ouro cresce mais rápido que o preço).
 - Mochila: começa com 8 vagas; cada upgrade dá +2, até 24. Fica na loja.
 - Moeda única: ouro.
 
@@ -136,6 +136,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Lista padrão:** segundo fôlego (HP < 30%), cura e poção (HP < 40%), recuar com mochila cheia, recuar sem poções com HP < 30%, magias (auto), bênção e ataque com inimigo ao lado. É o herói antigo sem a poção antes de golpe letal (o dono tirou essa regra); com ela, a lista foi conferida idêntica ao herói antigo em 56 simulações. "Restaurar táticas padrão" volta para ela.
 - **Regras por nível:** a lista padrão só traz as habilidades já liberadas. Ao liberar uma habilidade ativa no nível, a regra padrão dela entra onde estaria na lista padrão, com uma linha no log; se já existe regra com a mesma ação, nada entra. Só acontece na hora de liberar: apagar a regra depois não a traz de volta. O mago continua com magias (auto), que já usa cada magia ao liberar.
 - **Save v6:** as opções antigas (beber poção com HP <, recuar sem poção, recuar com mochila cheia, último andar) viram as regras padrão com os mesmos números.
+- **Save v8:** o bônus do ferreiro fica guardado no item (`Item.Forged`); o passo converte os upgrades antigos com a regra antiga (10% da base por nível), então nada encolhe.
 - **Save v7:** apaga as regras Explorar, Descer e Descansar, as de "terminou o andar" sem Recuar e as com "um golpe pode me matar". O herói padrão foi conferido idêntico em 56 simulações.
 - **Sem regra que se aplique,** o herói anda pelo modo da expedição (nunca fica travado). O `r` do jogador continua acima de tudo.
 - O herói **não recupera HP** na dungeon, só mana: por isso existe a saída por tempo.

@@ -42,6 +42,9 @@ func migrate(f *saveFile, old *legacy) {
 		f.Game.Config.Gambits = validGambits(f.Game.Config.Gambits)
 		f.Game.TacticsChanged()
 	}
+	if f.Version < 8 {
+		migrateV8Forged(f.Game, q)
+	}
 	f.Version = saveVersion
 }
 
@@ -104,5 +107,12 @@ func migrateV4Refund(g *Game, q *queueV3) {
 	}
 	for i := range q.BagQueued {
 		g.Gold += BagCost(g.BagLevel + i)
+	}
+}
+
+// migrateV8Forged keeps the blacksmith bonus v7 computed from the upgrade count, which v8 stores on the item.
+func migrateV8Forged(g *Game, q *queueV3) {
+	for _, it := range savedItems(g, q) {
+		it.Forged = it.Upgrade * max(1, it.Base/10)
 	}
 }

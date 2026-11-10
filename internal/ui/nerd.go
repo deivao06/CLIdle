@@ -116,6 +116,7 @@ func (m Model) nerdRows() []prepRow {
 	add("potion_price", fmt.Sprint(game.PotionPrice))
 	add("potion_sell", fmt.Sprint(game.PotionSellPrice))
 	add("upgrade", "1/"+fmt.Sprint(game.UpgradeDivisor))
+	add("upgrade_max", fmt.Sprintf("+%d", game.UpgradeMax))
 	big := &game.Item{Base: 1000}
 	add("upgrade_cost", lang.T("nerd.upgrade_cost.value", ratio(float64(game.UpgradeCost(big, 1)), float64(game.UpgradeCost(big, 0)))))
 	for t := range game.NumTraits {

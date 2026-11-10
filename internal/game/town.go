@@ -107,10 +107,11 @@ func (g *Game) UpgradeCost(s Slot) int {
 
 func (g *Game) Upgrade(s Slot) {
 	it := g.Hero.Equip[s]
-	if !g.InTown() || it == nil || !g.spend(g.UpgradeCost(s)) {
+	if !g.InTown() || it == nil || it.Upgrade >= UpgradeMax || !g.spend(g.UpgradeCost(s)) {
 		return
 	}
 	it.Upgrade++
+	it.Forged += it.UpgradeStep()
 	g.logf(LogGood, "%s", lang.T("log.smith_done", it.Title(), it.StatLabel()))
 }
 

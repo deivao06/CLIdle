@@ -114,3 +114,15 @@ func TestV4ManualEquipKeepsLoot(t *testing.T) {
 		t.Fatalf("keep loot %v err %v", got.Config.KeepLoot, err)
 	}
 }
+
+func TestV7UpgradesKeepTheirBonus(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := New(1, Warrior)
+	g.Hero.Equip[Weapon] = &Item{ID: 7, Slot: Weapon, Rarity: Legendary, Base: 110, Upgrade: 12}
+	raw, _ := json.Marshal(saveFile{7, time.Now(), g})
+	os.WriteFile(path, raw, 0o644)
+	got, _, err := Load(path)
+	if it := got.Hero.Equip[Weapon]; err != nil || it.Bonus() != 110+12*11 {
+		t.Fatalf("bonus %d err %v", it.Bonus(), err)
+	}
+}

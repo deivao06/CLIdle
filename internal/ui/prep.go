@@ -142,8 +142,14 @@ func (m Model) townRows() []prepRow {
 			rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: lang.T("hero.no_slot", s.Glyph(), lang.T(slotNames[s])), style: sMuted, desc: lang.T("town.no_slot.desc")})
 			continue
 		}
+		if it.Upgrade >= game.UpgradeMax {
+			text := lang.T("prep.smith_max", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade))
+			rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: rarityStyle(it.Rarity), desc: lang.T("town.smith_max.desc")})
+			continue
+		}
 		next := *it
 		next.Upgrade++
+		next.Forged += it.UpgradeStep()
 		cost := g.UpgradeCost(s)
 		text := lang.T("prep.smith_row", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade), next.StatLabel(), cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: m.priced(rarityStyle(it.Rarity), cost),
