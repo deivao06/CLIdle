@@ -248,6 +248,7 @@
   "log.stash": "You put %s (%s) in your bag.",
   "log.kill": "You kill the %s! +%d XP, +%d gold",
   "log.level_up": "You reach level %d!",
+  "log.tactic_added": "New tactic: %s",
   "log.boss_dead": "%s is defeated! It dropped %s.",
   "log.shortcut": " Shortcut to floor %d unlocked.",
   "log.death": "You were killed by the %s on floor %d. Lost %d gold and %d items, kept %d gold.",

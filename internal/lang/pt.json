@@ -248,6 +248,7 @@
   "log.stash": "Você guarda %s (%s) na mochila.",
   "log.kill": "Você mata o %s! +%d XP, +%d ouro",
   "log.level_up": "Você sobe para o nível %d!",
+  "log.tactic_added": "Nova tática: %s",
   "log.boss_dead": "%s foi derrotado! Deixou cair %s.",
   "log.shortcut": " Atalho para o andar %d liberado.",
   "log.death": "Você foi morto por um %s no andar %d. Perdeu %d de ouro e %d itens, guardou %d de ouro.",

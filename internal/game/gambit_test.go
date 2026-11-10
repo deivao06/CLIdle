@@ -238,3 +238,17 @@ func TestEveryOperatorCompares(t *testing.T) {
 		}
 	}
 }
+
+func TestUnlockingAnAbilityAddsItsRule(t *testing.T) {
+	g := New(1, Cleric)
+	if slices.ContainsFunc(g.Config.Gambits, func(gb Gambit) bool { return gb.Do == ActBless }) {
+		t.Fatal("bless rule before bless is unlocked")
+	}
+	g.Hero.Level = 4
+	r := &round{}
+	g.unlockGambits(3, r)
+	g.unlockGambits(3, r)
+	if !slices.Equal(g.Config.Gambits, DefaultGambits(Cleric)) || len(r.after) != 1 {
+		t.Fatalf("got %d log lines and %+v", len(r.after), g.Config.Gambits)
+	}
+}

@@ -192,6 +192,8 @@ func press(m Model, keys ...string) Model {
 
 func TestRuleEditorChangesAndClosesARule(t *testing.T) {
 	g := game.New(1, game.Warrior)
+	g.Hero.Level = 5
+	g.ResetGambits()
 	m := New(g)
 	m.w, m.h = 100, 30
 	m = press(m, "2")

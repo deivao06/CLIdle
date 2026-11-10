@@ -93,7 +93,7 @@ func New(seed uint64, c Class) *Game {
 		Hero:   NewHero(c),
 		Config: DefaultConfig(),
 	}
-	g.Config.Gambits = DefaultGambits(c)
+	g.Config.Gambits = heroGambits(g.Hero)
 	g.refreshShop()
 	g.logf(LogInfo, "%s", lang.T("log.welcome"))
 	return g
@@ -485,9 +485,10 @@ func (g *Game) hurt(m *Monster, d int, r *round) bool {
 	}
 	g.emit(Event{Kind: EventKill, Pos: m.Pos, Big: m.Boss})
 	e.Level.removeMonster(m)
-	if h.gainXP(xp) {
+	if old := h.Level; h.gainXP(xp) {
 		g.emit(Event{Kind: EventLevelUp, Pos: h.Pos})
 		r.after = append(r.after, LogEntry{Text: lang.T("log.level_up", h.Level), Kind: LogGood})
+		g.unlockGambits(old, r)
 	}
 	return true
 }

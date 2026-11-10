@@ -44,6 +44,6 @@ func (c Class) CanUse(it *Item) bool {
 func (g *Game) ChooseClass(c Class) {
 	if g.ExpNum == 0 {
 		g.Hero = NewHero(c)
-		g.Config.Gambits = DefaultGambits(c)
+		g.Config.Gambits = heroGambits(g.Hero)
 	}
 }

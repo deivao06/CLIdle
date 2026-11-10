@@ -171,6 +171,46 @@ func validGambits(gs []Gambit) []Gambit {
 // DefaultGambits is the default list without the rules class c can never use.
 func DefaultGambits(c Class) []Gambit { return classGambits(defaultV5(), c) }
 
+// heroGambits is the default list with only the abilities the hero has already unlocked.
+func heroGambits(h *Hero) []Gambit {
+	return slices.DeleteFunc(DefaultGambits(h.Class), func(gb Gambit) bool { return !gb.unlocked(h) })
+}
+
+func (gb Gambit) unlocked(h *Hero) bool {
+	ab, ok := actionAbility[gb.Do]
+	return !ok || h.Has(ab)
+}
+
+// unlockGambits adds the default rule of each ability unlocked since level old, next to the rules
+// that come before it in the default list; a rule the player already has for that action is kept.
+func (g *Game) unlockGambits(old int, r *round) {
+	h := g.Hero
+	defs := DefaultGambits(h.Class)
+	for i, gb := range defs {
+		ab, ok := actionAbility[gb.Do]
+		gs := g.Config.Gambits
+		if !ok || AbilityInfo[ab].Level <= old || !h.Has(ab) || len(gs) >= MaxGambits ||
+			slices.ContainsFunc(gs, func(o Gambit) bool { return o.Do == gb.Do }) {
+			continue
+		}
+		at := 0
+		for j, o := range gs {
+			if slices.ContainsFunc(defs[:i], func(d Gambit) bool { return d.Do == o.Do }) {
+				at = j + 1
+			}
+		}
+		g.Config.Gambits = slices.Insert(gs, at, gb)
+		if e := g.Exp; e != nil {
+			for _, idx := range []*int{&e.ActiveRule, &e.RetreatRule, &e.Disarmed} {
+				if *idx > at {
+					*idx++
+				}
+			}
+		}
+		r.after = append(r.after, LogEntry{Text: lang.T("log.tactic_added", gb.Label()), Kind: LogGood})
+	}
+}
+
 func classGambits(gs []Gambit, c Class) []Gambit {
 	return slices.DeleteFunc(slices.Clone(gs), func(gb Gambit) bool { return !gb.Fits(c) })
 }
@@ -653,7 +693,7 @@ func (g *Game) MoveGambit(i, d int) int {
 }
 
 func (g *Game) ResetGambits() {
-	g.Config.Gambits = DefaultGambits(g.Hero.Class)
+	g.Config.Gambits = heroGambits(g.Hero)
 	g.TacticsChanged()
 }
 
