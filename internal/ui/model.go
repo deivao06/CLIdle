@@ -41,6 +41,9 @@ type Model struct {
 	edit     int
 	editBack int
 	heroTop  int
+	listTop  int
+	listFree bool
+	shown    *scrolled
 	lastTick time.Time
 	savePath string
 	lastSave time.Time
@@ -86,7 +89,7 @@ func (m *Model) ask(text string, do func(*Model)) {
 }
 
 func New(g *game.Game) Model {
-	return Model{g: g, lastTick: time.Now(), lastSave: time.Now(), progress: &atomic.Int64{},
+	return Model{g: g, lastTick: time.Now(), lastSave: time.Now(), progress: &atomic.Int64{}, shown: &scrolled{},
 		lastDeaths: g.Deaths, lastBosses: g.BossKills, crt: g.CRT}
 }
 
@@ -158,6 +161,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.w, m.h = msg.Width, msg.Height
 	case tea.MouseMsg:
 		return m.mouse(msg)
+	case ScrollMsg:
+		if !m.catching {
+			m.scroll(int(msg))
+		}
 	case catchUpDoneMsg:
 		m.catching = false
 		m.g.Events = nil
@@ -229,6 +236,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.confirmDo = nil
 			}
 			return m, nil
+		}
+		if k := msg.String(); len(k) == 1 && k >= "1" && k <= "5" || k == "esc" {
+			m.listFree = false
 		}
 		switch msg.String() {
 		case "q", "ctrl+c":
@@ -321,11 +331,17 @@ func (m *Model) prepKey(key string) {
 	rows := m.rows()
 	m.cursor = clamp(m.cursor, 0, len(rows)-1)
 	r := rows[m.cursor]
+	edit := m.edit
+	defer func() {
+		if m.edit != edit {
+			m.listFree = false
+		}
+	}()
 	switch key {
 	case "up", "k":
-		m.cursor = max(0, m.cursor-1)
+		m.cursor, m.listFree = max(0, m.cursor-1), false
 	case "down", "j":
-		m.cursor = min(len(rows)-1, m.cursor+1)
+		m.cursor, m.listFree = min(len(rows)-1, m.cursor+1), false
 	case "left", "h":
 		if r.adjust != nil {
 			r.adjust(-1)

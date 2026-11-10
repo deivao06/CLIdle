@@ -265,3 +265,26 @@ func TestNewsOpensOnceAfterAnUpdate(t *testing.T) {
 		t.Fatalf("seen %q, the news would open again", g.SeenNews)
 	}
 }
+
+func TestScrollMovesTheListNotTheCursor(t *testing.T) {
+	m := New(game.New(1, game.Warrior))
+	m.w, m.h = 45, 20
+	m = press(m, "4")
+	m.g.Nerd = true
+	m = press(m, "5")
+	view := m.View()
+	next, _ := m.Update(ScrollMsg(6))
+	m = next.(Model)
+	if m.cursor != 0 || m.View() == view || m.shown.top != 6 {
+		t.Fatalf("cursor %d top %d", m.cursor, m.shown.top)
+	}
+	next, _ = m.Update(ScrollMsg(-100))
+	m = next.(Model)
+	if m.View(); m.shown.top != 0 {
+		t.Fatalf("top %d after scrolling past the start", m.shown.top)
+	}
+	m = press(m, "down")
+	if m.listFree || m.cursor != 1 {
+		t.Fatal("arrow keys should follow the cursor again")
+	}
+}

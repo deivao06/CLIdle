@@ -91,6 +91,7 @@ func (m Model) view() string {
 	case m.tab == tabHero:
 		lines := m.heroLines()
 		top := clamp(m.heroTop, 0, max(0, len(lines)-bodyH))
+		*m.shown = scrolled{top, max(0, len(lines)-bodyH)}
 		shown := lines[top:min(len(lines), top+bodyH)]
 		if top+bodyH < len(lines) {
 			shown[len(shown)-1] = sMuted.Render(lang.T("hero.more"))
@@ -824,6 +825,7 @@ func (m Model) viewHelp(h int) string {
 	foot := "\n" + sMuted.Render(truncate(lang.T("help.footer"), m.w))
 	bodyH := max(1, h-lipgloss.Height(head))
 	if m.helpPage == 0 {
+		*m.shown = scrolled{}
 		return head + m.viewSymbols(bodyH) + "\n" + sMuted.Render(truncate(lang.T("help.footer_symbols"), m.w))
 	}
 	w := min(m.w, 80)
@@ -844,6 +846,7 @@ func (m Model) viewHelp(h int) string {
 		lines = append(lines, hangWrap(p, w)...)
 	}
 	top := clamp(m.helpTop, 0, max(0, len(lines)-bodyH))
+	*m.shown = scrolled{top, max(0, len(lines)-bodyH)}
 	lines = lines[top:min(len(lines), top+bodyH)]
 	for len(lines) < bodyH {
 		lines = append(lines, "")

@@ -55,17 +55,24 @@
   window.addEventListener("scroll", () => { if (window.scrollY || window.scrollX) window.scrollTo(0, 0); });
 
   const el = document.getElementById("term");
-  let lastY = null, moved = 0;
+  let lastY = null, moved = 0, lines = 0, queued = false;
+  const flush = () => {
+    queued = false;
+    if (lines && window.clidle.scroll) window.clidle.scroll(lines);
+    lines = 0;
+  };
   el.addEventListener("touchstart", (e) => { lastY = e.touches[0].clientY; moved = 0; }, { capture: true, passive: true });
   el.addEventListener("touchmove", (e) => {
-    if (lastY === null || !window.clidle.input) return;
+    if (lastY === null || !window.clidle.scroll) return;
     const y = e.touches[0].clientY;
     moved += lastY - y;
     lastY = y;
     const row = el.clientHeight / term.rows;
-    while (Math.abs(moved) >= row) {
-      window.clidle.input(moved > 0 ? "\x1b[B" : "\x1b[A");
-      moved -= Math.sign(moved) * row;
+    const n = Math.trunc(moved / row);
+    if (n) {
+      lines += n;
+      moved -= n * row;
+      if (!queued) { queued = true; requestAnimationFrame(flush); }
     }
     e.preventDefault();
   }, { capture: true, passive: false });

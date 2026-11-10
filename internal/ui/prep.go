@@ -359,7 +359,12 @@ func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {
 		}
 	}
 	avail := max(1, h-len(head)-len(foot))
-	top := clamp(cursorLine-avail/2, 0, max(0, len(lines)-avail))
+	top := cursorLine - avail/2
+	if m.listFree {
+		top = m.listTop
+	}
+	top = clamp(top, 0, max(0, len(lines)-avail))
+	*m.shown = scrolled{top, max(0, len(lines)-avail)}
 	lines = lines[top:min(len(lines), top+avail)]
 	for len(foot) > 0 && len(lines) < avail {
 		lines = append(lines, "")

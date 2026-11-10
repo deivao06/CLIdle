@@ -63,6 +63,10 @@ func main() {
 		keys <- []byte(args[0].String())
 		return nil
 	}))
+	page.Set("scroll", js.FuncOf(func(_ js.Value, args []js.Value) any {
+		go p.Send(ui.ScrollMsg(args[0].Int()))
+		return nil
+	}))
 	resize := func(cols, rows int) { go p.Send(tea.WindowSizeMsg{Width: cols, Height: rows}) }
 	page.Set("resize", js.FuncOf(func(_ js.Value, args []js.Value) any {
 		resize(args[0].Int(), args[1].Int())

@@ -19,6 +19,7 @@ const (
 	barBoxMinH   = 20
 	maxRowLines  = 4
 	maxDescLines = 4
+	wheelLines   = 3
 )
 
 func init() { zone.NewGlobal() }
@@ -229,9 +230,9 @@ func (m Model) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 	}
 	switch msg.Button {
 	case tea.MouseButtonWheelUp:
-		return m.Update(keyMsg("up"))
+		return m.Update(ScrollMsg(-wheelLines))
 	case tea.MouseButtonWheelDown:
-		return m.Update(keyMsg("down"))
+		return m.Update(ScrollMsg(wheelLines))
 	}
 	if msg.Action != tea.MouseActionPress || msg.Button != tea.MouseButtonLeft {
 		return m, nil
