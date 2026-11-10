@@ -43,7 +43,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Tema único (clássico corrigido):** cada tipo de informação tem cor própria. Laranja só em abas, títulos e cursor; seções em branco negrito; linha de atributos em bege; herói `@` em amarelo forte e linha `▸` em amarelo claro (ouro é outro amarelo); XP em ciano; paredes mais escuras que o texto do log; lendário vermelho-alaranjado para não parecer título.
 - Raridade de itens por cor: Comum (branco), Mágico (azul), Raro (verde), Épico (roxo), Lendário (laranja).
   - No mesmo andar, raridade maior nunca sai mais fraca que a menor (variação de ±10%; botas sem variação).
-- **Efeitos:** épico tem 1 efeito, lendário 2 (diferentes): roubo de vida, crítico (dano dobrado), HP extra, ouro extra, cura de poção extra, XP extra. Valores em `EffectRange`.
+- **Efeitos:** raro tem 1 efeito, épico 2, lendário 3 (diferentes; a faixa de valor não depende da raridade, estilo Path of Exile simplificado): roubo de vida, crítico (dano dobrado), HP extra, ouro extra, cura de poção extra, XP extra. Valores em `EffectRange`; o mesmo efeito em itens diferentes soma até o teto `EffectCap` (sem teto, 5 peças davam 75% de roubo de vida). Itens antigos guardam os efeitos que já tinham.
 
 ## Expedições
 

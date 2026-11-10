@@ -125,7 +125,7 @@ func (h *Hero) Effect(k Effect) int {
 			}
 		}
 	}
-	return n
+	return min(n, EffectCap[k])
 }
 
 func boosted(n, pct int) int { return n * (100 + pct) / 100 }

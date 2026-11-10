@@ -106,7 +106,16 @@ func GoldPerPile(depth int) float64 { return 5 * math.Pow(1.12, float64(depth-1)
 
 func GoldPerKill(xp int) int { return max(1, xp/2) }
 
-var EffectCount = [...]int{Epic: 1, Legendary: 2}
+var EffectCount = [...]int{Rare: 1, Epic: 2, Legendary: 3}
+
+var EffectCap = [NumEffects]int{
+	LifeSteal:   30,
+	Crit:        75,
+	Vigor:       50,
+	GoldFind:    100,
+	PotionBoost: 60,
+	XPBoost:     50,
+}
 
 var EffectRange = [NumEffects][2]int{
 	LifeSteal:   {5, 15},

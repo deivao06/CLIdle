@@ -97,10 +97,10 @@ func (m Model) nerdRows() []prepRow {
 		rows = append(rows, nerdRow(sec, lang.T("nerd.weight."+w), "×"+num(game.ItemBase(game.Armor, i, 0, 0)), lang.T("nerd.weight.desc")))
 	}
 	add("item_spread", "±"+nerdPct(game.ItemSpread))
-	add("effects", lang.T("nerd.effects.value", game.EffectCount[game.Epic], game.EffectCount[game.Legendary]))
+	add("effects", lang.T("nerd.effects.value", game.EffectCount[game.Rare], game.EffectCount[game.Epic], game.EffectCount[game.Legendary]))
 	for e := range game.NumEffects {
 		r := game.EffectRange[e]
-		rows = append(rows, nerdRow(sec, lang.T("nerd.effect."+effectKeys[e]), fmt.Sprintf("%d–%d%%", r[0], r[1]), lang.T("nerd.effect."+effectKeys[e]+".desc")))
+		rows = append(rows, nerdRow(sec, lang.T("nerd.effect."+effectKeys[e]), lang.T("nerd.effect.range", r[0], r[1], game.EffectCap[e]), lang.T("nerd.effect."+effectKeys[e]+".desc")))
 	}
 
 	sec = lang.T("nerd.section.town")

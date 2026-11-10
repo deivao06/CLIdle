@@ -7,19 +7,34 @@ import (
 	"clidle/internal/lang"
 )
 
-func TestOnlyEpicAndAboveRollEffects(t *testing.T) {
+func TestEffectCountGrowsWithRarity(t *testing.T) {
 	rng := NewRNG(1)
 	for range 50 {
-		if n := len(newItemOf(rng, 5, Rare).Effects); n != 0 {
-			t.Fatalf("magic item with %d effects", n)
+		for r, want := range []int{0, 0, 1, 2, 3} {
+			fx := newItemOf(rng, 5, Rarity(r)).Effects
+			if len(fx) != want {
+				t.Fatalf("rarity %d with %d effects", r, len(fx))
+			}
+			for i := range fx {
+				if rg := EffectRange[fx[i].Kind]; fx[i].Value < rg[0] || fx[i].Value > rg[1] {
+					t.Fatalf("effect %v out of range", fx[i])
+				}
+				for j := range i {
+					if fx[i].Kind == fx[j].Kind {
+						t.Fatalf("repeated effect %v", fx)
+					}
+				}
+			}
 		}
-		if n := len(newItemOf(rng, 5, Epic).Effects); n != 1 {
-			t.Fatalf("epic item with %d effects", n)
-		}
-		fx := newItemOf(rng, 5, Legendary).Effects
-		if len(fx) != 2 || fx[0].Kind == fx[1].Kind {
-			t.Fatalf("legendary effects %v", fx)
-		}
+	}
+}
+
+func TestSameEffectStopsAtItsCap(t *testing.T) {
+	g := New(1, Warrior)
+	withEffect(g, LifeSteal, 20)
+	g.Hero.Equip[Boots] = &Item{Slot: Boots, Rarity: Rare, Base: 1, Effects: []ItemEffect{{LifeSteal, 20}}}
+	if got := g.Hero.Effect(LifeSteal); got != EffectCap[LifeSteal] {
+		t.Fatalf("life steal %d, cap %d", got, EffectCap[LifeSteal])
 	}
 }
 
@@ -38,11 +53,11 @@ func TestVigorRaisesMaxHP(t *testing.T) {
 
 func TestLifeStealHealsOnHit(t *testing.T) {
 	g := heroAt(Warrior, 5, 1)
-	withEffect(g, LifeSteal, 50)
+	withEffect(g, LifeSteal, 30)
 	g.Hero.HP = 1
 	m := g.besideHero(dummy())
 	g.hurt(m, 10, &round{})
-	if g.Hero.HP != 6 {
+	if g.Hero.HP != 4 {
 		t.Fatalf("hp %d", g.Hero.HP)
 	}
 }
@@ -50,29 +65,31 @@ func TestLifeStealHealsOnHit(t *testing.T) {
 func TestGoldAndXPFindOnKill(t *testing.T) {
 	g := heroAt(Warrior, 1, 1)
 	withEffect(g, GoldFind, 100)
-	g.Hero.Equip[Boots] = &Item{Slot: Boots, Rarity: Epic, Base: 1, Effects: []ItemEffect{{XPBoost, 100}}}
+	g.Hero.Equip[Boots] = &Item{Slot: Boots, Rarity: Epic, Base: 1, Effects: []ItemEffect{{XPBoost, 50}}}
 	m := g.besideHero(dummy())
 	m.HP, m.XP = 1, 5
 	g.hurt(m, 5, &round{})
-	if g.Exp.Gold != 2*GoldPerKill(5) || g.Hero.XP != 10 {
+	if g.Exp.Gold != 2*GoldPerKill(5) || g.Hero.XP != boosted(5, 50) {
 		t.Fatalf("gold %d xp %d", g.Exp.Gold, g.Hero.XP)
 	}
 }
 
 func TestCritDoublesAndLogs(t *testing.T) {
 	g := heroAt(Warrior, 5, 1)
-	withEffect(g, Crit, 100)
+	withEffect(g, Crit, 25)
 	m := g.besideHero(dummy())
+	m.HP = 1 << 30
 	name := lang.T(m.Info().Name)
-	r := &round{}
-	for r.hero == "" || r.hero == lang.T("combat.hero_miss", name) {
-		r = &round{}
-		g.heroAttack(m, r)
-	}
 	want := lang.T("combat.hero_crit", name, 0)
-	if !strings.HasPrefix(r.hero, want[:strings.Index(want, "(")]) {
-		t.Fatalf("log %q", r.hero)
+	want = want[:strings.Index(want, "(")]
+	for range 200 {
+		r := &round{}
+		g.heroAttack(m, r)
+		if strings.HasPrefix(r.hero, want) {
+			return
+		}
 	}
+	t.Fatal("no critical hit in 200 attacks")
 }
 
 func TestPotionBoostHealsMore(t *testing.T) {
