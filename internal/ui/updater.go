@@ -32,6 +32,9 @@ func checkUpdate() tea.Cmd {
 // installUpdate asks GitHub once more, since a newer release may have come out since the notice.
 func installUpdate(found *update.Release) tea.Cmd {
 	return func() tea.Msg {
+		if update.Site != "" {
+			return updateDoneMsg{}
+		}
 		ctx, cancel := context.WithTimeout(context.Background(), updateInstallMax)
 		defer cancel()
 		r := found

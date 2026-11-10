@@ -30,7 +30,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Build
-        run: LDFLAGS="-X clidle/internal/update.Version=$(git describe --tags --always)" ./web/build.sh
+        run: VERSION=$(git describe --tags --always) ./web/build.sh
 
       - uses: actions/configure-pages@v5
 

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -24,6 +25,9 @@ var Version = "dev"
 
 var API = "https://api.github.com/repos/deivao06/CLIdle/releases/latest"
 
+// Site is the page URL in the browser build, which reads the version from the site instead of GitHub.
+var Site string
+
 const (
 	Timeout   = 10 * time.Second
 	sumsName  = "SHA256SUMS"
@@ -36,8 +40,8 @@ type Release struct {
 	Sums    string
 }
 
-// Enabled is false for local and browser builds, which never look for updates.
-func Enabled() bool { return Version != "dev" && runtime.GOOS != "js" }
+// Enabled is false for local builds, which never look for updates.
+func Enabled() bool { return Version != "dev" && (runtime.GOOS != "js" || Site != "") }
 
 func AssetName(goos, goarch string) string {
 	name := "clidle-" + goos + "-" + goarch
@@ -83,7 +87,9 @@ func get(ctx context.Context, url string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", userAgent)
+	if Site == "" {
+		req.Header.Set("User-Agent", userAgent)
+	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -127,11 +133,33 @@ func Latest(ctx context.Context) (*Release, error) {
 
 // Check returns the latest release when it is newer than this build and has a binary for it.
 func Check(ctx context.Context) (*Release, error) {
+	if Site != "" {
+		return checkSite(ctx)
+	}
 	r, err := Latest(ctx)
 	if err != nil || !Newer(r.Version, Version) || r.Asset == "" || r.Sums == "" {
 		return nil, err
 	}
 	return r, nil
+}
+
+// checkSite reads version.txt next to the page; the query skips the browser cache.
+func checkSite(ctx context.Context) (*Release, error) {
+	base, err := url.Parse(Site)
+	if err != nil {
+		return nil, err
+	}
+	ref := &url.URL{Path: "version.txt", RawQuery: "t=" + strconv.FormatInt(time.Now().UnixNano(), 10)}
+	resp, err := get(ctx, base.ResolveReference(ref).String())
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	b, err := io.ReadAll(io.LimitReader(resp.Body, 64))
+	if v := strings.TrimSpace(string(b)); err == nil && Newer(v, Version) {
+		return &Release{Version: v}, nil
+	}
+	return nil, err
 }
 
 func checksum(ctx context.Context, url, name string) (string, error) {

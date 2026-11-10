@@ -14,9 +14,10 @@ cp go.mod "$tmp/go.mod"
 cp go.sum "$tmp/go.sum"
 go mod edit -modfile="$tmp/go.mod" -replace "github.com/charmbracelet/bubbletea=$tmp/bubbletea"
 mkdir -p web/dist
-GOOS=js GOARCH=wasm go build -modfile="$tmp/go.mod" -trimpath -ldflags "-s -w ${LDFLAGS:-}" -o web/dist/clidle.wasm ./web
+GOOS=js GOARCH=wasm go build -modfile="$tmp/go.mod" -trimpath -ldflags "-s -w -X clidle/internal/update.Version=${VERSION:-dev}" -o web/dist/clidle.wasm ./web
 cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" web/dist/
 cp -r web/index.html web/manifest.webmanifest web/vendor web/icons web/dist/
 version=$(cd web/dist && cat clidle.wasm wasm_exec.js index.html manifest.webmanifest vendor/* icons/* | sha256sum | cut -c1-12)
 sed "s/VERSION/$version/" web/sw.js > web/dist/sw.js
+echo "${VERSION:-dev}" > web/dist/version.txt
 ls -l web/dist

@@ -76,6 +76,21 @@
     write: (bytes) => term.write(bytes),
     fail: (text) => { msg.textContent = text; },
     exit: () => { term.reset(); msg.textContent = "Saved. Reload the page to play again."; },
+    reload: async () => {
+      term.reset();
+      msg.textContent = "Updating...";
+      try {
+        const reg = await navigator.serviceWorker?.getRegistration();
+        if (reg) {
+          const installed = reg.update().then(() => {
+            const w = reg.installing;
+            if (w) return new Promise((done) => w.addEventListener("statechange", () => w.state === "activated" || w.state === "redundant" ? done() : 0));
+          });
+          await Promise.race([installed, new Promise((done) => setTimeout(done, 10000))]);
+        }
+      } catch {}
+      location.reload();
+    },
   };
 
   term.onResize(({ cols, rows }) => window.clidle.resize && window.clidle.resize(cols, rows));

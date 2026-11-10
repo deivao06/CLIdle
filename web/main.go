@@ -10,6 +10,7 @@ import (
 	"clidle/internal/game"
 	"clidle/internal/lang"
 	"clidle/internal/ui"
+	"clidle/internal/update"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -45,6 +46,7 @@ func main() {
 		away = time.Since(savedAt)
 	}
 	lang.Set(g.Lang)
+	update.Site = js.Global().Get("location").Get("href").String()
 
 	keys := make(chan []byte, 256)
 	in, out := io.Pipe()
@@ -68,8 +70,13 @@ func main() {
 	}))
 	resize(page.Get("cols").Int(), page.Get("rows").Int())
 
-	if _, err := p.Run(); err != nil {
+	final, err := p.Run()
+	if err != nil {
 		page.Call("fail", err.Error())
+		return
+	}
+	if m, ok := final.(ui.Model); ok && m.Restarting() {
+		page.Call("reload")
 		return
 	}
 	page.Call("exit")
