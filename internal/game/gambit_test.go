@@ -244,10 +244,10 @@ func TestUnlockingAnAbilityAddsItsRule(t *testing.T) {
 	if slices.ContainsFunc(g.Config.Gambits, func(gb Gambit) bool { return gb.Do == ActBless }) {
 		t.Fatal("bless rule before bless is unlocked")
 	}
-	g.Hero.Level = 4
+	g.Hero.Level = AbilityInfo[Bless].Level
 	r := &round{}
-	g.unlockGambits(3, r)
-	g.unlockGambits(3, r)
+	g.unlockGambits(g.Hero.Level-1, r)
+	g.unlockGambits(g.Hero.Level-1, r)
 	if !slices.Equal(g.Config.Gambits, DefaultGambits(Cleric)) || len(r.after) != 1 {
 		t.Fatalf("got %d log lines and %+v", len(r.after), g.Config.Gambits)
 	}

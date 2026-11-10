@@ -39,7 +39,7 @@ func TestPowerStrikeDoublesEveryN(t *testing.T) {
 }
 
 func TestSecondWindOncePerFloor(t *testing.T) {
-	g := heroAt(Warrior, 5, 1)
+	g := heroAt(Warrior, AbilityInfo[SecondWind].Level, 1)
 	g.Hero.HP = 1
 	if !g.secondWind(&round{}) || g.Hero.HP <= 1 {
 		t.Fatal("second wind did not heal")
@@ -56,7 +56,7 @@ func TestSecondWindOncePerFloor(t *testing.T) {
 }
 
 func TestWhirlwindHitsAllAdjacent(t *testing.T) {
-	g := heroAt(Warrior, 10, 1)
+	g := heroAt(Warrior, AbilityInfo[Whirlwind].Level, 1)
 	g.Exp.Attacks = PowerStrikeEvery - 1
 	m1, m2 := g.besideHero(dummy()), g.besideHero(dummy())
 	for g.Exp.Attacks < PowerStrikeEvery {
@@ -82,7 +82,7 @@ func TestSneakAttackOnSleeper(t *testing.T) {
 }
 
 func TestDodgeAvoidsSomeHits(t *testing.T) {
-	g := heroAt(Rogue, 5, 1)
+	g := heroAt(Rogue, AbilityInfo[Dodge].Level, 1)
 	g.Hero.HP = 1 << 30
 	m := g.besideHero(&Monster{HP: 1, MaxHP: 1, Atk: 1, Spd: 1, Awake: true})
 	r := &round{}

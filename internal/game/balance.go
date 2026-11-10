@@ -165,19 +165,19 @@ type abilityInfo struct {
 
 var AbilityInfo = [NumAbilities]abilityInfo{
 	PowerStrike:  {Warrior, 1, 0, "ability.power_strike"},
-	SecondWind:   {Warrior, 5, 0, "ability.second_wind"},
-	Whirlwind:    {Warrior, 10, 0, "ability.whirlwind"},
+	SecondWind:   {Warrior, 12, 0, "ability.second_wind"},
+	Whirlwind:    {Warrior, 25, 0, "ability.whirlwind"},
 	SneakAttack:  {Rogue, 1, 0, "ability.sneak_attack"},
-	Dodge:        {Rogue, 5, 0, "ability.dodge"},
-	TreasureNose: {Rogue, 8, 0, "ability.treasure_nose"},
+	Dodge:        {Rogue, 12, 0, "ability.dodge"},
+	TreasureNose: {Rogue, 25, 0, "ability.treasure_nose"},
 	MagicMissile: {Mage, 1, 2, "spell.magic_missile"},
-	Sleep:        {Mage, 4, 3, "spell.sleep"},
-	Fireball:     {Mage, 7, 5, "spell.fireball"},
-	Blink:        {Mage, 10, 4, "spell.blink"},
-	FrostRay:     {Mage, 14, 4, "spell.frost_ray"},
+	Sleep:        {Mage, 8, 3, "spell.sleep"},
+	Fireball:     {Mage, 15, 5, "spell.fireball"},
+	Blink:        {Mage, 22, 4, "spell.blink"},
+	FrostRay:     {Mage, 30, 4, "spell.frost_ray"},
 	Heal:         {Cleric, 1, 4, "spell.heal"},
-	Bless:        {Cleric, 4, 3, "spell.bless"},
-	TurnUndead:   {Cleric, 8, 3, "spell.turn_undead"},
+	Bless:        {Cleric, 12, 3, "spell.bless"},
+	TurnUndead:   {Cleric, 25, 3, "spell.turn_undead"},
 }
 
 const (

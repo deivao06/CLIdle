@@ -45,7 +45,7 @@ func TestMageWithoutManaMelees(t *testing.T) {
 }
 
 func TestSleepSkipsMonsterTurns(t *testing.T) {
-	g := heroAt(Mage, 4, 1)
+	g := heroAt(Mage, AbilityInfo[Sleep].Level, 1)
 	m := g.besideHero(&Monster{HP: 9, MaxHP: 9, Atk: 100, Spd: 1, Awake: true, Asleep: 3})
 	r := &round{}
 	g.monstersAct(r, false)
@@ -55,7 +55,7 @@ func TestSleepSkipsMonsterTurns(t *testing.T) {
 }
 
 func TestBlinkNeedsDestination(t *testing.T) {
-	g := heroAt(Mage, 10, 1)
+	g := heroAt(Mage, AbilityInfo[Blink].Level, 1)
 	l := g.Exp.Level
 	g.besideHero(dummy())
 	g.besideHero(dummy())
@@ -73,7 +73,7 @@ func TestBlinkNeedsDestination(t *testing.T) {
 }
 
 func TestFireballHitsNeighbors(t *testing.T) {
-	g := heroAt(Mage, 7, 1)
+	g := heroAt(Mage, AbilityInfo[Fireball].Level, 1)
 	a := &Monster{HP: 999, MaxHP: 4000, Spd: 1, Awake: true}
 	a.Pos = g.spotAt(3, nil)
 	g.Exp.Level.Mons = []*Monster{a}
@@ -106,7 +106,7 @@ func kindNamed(name string) int {
 }
 
 func TestTurnUndeadOnlyHitsUndead(t *testing.T) {
-	a, b := heroAt(Cleric, 8, 1), heroAt(Cleric, 8, 1)
+	a, b := heroAt(Cleric, AbilityInfo[TurnUndead].Level, 1), heroAt(Cleric, AbilityInfo[TurnUndead].Level, 1)
 	zombie, rat := dummy(), dummy()
 	zombie.Kind, rat.Kind = kindNamed("monster.zombie"), kindNamed("monster.rat")
 	a.besideHero(zombie)
@@ -121,7 +121,7 @@ func TestTurnUndeadOnlyHitsUndead(t *testing.T) {
 }
 
 func TestSleepNotWastedOnLoneTarget(t *testing.T) {
-	g := heroAt(Mage, 4, 1)
+	g := heroAt(Mage, AbilityInfo[Sleep].Level, 1)
 	m := dummy()
 	m.Pos = g.spotAt(3, nil)
 	g.Exp.Level.Mons = []*Monster{m}

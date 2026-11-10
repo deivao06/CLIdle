@@ -192,7 +192,7 @@ func press(m Model, keys ...string) Model {
 
 func TestRuleEditorChangesAndClosesARule(t *testing.T) {
 	g := game.New(1, game.Warrior)
-	g.Hero.Level = 5
+	g.Hero.Level = game.AbilityInfo[game.SecondWind].Level
 	g.ResetGambits()
 	m := New(g)
 	m.w, m.h = 100, 30
