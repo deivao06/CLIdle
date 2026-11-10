@@ -100,7 +100,11 @@ func (m Model) view() string {
 	}
 	body = lipgloss.NewStyle().Width(m.w).Height(bodyH).MaxHeight(bodyH).Render(body)
 	if m.narrow() {
-		return lipgloss.JoinVertical(lipgloss.Left, truncate(m.updateNotice()+m.statusLine(), m.w), body, m.viewBar())
+		status := truncate(m.updateNotice()+m.statusLine(), m.w)
+		if m.h >= gapMinH {
+			status += "\n"
+		}
+		return lipgloss.JoinVertical(lipgloss.Left, status, body, m.viewBar())
 	}
 	header := m.viewHeader()
 	if m.h-2 > bodyH {
@@ -112,6 +116,9 @@ func (m Model) view() string {
 // bodyH leaves a blank line under the tabs when the terminal is tall enough.
 func (m Model) bodyH() int {
 	if m.narrow() {
+		if m.h >= gapMinH {
+			return m.h - 2 - m.barH()
+		}
 		return m.h - 1 - m.barH()
 	}
 	if m.h >= gapMinH {
