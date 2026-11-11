@@ -167,7 +167,22 @@ func (m Model) nerdRows() []prepRow {
 	add("bless", fmt.Sprint(game.BlessRounds))
 	add("bless_def", fmt.Sprintf("+%d", game.BlessDef))
 	add("turn_undead", fmt.Sprintf("×%d", game.TurnUndeadMult))
+
+	sec = lang.T("nerd.section.luck")
+	h := m.g.Hero
+	add("luck_miss", nerdPct(h.MissChance()))
+	add("luck_dodge", nerdPct(h.DodgeChance()))
+	add("luck_min", fmt.Sprint(game.LuckStreakMin))
+	add("luck_hero", streakValue(m.g.BestHeroMisses))
+	add("luck_mon", streakValue(m.g.BestMonMisses))
 	return rows
+}
+
+func streakValue(s game.Streak) string {
+	if s.Run == 0 {
+		return "—"
+	}
+	return lang.T("nerd.luck.streak", s.Run, s.Odds())
 }
 
 func ratio(next, cur float64) string { return "×" + num(next/cur) }

@@ -112,6 +112,7 @@ func (g *Game) castSpell(a Ability, t *Monster, r *round) {
 
 func (g *Game) spellDamage(a Ability, m *Monster) int {
 	m.Awake = true
+	g.Exp.HeroMisses = Streak{}
 	return damage(g.Exp.RNG, g.Hero.spellAtk(a), m.Def)
 }
 

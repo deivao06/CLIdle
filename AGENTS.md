@@ -34,6 +34,7 @@ internal/game/          lógica pura, sem I/O de terminal
   path.go               BFS do herói (search, multi-objetivo) e mapa de distância dos monstros
   entity.go             Hero, Monster, spawn de monstros e chefes, dano
   items.go              Item, raridade, FloorItem, geração de loot, preço de venda (SellPrice)
+  luck.go               Streak: erros seguidos (herói e monstros), chance no log e recordes da aba Nerd
   death.go              DeathScene: recorte do mapa guardado na morte (aba Herói)
   town.go               loja, ferreiro, treino, mochila, baú, poções, chegada na cidade (tudo só na cidade)
   offline.go            CatchUp (simulação do tempo fora) e Summary

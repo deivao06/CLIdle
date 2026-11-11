@@ -40,6 +40,12 @@ func MonsterScale(depth, minDepth int) float64 {
 func MissChance(dex int) float64 { return max(MissMin, MissBase-MissPerDex*float64(dex)) }
 func CritChance(dex int) float64 { return min(CritMax, CritPerDex*float64(dex)) }
 
+// MonsterMissChance is the chance that a monster's attack misses the hero, its own miss or the hero's dodge.
+func MonsterMissChance(dex int, h *Hero) float64 {
+	m := MissChance(dex)
+	return m + (1-m)*h.DodgeChance()
+}
+
 // MonsterDexEvery is how many floors below its first floor a monster needs to gain 1 dexterity.
 const MonsterDexEvery = 2
 

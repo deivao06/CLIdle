@@ -29,6 +29,9 @@ type Expedition struct {
 	ActiveMs    int64
 	RetreatRule int
 	Disarmed    int
+
+	HeroMisses Streak `json:",omitempty"`
+	MonMisses  Streak `json:",omitempty"`
 }
 
 type ExploreMode int
@@ -82,6 +85,9 @@ type Game struct {
 	LastDeath  []LogEntry
 	DeathScene *DeathScene `json:",omitempty"`
 	SeenNews   string      `json:",omitempty"`
+	// BestHeroMisses and BestMonMisses are the least likely miss streaks ever seen.
+	BestHeroMisses Streak `json:",omitempty"`
+	BestMonMisses  Streak `json:",omitempty"`
 
 	Events   []Event `json:"-"`
 	strong   bool
@@ -342,10 +348,11 @@ func (g *Game) pickup(r *round) {
 
 // round collects everything that happens in one step so it is logged as a single line.
 type round struct {
-	hero  string
-	mons  []*monsterRound
-	hurt  bool
-	after []LogEntry
+	hero    string
+	mons    []*monsterRound
+	hurt    bool
+	monLuck bool
+	after   []LogEntry
 }
 
 type monsterRound struct {
@@ -396,6 +403,9 @@ func (g *Game) flush(r *round) []LogEntry {
 	for _, mr := range r.mons {
 		parts = append(parts, mr.String())
 	}
+	if r.monLuck {
+		parts[len(parts)-1] += " " + g.Exp.MonMisses.Odds()
+	}
 	if len(parts) > 0 {
 		line := strings.Join(parts, " · ")
 		kind := LogInfo
@@ -434,8 +444,12 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	}
 	if e.RNG.Chance(miss) {
 		r.hero = lang.T("combat.hero_miss", name)
+		if e.HeroMisses.add(miss, &g.BestHeroMisses) {
+			r.hero += " " + e.HeroMisses.Odds()
+		}
 		return
 	}
+	e.HeroMisses = Streak{}
 	e.Attacks++
 	if h.Has(PowerStrike) && e.Attacks%PowerStrikeEvery == 0 {
 		g.powerStrike(m, r)
@@ -605,8 +619,10 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	mr := r.of(m)
 	if e.RNG.Chance(MissChance(m.Dex)) || h.Has(Dodge) && e.RNG.Chance(h.DodgeChance()) {
 		mr.misses++
+		r.monLuck = e.MonMisses.add(MonsterMissChance(m.Dex, h), &g.BestMonMisses)
 		return
 	}
+	e.MonMisses, r.monLuck = Streak{}, false
 	def := h.Def()
 	if e.Blessed > 0 {
 		def += BlessDef
