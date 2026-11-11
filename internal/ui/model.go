@@ -68,6 +68,8 @@ type Model struct {
 
 	choosing bool
 	crt      bool
+	// seeAll draws the whole floor in the playground, without changing what the hero knows.
+	seeAll bool
 
 	confirmKeep bool
 	cmd         tea.Cmd

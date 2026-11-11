@@ -15,6 +15,7 @@ go test -short ./...     # pula o teste de desempenho
 go vet ./...
 gofmt -l .               # precisa sair vazio
 GOOS=windows go vet ./...   # o update tem código só de Windows
+go run ./cmd/playground  # playground: monta andares e testa mecânicas (nas releases como clidle-playground-*, web em /playground/, não toca no save)
 ./web/build.sh           # versão web em web/dist (servir com: cd web/dist && python3 -m http.server)
 git tag vX.Y.Z && git push origin vX.Y.Z   # publica uma release (pergunte ao dono antes)
 ```
@@ -22,6 +23,7 @@ git tag vX.Y.Z && git push origin vX.Y.Z   # publica uma release (pergunte ao do
 ## Arquitetura
 
 ```
+cmd/playground/         playground (ver docs/design.md → Playground)
 main.go                 carrega o save, calcula o tempo fora, abre a UI
 internal/game/          lógica pura, sem I/O de terminal
   game.go               Game, Expedition, Config, loop (Advance/step), IA do herói, combate, retirada
@@ -34,6 +36,7 @@ internal/game/          lógica pura, sem I/O de terminal
   path.go               BFS do herói (search, multi-objetivo) e mapa de distância dos monstros
   entity.go             Hero, Monster, spawn de monstros e chefes, dano
   items.go              Item, raridade, FloorItem, geração de loot, preço de venda (SellPrice)
+  lab.go                playground: Scenario com vários LabFloor (andar sem salas não existe), NewLab, LabPreview, LabStep (para na morte, na < ou na > do último andar)
   luck.go               Streak: erros seguidos (herói e monstros), chance no log e recordes da aba Nerd
   death.go              DeathScene: recorte do mapa guardado na morte (aba Herói)
   town.go               loja, ferreiro, treino, mochila, baú, poções, chegada na cidade (tudo só na cidade)
@@ -53,9 +56,11 @@ internal/ui/            Bubble Tea
   updater.go            aviso de versão nova, tecla u, confirmação e reinício (checa ao chegar na cidade, máx. 1×/hora)
   news.go               página Novidades da ajuda: notas das releases do GitHub (`update.Notes`); abre sozinha uma vez por versão (`Game.SeenNews`, jogo novo não abre)
   nerd.go               aba 5 Nerd (opção "Coisas de nerd" na Config, Game.Nerd, zero = desligada): lê os números de balance.go ao vivo, um texto por linha em lang
+  lab.go, lab_rows.go   UI do playground (Lab embute Model para mapa, painel e editor de táticas; Model.tab é a página; só desktop: mapa sempre à direita)
   touch.go              mouse/toque (bubblezone: zonas `tab:`, `row:i.j`, `val`, `btn:`, `key:`, `help:`, `class:` viram teclas) e layout estreito (< 60 colunas): status no topo, ações + abas embaixo; arrasto no celular e rodinha do mouse mandam `ScrollMsg` (scroll.go), que rola o conteúdo sem mover o cursor (`Model.shown` guarda onde a última View parou)
   yield*.go             no navegador, a simulação offline pausa 1 ms por minuto simulado para a página redesenhar
   crt.go                efeito CRT: envelhece as cores ANSI da saída da View (tom verde-fósforo, desbota, scanlines, flicker dos cinzas, borda rasgada) (Game.CRT, zero = desligado)
+web/playground/         playground no navegador (main.go + index.html; build.sh gera web/dist/playground, fora do cache do sw.js)
 web/                    versão de navegador (WASM + xterm.js): main.go (ponte JS ↔ Bubble Tea), index.html, build.sh;
                         _bubbletea/tty_js.go completa o Bubble Tea v1 (sem suporte a js) só nesse build
                         PWA: manifest.webmanifest, sw.js (cache-first; build.sh carimba a versão pelo hash dos arquivos), icons/, vendor/ (xterm.js fixado, sem CDN, para abrir offline)

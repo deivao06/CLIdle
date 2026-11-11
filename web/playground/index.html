@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000">
+<title>CLIdle Playground</title>
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="stylesheet" href="../vendor/xterm.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #000; color: #ccc; overflow: hidden; }
+  #term { width: 100%; height: 100%; }
+  .xterm-viewport { overflow-y: hidden !important; }
+  #msg { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px;
+         font: 16px Menlo, "DejaVu Sans Mono", Consolas, monospace; text-align: center; white-space: pre-wrap; }
+  #msg:empty { display: none; }
+</style>
+</head>
+<body>
+<div id="term"></div>
+<div id="msg">Loading…</div>
+<script src="../vendor/xterm.js"></script>
+<script src="../vendor/addon-fit.js"></script>
+<script src="../wasm_exec.js"></script>
+<script>
+(() => {
+  // The playground needs 136 columns; the font shrinks to fit them on smaller desktop windows.
+  const minCols = 136;
+  const msg = document.getElementById("msg");
+  const fontSize = () => Math.max(8, Math.min(15, Math.floor(window.innerWidth / (minCols * 0.6))));
+  const term = new Terminal({
+    fontFamily: 'Menlo, "DejaVu Sans Mono", Consolas, monospace',
+    fontSize: fontSize(),
+    cursorBlink: false,
+    scrollback: 0,
+    theme: { background: "#000000" },
+  });
+  const fit = new FitAddon.FitAddon();
+  term.loadAddon(fit);
+  term.open(document.getElementById("term"));
+  fit.fit();
+
+  window.clidle = {
+    get cols() { return term.cols; },
+    get rows() { return term.rows; },
+    write: (bytes) => term.write(bytes),
+    fail: (text) => { msg.textContent = text; },
+    exit: () => { term.reset(); msg.textContent = "Reload the page to open the playground again."; },
+  };
+
+  term.onResize(({ cols, rows }) => window.clidle.resize && window.clidle.resize(cols, rows));
+  let pending;
+  const refit = () => {
+    clearTimeout(pending);
+    pending = setTimeout(() => {
+      term.options.fontSize = fontSize();
+      fit.fit();
+    }, 100);
+  };
+  window.addEventListener("resize", refit);
+  new ResizeObserver(refit).observe(document.getElementById("term"));
+
+  const go = new Go();
+  WebAssembly.instantiateStreaming(fetch("playground.wasm"), go.importObject)
+    .then((r) => {
+      msg.textContent = "";
+      term.onData((d) => window.clidle.input && window.clidle.input(d));
+      term.focus();
+      return go.run(r.instance);
+    })
+    .catch((e) => { msg.textContent = String(e); });
+})();
+</script>
+</body>
+</html>

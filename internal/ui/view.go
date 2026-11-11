@@ -492,10 +492,10 @@ func (m Model) cell(l *game.Level, p game.Pos) (rune, *lipgloss.Style) {
 	if p == g.Hero.Pos {
 		return '@', &sHero
 	}
-	if !l.IsSeen(p) {
+	if !l.IsSeen(p) && !m.seeAll {
 		return ' ', &sPlain
 	}
-	if mon := l.MonsterAt(p); mon != nil && l.Visible(g.Hero.Pos, p) {
+	if mon := l.MonsterAt(p); mon != nil && (m.seeAll || l.Visible(g.Hero.Pos, p)) {
 		k := mon.Info()
 		return k.Glyph, monsterStyle(k)
 	}

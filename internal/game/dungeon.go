@@ -189,9 +189,31 @@ func (l *Level) RandomFloor(rng *RNG, room int) Pos {
 	return Pos{r.X + 1, r.Y + 1}
 }
 
-const gridCols, gridRows = 3, 3
+const (
+	gridCols, gridRows = 3, 3
+	gridRooms          = gridCols * gridRows
+)
 
 func GenerateLevel(rng *RNG, depth int) *Level {
+	var all [gridRooms]bool
+	for i := range all {
+		all[i] = true
+	}
+	l := carveLevel(rng, depth, all)
+	up := rng.Intn(len(l.Rooms))
+	down := rng.Intn(len(l.Rooms) - 1)
+	if down >= up {
+		down++
+	}
+	l.Up = l.RandomFloor(rng, up)
+	l.Set(l.Up, StairsUp)
+	l.Down = l.RandomFloor(rng, down)
+	l.Set(l.Down, StairsDown)
+	return l
+}
+
+// carveLevel lays out the 3x3 grid; rooms that are off keep their rectangle but stay solid rock.
+func carveLevel(rng *RNG, depth int, on [gridRooms]bool) *Level {
 	l := &Level{
 		Depth: depth,
 		Tiles: make([]byte, MapW*MapH),
@@ -204,7 +226,11 @@ func GenerateLevel(rng *RNG, depth int) *Level {
 			h := rng.Range(4, ch-1)
 			x := gx*cw + rng.Range(0, cw-1-w)
 			y := gy*ch + rng.Range(0, ch-1-h)
-			l.carveRoom(Room{x, y, w, h})
+			if r := (Room{x, y, w, h}); on[len(l.Rooms)] {
+				l.carveRoom(r)
+			} else {
+				l.Rooms = append(l.Rooms, r)
+			}
 		}
 	}
 
@@ -237,6 +263,9 @@ func GenerateLevel(rng *RNG, depth int) *Level {
 		return parent[i]
 	}
 	for _, e := range edges {
+		if !on[e.a] || !on[e.b] {
+			continue
+		}
 		if find(e.a) != find(e.b) {
 			parent[find(e.a)] = find(e.b)
 			l.connect(rng, e.a, e.b)
@@ -244,16 +273,6 @@ func GenerateLevel(rng *RNG, depth int) *Level {
 			l.connect(rng, e.a, e.b)
 		}
 	}
-
-	up := rng.Intn(len(l.Rooms))
-	down := rng.Intn(len(l.Rooms) - 1)
-	if down >= up {
-		down++
-	}
-	l.Up = l.RandomFloor(rng, up)
-	l.Set(l.Up, StairsUp)
-	l.Down = l.RandomFloor(rng, down)
-	l.Set(l.Down, StairsDown)
 	return l
 }
 

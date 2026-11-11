@@ -142,6 +142,21 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Sem regra que se aplique,** o herói anda pelo modo da expedição (nunca fica travado). O `r` do jogador continua acima de tudo.
 - O herói **não recupera HP** na dungeon, só mana: por isso existe a saída por tempo.
 
+## Playground
+
+- **O que é:** programa separado (`go run ./cmd/playground`), **público** (decisão do dono, 2026-11-11): vai nas releases como `clidle-playground-linux-amd64` e `clidle-playground-windows-amd64.exe` e no Pages em `/playground/` (fora do cache offline do jogo, para quem só joga não baixar mais 13 MB), para testar mecânicas. Monta andares à mão, dá play e mostra o herói agindo com **as regras do jogo** (mesmo `step`, IA, táticas, magias e combate). Não lê nem grava o save. Abre em inglês; a aba Config troca o idioma (não fica salvo).
+- **Layout só para desktop** (mínimo 136×30): o mapa e o log ficam **sempre visíveis** à direita; a coluna da esquerda muda com a aba (na aba Mapa, o painel do herói). Na aba Andar, a direita mostra o andar que está sendo editado, inteiro.
+- **Teclas** em laranja no rodapé e nas abas: espaço play/pausa, `p` passo, `+/-` velocidade (0,25× a 50×), `r` reiniciar, `n` nova seed, `v` ver tudo, `1-6` telas, `q` sair. Nas listas: setas, enter, esc, `x` remove grupo de monstros, pgup/pgdn ±10.
+- **Telas:** 1 Mapa, 2 Herói (classe, nível, poções, atributos extras como o treino), 3 Equipamento (item por vaga entre os que a classe usa, raridade, andar do item, ferreiro, efeitos na faixa do jogo e na quantidade da raridade), 4 Andar, 5 Táticas (o mesmo editor do jogo), 6 Config (idioma, efeitos do mapa).
+- **Andares:** a aba Andar escolhe qual andar editar. Andar novo começa **sem salas**, e **andar sem salas não existe** para o jogo. A simulação começa no primeiro andar que existe; ao chegar na `>`, desce se o próximo andar existe, senão termina. Grade 3×3: setas andam pelas salas e enter **abre a sala** (a grade fica em cima, com a sala destacada); esc ou "Voltar à grade" voltam. Dentro da sala: Ligada, Entrada, Saída e monstros; a primeira sala ligada ganha `<` e `>`; desligar a sala da escada passa a escada para outra sala; as salas ligadas precisam se tocar. Cada sala: entrada, saída e grupos de monstros (tipo, quantidade, força em andares).
+- **Seed é número, como no jogo** (a seed da expedição, um inteiro de 64 bits): enter na linha Seed e digita só dígitos; `n` sorteia pelo relógio, como um jogo novo. A luta usa a seed numa fila só, como a expedição. Exceção combinada com o dono: o desenho de cada andar usa a seed e o número do andar, para o andar 2 em diante ficar exatamente como foi montado, não importa o que aconteceu antes.
+- **Mesmas regras, sem editar balanceamento:** item é o drop médio do andar escolhido; monstro é o do andar escolhido (nunca abaixo do primeiro andar dele); chefe só em andares múltiplos de 10, feito como no jogo (o mais forte de 20 monstros, por isso muda com a seed). Os corredores vêm do gerador do jogo, só entre as salas ligadas.
+- **Abre cru:** andar 1 com só a sala do meio, `<` e `>` nela, sem monstros, guerreiro nível 1 com a arma inicial (pedido do dono: nada de exemplo pronto).
+- **Sem loot no chão.** Chefe morto ainda dropa item.
+- **Qualquer mudança reinicia a simulação** (pausada). Mesma seed = mesma luta.
+- **Fim:** o herói morre, sai pela `<` (recuo) ou chega na `>` do último andar que existe. O log mostra tempo, passos, monstros mortos, dano dado/recebido e poções.
+- "Ver tudo" só muda o desenho: o herói continua sem saber o que não viu.
+
 ## Para depois
 
 - Grupo (vários `@` com cores diferentes).

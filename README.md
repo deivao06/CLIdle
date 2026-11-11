@@ -123,6 +123,14 @@ Cor do item = raridade: branco comum, azul mágico, verde raro, roxo épico, lar
 - Para recomeçar do zero, use **Resetar save** na tela Config (`4`).
 - O jogo abre em inglês; o idioma muda na tela Config (`4`).
 
+## Playground
+
+Um laboratório para testar o jogo em ambiente controlado: você monta andares, salas, monstros, herói, equipamento e táticas, aperta play e vê o `@` agir com **as mesmas regras do jogo**. Não mexe no save. Só para desktop (mínimo 136×30).
+
+- **No navegador:** https://deivao06.github.io/CLIdle/playground/
+- **No PC:** baixe `clidle-playground-linux-amd64` ou `clidle-playground-windows-amd64.exe` na página de [Releases](https://github.com/deivao06/CLIdle/releases/latest).
+- **Do código:** `go run ./cmd/playground`
+
 ## Desenvolvimento
 
 ```sh
@@ -149,6 +157,6 @@ git tag v0.2.0
 git push origin v0.2.0
 ```
 
-O GitHub Actions (`.github/workflows/release.yml`) roda os testes, compila os binários de Linux e Windows com a versão embutida, gera o `SHA256SUMS` e publica a release. As notas são montadas a partir dos commits desde a tag anterior, em inglês: `feat:` vira **What's new** e `fix:` vira **Fixes**.
+O GitHub Actions (`.github/workflows/release.yml`) roda os testes, compila os binários de Linux e Windows (jogo e playground) com a versão embutida, gera o `SHA256SUMS` e publica a release. As notas são montadas a partir dos commits desde a tag anterior, em inglês: `feat:` vira **What's new** e `fix:` vira **Fixes**.
 
-O `.github/workflows/pages.yml` publica a versão web no GitHub Pages a cada tag (ou manualmente, em **Actions → pages → Run workflow**).
+O `.github/workflows/pages.yml` publica a versão web (jogo e `/playground/`) no GitHub Pages a cada tag (ou manualmente, em **Actions → pages → Run workflow**).

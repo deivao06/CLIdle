@@ -30,6 +30,8 @@ jobs:
           ver="-X clidle/internal/update.Version=${GITHUB_REF_NAME}"
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w $ver" -o dist/clidle-linux-amd64 .
           CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "$ver" -o dist/clidle-windows-amd64.exe .
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w $ver" -o dist/clidle-playground-linux-amd64 ./cmd/playground
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "$ver" -o dist/clidle-playground-windows-amd64.exe ./cmd/playground
           cd dist && sha256sum clidle-* > SHA256SUMS
 
       - name: Release notes

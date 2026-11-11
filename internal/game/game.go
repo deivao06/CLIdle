@@ -90,6 +90,7 @@ type Game struct {
 	BestMonMisses  Streak `json:",omitempty"`
 
 	Events   []Event `json:"-"`
+	lab      *LabRun
 	strong   bool
 	atStairs bool
 }
@@ -217,6 +218,10 @@ func (g *Game) step() {
 		g.returnToTown()
 	case !g.Exp.Retreating && (drive == ActExplore || drive == ActDescend) && h.Pos == l.Down && g.readyToDescend(g.modeFor(drive)):
 		if g.atStairsRule() {
+			return
+		}
+		if g.lab != nil {
+			g.labDescend()
 			return
 		}
 		g.enterLevel(l.Depth + 1)
