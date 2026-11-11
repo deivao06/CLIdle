@@ -215,12 +215,32 @@ func TestRuleEditorChangesAndClosesARule(t *testing.T) {
 		t.Fatalf("rule 1 is %v", g.Config.Gambits[0].Do)
 	}
 	m = press(m, "right")
-	if g.Config.Gambits[0].Do != game.ActAttack {
-		t.Fatalf("action %v, want attack (heal and bless are cleric-only)", g.Config.Gambits[0].Do)
+	if m.draft[0].Do != game.ActAttack || g.Config.Gambits[0].Do != game.ActSecondWind {
+		t.Fatalf("draft %v rules %v, want attack only in the draft (heal and bless are cleric-only)", m.draft[0].Do, g.Config.Gambits[0].Do)
 	}
 	m = press(m, "esc")
-	if m.edit != 0 || m.cursor != first {
-		t.Fatalf("edit %d cursor %d, want list at %d", m.edit, m.cursor, first)
+	if m.edit != 1 || m.confirmDo == nil {
+		t.Fatalf("esc with changes should ask first: edit %d", m.edit)
+	}
+	m = press(m, "y")
+	if m.edit != 0 || m.cursor != first || g.Config.Gambits[0].Do != game.ActSecondWind {
+		t.Fatalf("edit %d cursor %d rule %v, want list at %d and the change discarded", m.edit, m.cursor, g.Config.Gambits[0].Do, first)
+	}
+	m = press(m, "enter")
+	for i, r := range m.rows() {
+		if r.label == lang.T("tactics.field.do") {
+			m.cursor = i
+		}
+	}
+	m = press(m, "right")
+	for i, r := range m.rows() {
+		if r.text == lang.T("tactics.done") {
+			m.cursor = i
+		}
+	}
+	m = press(m, "enter")
+	if m.edit != 0 || g.Config.Gambits[0].Do != game.ActAttack {
+		t.Fatalf("edit %d rule %v, want the change saved", m.edit, g.Config.Gambits[0].Do)
 	}
 }
 
@@ -232,8 +252,8 @@ func TestAddAndDeleteRule(t *testing.T) {
 	n := len(g.Config.Gambits)
 	m.cursor = len(m.rows()) - 2
 	m = press(m, "enter")
-	if len(g.Config.Gambits) != n+1 || m.edit != n+1 {
-		t.Fatalf("rules %d edit %d", len(g.Config.Gambits), m.edit)
+	if len(g.Config.Gambits) != n || len(m.draft) != n+1 || m.edit != n+1 {
+		t.Fatalf("rules %d draft %d edit %d", len(g.Config.Gambits), len(m.draft), m.edit)
 	}
 	for i, r := range m.rows() {
 		if r.text == lang.T("tactics.delete") {

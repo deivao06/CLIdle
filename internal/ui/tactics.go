@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"slices"
 
 	"clidle/internal/game"
 	"clidle/internal/lang"
@@ -9,14 +10,41 @@ import (
 
 func cycle[T ~int](v *T, d int, n T) { *v = (*v + T(d) + n) % n }
 
+// openRule edits rule i of a copy of the rules, so the hero only sees the change when it is saved.
 func (m *Model) openRule(i, back int) {
+	if m.draft == nil {
+		m.draft = slices.Clone(m.g.Config.Gambits)
+	}
+	if m.draftBase == nil {
+		m.draftBase, m.draftLevel = slices.Clone(m.g.Config.Gambits), m.g.Hero.Level
+	}
 	m.edit, m.editBack, m.cursor = i+1, back, 0
 }
 
-func (m Model) editing() bool { return m.edit > 0 && m.edit <= len(m.g.Config.Gambits) }
+func (m Model) editing() bool { return m.edit > 0 && m.edit <= len(m.draft) }
 
 func (m *Model) closeRule() {
-	m.edit, m.cursor = 0, m.editBack
+	m.edit, m.cursor, m.draft, m.draftBase = 0, m.editBack, nil, nil
+}
+
+func (m *Model) saveRule() {
+	m.g.SetGambits(m.draft, m.draftLevel)
+	m.closeRule()
+}
+
+// leave closes the rule editor and then runs then, asking first when there are unsaved changes.
+func (m *Model) leave(then func(*Model)) {
+	done := func(m *Model) {
+		if m.edit > 0 {
+			m.closeRule()
+		}
+		then(m)
+	}
+	if m.editing() && !slices.Equal(m.draft, m.draftBase) {
+		m.ask(lang.T("confirm.tactics_discard"), done)
+		return
+	}
+	done(m)
 }
 
 // tacticsRows lists the rules in the preparation screen; first is the index of the first row.
@@ -33,9 +61,8 @@ func (m Model) tacticsRows(first int) []prepRow {
 		back := first + len(rows)
 		rows = append(rows, prepRow{section: sec, text: lang.T("tactics.add"), style: sTitle, desc: lang.T("tactics.add.desc"),
 			act: func(m *Model) {
-				if i := m.g.AddGambit(); i >= 0 {
-					m.openRule(i, back)
-				}
+				m.draft = append(slices.Clone(m.g.Config.Gambits), game.NewGambit())
+				m.openRule(len(m.draft)-1, back)
 			}})
 	}
 	return append(rows, prepRow{section: sec, text: lang.T("tactics.reset"), style: sWarn, desc: lang.T("tactics.reset.desc"),
@@ -62,7 +89,7 @@ func condValue(c game.Cond) string {
 // ruleRows is the editor of rule i: each field cycles with ‹ ›, and only the fields the action uses show up.
 func (m Model) ruleRows(i int) []prepRow {
 	g := m.g
-	gb := &g.Config.Gambits[i]
+	gb := &m.draft[i]
 	class := g.Hero.Class
 	sec := lang.T("tactics.edit", i+1)
 	var rows []prepRow
@@ -125,16 +152,25 @@ func (m Model) ruleRows(i int) []prepRow {
 	act := func(key string, f func(*Model)) {
 		rows = append(rows, prepRow{section: sec, text: lang.T(key), style: sTitle, act: f, desc: lang.T(key + ".desc")})
 	}
-	act("tactics.up", func(m *Model) { m.edit = m.g.MoveGambit(i, -1) + 1 })
-	act("tactics.down", func(m *Model) { m.edit = m.g.MoveGambit(i, 1) + 1 })
+	move := func(d int) func(*Model) {
+		return func(m *Model) {
+			if j := i + d; j >= 0 && j < len(m.draft) {
+				m.draft[i], m.draft[j] = m.draft[j], m.draft[i]
+				m.edit = j + 1
+			}
+		}
+	}
+	act("tactics.up", move(-1))
+	act("tactics.down", move(1))
 	rows = append(rows, prepRow{section: sec, text: lang.T("tactics.delete"), style: sWarn, desc: lang.T("tactics.delete.desc"),
-		confirm: lang.T("confirm.tactics_delete", i+1), do: func(m *Model) { m.g.DeleteGambit(i); m.closeRule() }})
-	act("tactics.done", (*Model).closeRule)
+		confirm: lang.T("confirm.tactics_delete", i+1), do: func(m *Model) { m.draft = slices.Delete(m.draft, i, i+1); m.saveRule() }})
+	act("tactics.done", (*Model).saveRule)
+	act("tactics.cancel", func(m *Model) { m.leave(func(*Model) {}) })
 	return rows
 }
 
 func (m Model) viewRule(h int) string {
 	i := m.edit - 1
-	head := []string{sTitle.Render(m.g.Config.Gambits[i].Label()), sMuted.Render(m.keysHint("tactics.keys"))}
+	head := []string{sTitle.Render(m.draft[i].Label()), sMuted.Render(m.keysHint("tactics.keys"))}
 	return m.viewRows(head, m.ruleRows(i), m.w, h)
 }

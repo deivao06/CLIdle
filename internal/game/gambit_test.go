@@ -253,6 +253,17 @@ func TestUnlockingAnAbilityAddsItsRule(t *testing.T) {
 	}
 }
 
+func TestSavingRulesKeepsARuleUnlockedWhileEditing(t *testing.T) {
+	g := New(1, Cleric)
+	draft, since := slices.Clone(g.Config.Gambits), g.Hero.Level
+	g.Hero.Level = AbilityInfo[Bless].Level
+	g.unlockGambits(since, &round{})
+	g.SetGambits(draft, since)
+	if !slices.Equal(g.Config.Gambits, DefaultGambits(Cleric)) {
+		t.Fatalf("bless rule lost: %+v", g.Config.Gambits)
+	}
+}
+
 func TestRetreatsWhenTheBagHoldsARareItem(t *testing.T) {
 	g := heroAt(Warrior, 1, 10)
 	g.Config.Gambits = []Gambit{{If: [2]Cond{CondLoot.DefaultCond()}, Do: ActRetreat}, {Do: ActExplore}}

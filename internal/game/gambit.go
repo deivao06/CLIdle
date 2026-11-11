@@ -675,31 +675,14 @@ func (g *Game) TacticsChanged() {
 	}
 }
 
-func (g *Game) AddGambit() int {
-	gs := &g.Config.Gambits
-	if len(*gs) >= MaxGambits {
-		return -1
-	}
-	*gs = append(*gs, Gambit{If: [2]Cond{{CondHP, OpLess, 50}}, Do: ActPotion})
-	g.TacticsChanged()
-	return len(*gs) - 1
-}
+func NewGambit() Gambit { return Gambit{If: [2]Cond{{CondHP, OpLess, 50}}, Do: ActPotion} }
 
-func (g *Game) DeleteGambit(i int) {
-	g.Config.Gambits = slices.Delete(g.Config.Gambits, i, i+1)
+// SetGambits replaces the rules; abilities unlocked after level since get their default rule back,
+// so a rule added by a level up while the list was being edited is not lost.
+func (g *Game) SetGambits(gs []Gambit, since int) {
+	g.Config.Gambits = slices.Clone(gs)
+	g.unlockGambits(since, &round{})
 	g.TacticsChanged()
-}
-
-// MoveGambit swaps rule i with its neighbor in direction d and returns where it went.
-func (g *Game) MoveGambit(i, d int) int {
-	gs := g.Config.Gambits
-	j := i + d
-	if j < 0 || j >= len(gs) {
-		return i
-	}
-	gs[i], gs[j] = gs[j], gs[i]
-	g.TacticsChanged()
-	return j
 }
 
 func (g *Game) ResetGambits() {

@@ -40,14 +40,18 @@ type Model struct {
 	cursor   int
 	edit     int
 	editBack int
-	heroTop  int
-	listTop  int
-	listFree bool
-	shown    *scrolled
-	lastTick time.Time
-	savePath string
-	lastSave time.Time
-	saveErr  error
+	// draft is the copy of the rules the editor changes; draftBase and draftLevel are the rules and hero level when it opened.
+	draft      []game.Gambit
+	draftBase  []game.Gambit
+	draftLevel int
+	heroTop    int
+	listTop    int
+	listFree   bool
+	shown      *scrolled
+	lastTick   time.Time
+	savePath   string
+	lastSave   time.Time
+	saveErr    error
 
 	away       time.Duration
 	catching   bool
@@ -247,16 +251,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, tea.Quit
 		case "1":
-			m.tab, m.help, m.cursor, m.edit = tabDungeon, false, 0, 0
+			m.leave(func(m *Model) { m.tab, m.help, m.cursor = tabDungeon, false, 0 })
 		case "2":
-			m.tab, m.help, m.cursor, m.edit = tabPrep, false, 0, 0
+			m.leave(func(m *Model) { m.tab, m.help, m.cursor = tabPrep, false, 0 })
 		case "3":
-			m.tab, m.help, m.edit = tabHero, false, 0
+			m.leave(func(m *Model) { m.tab, m.help = tabHero, false })
 		case "4":
-			m.tab, m.help, m.cursor, m.edit = tabSettings, false, 0, 0
+			m.leave(func(m *Model) { m.tab, m.help, m.cursor = tabSettings, false, 0 })
 		case "5":
 			if m.g.Nerd {
-				m.tab, m.help, m.cursor, m.edit = tabNerd, false, 0, 0
+				m.leave(func(m *Model) { m.tab, m.help, m.cursor = tabNerd, false, 0 })
 			}
 		case "r":
 			if e := m.g.Exp; e != nil && !e.Retreating {
@@ -278,7 +282,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.help, m.helpTop = !m.help, 0
 		case "esc":
 			if !m.help && m.edit > 0 {
-				m.closeRule()
+				m.leave(func(*Model) {})
 			}
 			m.help = false
 		default:
