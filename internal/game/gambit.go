@@ -595,24 +595,77 @@ func (g *Game) modeFor(a Action) ExploreMode {
 	return g.Config.Mode
 }
 
-// fleeStep moves to the free neighbor farthest from the nearest awake visible monster, if it gains distance.
+var fleeScratch = struct {
+	safe         []int
+	taken        []bool
+	queue, seeds []Pos
+	relaxed      []Pos
+}{safe: make([]int, MapW*MapH), taken: make([]bool, MapW*MapH)}
+
+// fleeStep walks downhill on a safety map (the classic roguelike flee map): the walking distance from the
+// awake visible monsters, negated and scaled past the step cost, then relaxed, so the hero heads for doors,
+// corridors and other rooms, even around a monster, instead of the farthest corner.
 func (g *Game) fleeStep() (Pos, bool) {
+	const unset, stepCost, distWeight, reach = 1 << 30, 10, 12, 25
 	h := g.Hero.Pos
 	l := g.Exp.Level
-	away := func(p Pos) int {
-		d := MapW
-		for _, m := range l.Mons {
-			if m.Asleep == 0 && l.Visible(h, m.Pos) {
-				d = min(d, m.Pos.Dist(p))
+	at := func(p Pos) int { return p.Y*MapW + p.X }
+	safe, taken := fleeScratch.safe, fleeScratch.taken
+	for i := range safe {
+		safe[i], taken[i] = unset, false
+	}
+	queue := fleeScratch.queue[:0]
+	for _, m := range l.Mons {
+		taken[at(m.Pos)] = true
+		if m.Asleep == 0 && l.Visible(h, m.Pos) {
+			safe[at(m.Pos)] = 0
+			queue = append(queue, m.Pos)
+		}
+	}
+	if len(queue) == 0 {
+		return h, false
+	}
+	for head := 0; head < len(queue); head++ {
+		p := queue[head]
+		if safe[at(p)] >= reach {
+			continue
+		}
+		for _, d := range Dirs8 {
+			if n := p.Add(d); l.In(n) && g.known(n) && safe[at(n)] == unset && l.CanStep(p, n) {
+				safe[at(n)] = safe[at(p)] + 1
+				queue = append(queue, n)
 			}
 		}
-		return d
 	}
-	best, bestD := h, away(h)
+	free := func(p Pos) bool { return !taken[at(p)] }
+	seeds := fleeScratch.seeds[:0]
+	for _, p := range queue {
+		safe[at(p)] *= -distWeight
+		if free(p) {
+			seeds = append(seeds, p)
+		}
+	}
+	slices.SortStableFunc(seeds, func(a, b Pos) int { return safe[at(a)] - safe[at(b)] })
+	relaxed := fleeScratch.relaxed[:0]
+	for si, ri := 0, 0; si < len(seeds) || ri < len(relaxed); {
+		var p Pos
+		if ri >= len(relaxed) || si < len(seeds) && safe[at(seeds[si])] <= safe[at(relaxed[ri])] {
+			p, si = seeds[si], si+1
+		} else {
+			p, ri = relaxed[ri], ri+1
+		}
+		for _, d := range Dirs8 {
+			if n := p.Add(d); l.In(n) && safe[at(n)] != unset && free(n) && safe[at(p)]+stepCost < safe[at(n)] && l.CanStep(p, n) {
+				safe[at(n)] = safe[at(p)] + stepCost
+				relaxed = append(relaxed, n)
+			}
+		}
+	}
+	fleeScratch.queue, fleeScratch.seeds, fleeScratch.relaxed = queue, seeds, relaxed
+	best := h
 	for _, d := range Dirs8 {
-		n := h.Add(d)
-		if g.passable(n) && l.CanStep(h, n) && away(n) > bestD {
-			best, bestD = n, away(n)
+		if n := h.Add(d); g.passable(n) && l.CanStep(h, n) && safe[at(n)] < safe[at(best)] {
+			best = n
 		}
 	}
 	return best, best != h

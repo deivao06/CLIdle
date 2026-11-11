@@ -92,6 +92,32 @@ func TestFleeGainsDistance(t *testing.T) {
 	}
 }
 
+func TestFleeLeavesTheRoomInsteadOfTheCorner(t *testing.T) {
+	for seed := uint64(1); seed <= 20; seed++ {
+		g := heroAt(Warrior, 1, seed)
+		l := g.Exp.Level
+		for i := range l.Seen {
+			l.Seen[i] = 1
+		}
+		room := l.RoomAt(g.Hero.Pos)
+		g.besideHero(dummy())
+		out := func(p Pos) bool { return l.RoomAt(p) != room || l.At(p) == Door }
+		if _, ok := l.pathStep(g.Hero.Pos, g.passable, out); !ok {
+			continue
+		}
+		for range 200 {
+			p, ok := g.fleeStep()
+			if !ok {
+				break
+			}
+			g.Hero.Pos = p
+		}
+		if l.RoomAt(g.Hero.Pos) == room && l.At(g.Hero.Pos) != Door {
+			t.Errorf("seed %d: still inside the start room at %v", seed, g.Hero.Pos)
+		}
+	}
+}
+
 func TestHuntWalksToTheTarget(t *testing.T) {
 	g := heroAt(Warrior, 1, 5)
 	l := g.Exp.Level

@@ -464,7 +464,7 @@
   "gambit.do.idle": "Descansar",
   "gambit.do.idle.desc": "Fica parado: a mana volta, mas os monstros ainda podem bater.",
   "gambit.do.flee": "Fugir",
-  "gambit.do.flee.desc": "Se afasta do monstro acordado mais perto à vista.",
+  "gambit.do.flee.desc": "Foge dos monstros acordados à vista pelo caminho, buscando portas, corredores e outras salas em vez de cantos.",
   "gambit.do.hunt": "Caçar",
   "gambit.do.hunt.desc": "Vai atrás de um monstro à vista e ataca.",
   "gambit.do.explore": "Explorar",

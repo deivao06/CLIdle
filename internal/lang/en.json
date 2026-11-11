@@ -464,7 +464,7 @@
   "gambit.do.idle": "Idle",
   "gambit.do.idle.desc": "Stands still: mana comes back, but monsters can still hit.",
   "gambit.do.flee": "Flee",
-  "gambit.do.flee.desc": "Steps away from the nearest awake monster in sight.",
+  "gambit.do.flee.desc": "Runs from the awake monsters in sight by walking distance, heading for doors, corridors and other rooms instead of corners.",
   "gambit.do.hunt": "Hunt",
   "gambit.do.hunt.desc": "Goes after a monster in sight and attacks it.",
   "gambit.do.explore": "Explore",
