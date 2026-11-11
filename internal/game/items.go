@@ -96,7 +96,13 @@ func (it *Item) ForgeBase() int {
 
 func (it *Item) UpgradeStep() int { return max(1, it.ForgeBase()/UpgradeDivisor) }
 
-func (it *Item) Value() int { return it.Bonus() * ItemValuePerBonus * (int(it.Rarity) + 1) }
+func (it *Item) Value() int {
+	piles := float64(ItemValuePiles * (int(it.Rarity) + 1))
+	for _, e := range it.Effects {
+		piles += EffectValuePiles * float64(e.Value) / float64(EffectRange[e.Kind][1])
+	}
+	return max(1, int(GoldPerPile(ItemDepth(it.Slot, it.Kind, it.Rarity, it.Base))*piles+0.5))
+}
 
 func (it *Item) SellPrice() int {
 	spent := 0
@@ -105,7 +111,7 @@ func (it *Item) SellPrice() int {
 		at.Upgrade = lvl
 		spent += UpgradeCost(&at, lvl)
 	}
-	return max(1, it.Value()*SellPct/100+spent*UpgradeRefundPct/100)
+	return max(1, it.Value()+spent*UpgradeRefundPct/100)
 }
 
 // Label translates the item name; saves from before translation hold the Portuguese name itself.

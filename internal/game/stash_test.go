@@ -116,7 +116,7 @@ func TestUpgradesRaiseSellPriceFairly(t *testing.T) {
 	plain := &Item{Slot: Weapon, Base: 20}
 	up := &Item{Slot: Weapon, Base: 20, Upgrade: 2}
 	spent := UpgradeCost(&Item{Slot: Weapon, Base: 20}, 0) + UpgradeCost(&Item{Slot: Weapon, Base: 20, Upgrade: 1}, 1)
-	if got, want := up.SellPrice(), up.Value()*SellPct/100+spent*UpgradeRefundPct/100; got != want || got <= plain.SellPrice() || got >= spent {
+	if got, want := up.SellPrice(), up.Value()+spent*UpgradeRefundPct/100; got != want || got <= plain.SellPrice() || got >= spent {
 		t.Fatalf("sell %d want %d plain %d spent %d", got, want, plain.SellPrice(), spent)
 	}
 }

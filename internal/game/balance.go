@@ -99,7 +99,8 @@ const (
 	UpgradeDivisor    = 10
 	UpgradeMax        = 10
 	ItemValuePerBonus = 4
-	SellPct           = 60
+	ItemValuePiles    = 1
+	EffectValuePiles  = 1
 	UpgradeRefundPct  = 20
 )
 
@@ -145,6 +146,23 @@ func ItemBase(slot Slot, kind, depth int, r Rarity) float64 {
 		return (1 + float64(depth)*0.8) * rarityMult[r] / 2
 	}
 	return 1 + float64(depth)/6 + float64(r)
+}
+
+// ItemDepth is the floor where an item's base is the expected roll for its slot, kind and rarity.
+func ItemDepth(slot Slot, kind int, r Rarity, base int) int {
+	b := float64(base)
+	var d float64
+	switch slot {
+	case Weapon:
+		d = (b/rarityMult[r] - 2) / 1.2
+	case Armor:
+		d = (b/(rarityMult[r]*armorWeightMult[kind]) - 1) / 0.8
+	case Helmet, Shield:
+		d = (2*b/rarityMult[r] - 1) / 0.8
+	default:
+		d = (b - 1 - float64(r)) * 6
+	}
+	return max(1, int(d+0.5))
 }
 
 const ItemSpread = 0.1
@@ -245,7 +263,7 @@ var ItemNames = [NumSlots][][]itemName{
 
 const (
 	ShopSize        = 3
-	ShopMarkup      = 3
+	ShopMarkup      = 5
 	PotionPrice     = 10
 	PotionSellPrice = 5
 	MaxPotions      = 10
