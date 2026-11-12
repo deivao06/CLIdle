@@ -81,6 +81,7 @@ type Item struct {
 	Base    int
 	Upgrade int
 	Forged  int `json:",omitempty"`
+	Floor   int `json:",omitempty"`
 	Effects []ItemEffect
 }
 
@@ -136,7 +137,14 @@ func (it *Item) Title() string {
 	if it.Upgrade > 0 {
 		s = fmt.Sprintf("%s +%d", s, it.Upgrade)
 	}
-	return s
+	return s + it.ILvl()
+}
+
+func (it *Item) ILvl() string {
+	if it.Floor == 0 {
+		return ""
+	}
+	return lang.T("item.ilvl", it.Floor)
 }
 
 func (it *Item) StatLabel() string {
@@ -193,7 +201,7 @@ func newItemOf(rng *RNG, depth int, rarity Rarity) *Item {
 			name = n.name
 		}
 	}
-	it := &Item{ID: rng.Uint64(), Slot: slot, Kind: kind, Rarity: rarity, Name: name, Base: base}
+	it := &Item{ID: rng.Uint64(), Slot: slot, Kind: kind, Rarity: rarity, Name: name, Base: base, Floor: depth}
 	for len(it.Effects) < EffectCount[rarity] {
 		k := Effect(rng.Intn(int(NumEffects)))
 		if !slices.ContainsFunc(it.Effects, func(f ItemEffect) bool { return f.Kind == k }) {

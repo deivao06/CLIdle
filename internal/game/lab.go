@@ -147,7 +147,7 @@ func (lg LabGear) Item(slot Slot, id uint64) *Item {
 		}
 	}
 	it := &Item{ID: id, Slot: slot, Kind: lg.Kind, Rarity: lg.Rarity, Name: name,
-		Base: ItemRoll(slot, lg.Kind, lg.Depth, lg.Rarity, 0.5), Upgrade: lg.Upgrade, Effects: slices.Clone(lg.Effects)}
+		Base: ItemRoll(slot, lg.Kind, lg.Depth, lg.Rarity, 0.5), Upgrade: lg.Upgrade, Floor: lg.Depth, Effects: slices.Clone(lg.Effects)}
 	it.Forged = lg.Upgrade * it.UpgradeStep()
 	return it
 }
