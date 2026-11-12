@@ -85,12 +85,9 @@ func (g *Game) BuyShop(i int) {
 func (g *Game) equipBought(it *Item) {
 	h := g.Hero
 	msg := lang.T("log.hero_equips", it.Title(), it.StatLabel())
-	if old := h.Equip[it.Slot]; old != nil && old.Rarity == Legendary {
+	if old := h.Equip[it.Slot]; old != nil {
 		g.Stash = append(g.Stash, old)
 		msg += lang.T("log.kept_old", old.Title())
-	} else if old != nil {
-		g.Gold += old.SellPrice()
-		msg += lang.T("log.sold_old", old.Title(), old.SellPrice())
 	}
 	h.Equip[it.Slot] = it
 	h.HP = min(h.HP, h.MaxHP())
@@ -198,7 +195,7 @@ func (g *Game) EquipStash(i int) {
 
 func (g *Game) Unequip(s Slot) {
 	it := g.Hero.Equip[s]
-	if !g.InTown() || it == nil || len(g.Stash) >= StashSize {
+	if !g.InTown() || it == nil {
 		return
 	}
 	g.Hero.Equip[s] = nil

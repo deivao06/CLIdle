@@ -251,7 +251,7 @@ func (g *Game) returnToTown() {
 	e := g.Exp
 	sold, kept := 0, 0
 	for _, it := range e.Bag {
-		if it.Rarity == Legendary || g.Config.KeepLoot && len(g.Stash) < StashSize {
+		if it.Rarity == Legendary || g.Config.KeepLoot {
 			g.Stash = append(g.Stash, it)
 			kept++
 			continue

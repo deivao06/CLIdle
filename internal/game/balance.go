@@ -94,7 +94,6 @@ var MonsterKinds = []MonsterKind{
 
 const (
 	BagSize           = 8
-	StashSize         = 20
 	StartPotions      = 5
 	PotionHealPct     = 35
 	PotionChance      = 0.2

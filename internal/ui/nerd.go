@@ -107,7 +107,6 @@ func (m Model) nerdRows() []prepRow {
 	add("bag", fmt.Sprint(game.BagSize))
 	add("bag_slots", fmt.Sprintf("+%d × %d", game.BagSlotsPerLevel, game.BagMaxLevel))
 	add("bag_cost", lang.T("nerd.growth.value", fmt.Sprint(game.BagCost(0)), ratio(float64(game.BagCost(1)), float64(game.BagCost(0)))))
-	add("stash", fmt.Sprint(game.StashSize))
 	add("shop_size", fmt.Sprint(game.ShopSize))
 	add("shop_markup", fmt.Sprintf("×%d", game.ShopMarkup))
 	add("item_value", fmt.Sprint(game.ItemValuePiles))

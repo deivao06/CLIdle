@@ -193,7 +193,7 @@ func (m Model) townRows() []prepRow {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.bag_max", size-game.BagSlotsPerLevel), style: sMuted})
 	}
 
-	chest := lang.T("prep.section.chest", len(g.Stash), game.StashSize)
+	chest := lang.T("prep.section.chest", len(g.Stash))
 	for i, it := range g.Stash {
 		text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.SellPrice(), m.compare(it))
 		st := rarityStyle(it.Rarity)

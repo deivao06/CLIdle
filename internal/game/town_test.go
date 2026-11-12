@@ -8,15 +8,15 @@ func townGame() *Game {
 	return g
 }
 
-func TestBuyInTownEquipsAndSellsOld(t *testing.T) {
+func TestBuyInTownEquipsAndStashesOld(t *testing.T) {
 	g := townGame()
-	old := &Item{Slot: Weapon, Base: 1}
+	old := &Item{Slot: Weapon, Base: 1, Upgrade: 6}
 	g.Hero.Equip[Weapon] = old
 	g.Shop = []*Item{{Slot: Weapon, Base: 10}}
 	price := ShopPrice(g.Shop[0])
 	g.BuyShop(0)
-	if g.Hero.Equip[Weapon].Base != 10 || g.Gold != 100000-price+old.SellPrice() {
-		t.Fatalf("equip %+v gold %d", g.Hero.Equip[Weapon], g.Gold)
+	if g.Hero.Equip[Weapon].Base != 10 || g.Gold != 100000-price || len(g.Stash) != 1 || g.Stash[0] != old {
+		t.Fatalf("equip %+v gold %d stash %v", g.Hero.Equip[Weapon], g.Gold, g.Stash)
 	}
 }
 

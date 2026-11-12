@@ -38,15 +38,15 @@ func TestManualEquipStillSellsByDefault(t *testing.T) {
 	}
 }
 
-func TestStashOverflowIsSold(t *testing.T) {
+func TestStashHasNoLimit(t *testing.T) {
 	g := New(1, Warrior)
 	g.Config.KeepLoot = true
-	g.Stash = make([]*Item, StashSize)
+	g.Stash = make([]*Item, 50)
 	g.Depart()
 	it := &Item{Slot: Weapon, Base: 5}
 	g.Exp.Bag = []*Item{it}
 	g.returnToTown()
-	if len(g.Stash) != StashSize || g.Gold != it.SellPrice() {
+	if len(g.Stash) != 51 || g.Stash[50] != it {
 		t.Fatalf("stash %d gold %d", len(g.Stash), g.Gold)
 	}
 }
@@ -95,12 +95,11 @@ func TestUnequipAndSellStash(t *testing.T) {
 
 func TestLegendaryIsNeverSoldOnItsOwn(t *testing.T) {
 	g := New(1, Warrior)
-	g.Stash = make([]*Item, StashSize)
 	g.Depart()
 	leg := &Item{Slot: Weapon, Base: 5, Rarity: Legendary}
 	g.Exp.Bag = []*Item{leg, {Slot: Weapon, Base: 5}}
 	g.returnToTown()
-	if len(g.Stash) != StashSize+1 || g.Stash[StashSize] != leg {
+	if len(g.Stash) != 1 || g.Stash[0] != leg {
 		t.Fatalf("legendary sold on return, stash %d", len(g.Stash))
 	}
 	old := &Item{Slot: Armor, Base: 2, Rarity: Legendary}
