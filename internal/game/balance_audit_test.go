@@ -60,7 +60,7 @@ func auditCheapest(g *Game) (int, int) {
 		}
 	}
 	for s := range NumSlots {
-		if g.Hero.Equip[s] != nil {
+		if it := g.Hero.Equip[s]; it != nil && it.Upgrade < UpgradeMax {
 			try(int(s), g.UpgradeCost(s))
 		}
 	}
