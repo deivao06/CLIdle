@@ -187,7 +187,8 @@ func (m Model) rowText(text string, w int) []string {
 		return []string{text}
 	}
 	if !m.narrow() {
-		return []string{truncate(text, w)}
+		lines := strings.Split(hangLine(text, w), "\n")
+		return lines[:min(len(lines), maxRowLines)]
 	}
 	if cols := columns.Split(strings.TrimSpace(text), -1); len(cols) >= 3 {
 		head, tail := cols[0], strings.Join(cols[2:], "  ")

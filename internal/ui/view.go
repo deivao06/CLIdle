@@ -302,10 +302,23 @@ func hangLine(s string, w int) string {
 	}
 	var groups []string
 	for _, seg := range strings.Split(value, "  ") {
-		if n := len(groups); n > 0 && lipgloss.Width(groups[n-1]+"  "+seg) <= w-pad {
-			groups[n-1] += "  " + seg
-		} else {
-			groups = append(groups, seg)
+		toks := []string{seg}
+		if lipgloss.Width(seg) > w-pad {
+			toks = strings.SplitAfter(seg, ", ")
+		}
+		for _, t := range toks {
+			if t = strings.TrimSpace(t); t == "" {
+				continue
+			}
+			n, sep := len(groups), "  "
+			if n > 0 && strings.HasSuffix(groups[n-1], ",") {
+				sep = " "
+			}
+			if n > 0 && lipgloss.Width(groups[n-1]+sep+t) <= w-pad {
+				groups[n-1] += sep + t
+			} else {
+				groups = append(groups, t)
+			}
 		}
 	}
 	var lines []string
