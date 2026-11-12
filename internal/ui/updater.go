@@ -49,14 +49,14 @@ func installUpdate(found *update.Release) tea.Cmd {
 	}
 }
 
-// townArrival runs on live ticks: reaching town looks for an update, at most once an hour,
-// and stops looking once one was found.
+// townArrival runs on live ticks: the first tick and reaching town look for an update, at most once
+// an hour, and stop looking once one was found.
 func (m *Model) townArrival(now time.Time) tea.Cmd {
 	inTown := m.g.InTown()
 	arrived := inTown && !m.wasInTown
 	m.wasInTown = inTown
 	switch {
-	case !arrived:
+	case !arrived && (!m.lastCheck.IsZero() || m.checking):
 		return nil
 	case m.release != nil:
 		if !m.g.Auto {

@@ -53,7 +53,7 @@ internal/ui/            Bubble Tea
   prep.go               Preparação (só config), lista da cidade (`townRows`), Config, resetar save
   tactics.go            seção Táticas da Preparação e editor de regra (`ruleRows`, `Model.edit`)
   style.go              estilos/cores
-  updater.go            aviso de versão nova, tecla u, confirmação e reinício (checa ao chegar na cidade, máx. 1×/hora)
+  updater.go            aviso de versão nova, tecla u, confirmação e reinício (checa ao abrir e ao chegar na cidade, máx. 1×/hora; a pergunta automática só aparece na cidade, `u` funciona em qualquer lugar)
   news.go               página Novidades da ajuda: notas das releases do GitHub (`update.Notes`); abre sozinha uma vez por versão (`Game.SeenNews`, jogo novo não abre)
   nerd.go               aba 5 Nerd (opção "Coisas de nerd" na Config, Game.Nerd, zero = desligada): lê os números de balance.go ao vivo, um texto por linha em lang
   lab.go, lab_rows.go   UI do playground (Lab embute Model para mapa, painel e editor de táticas; Model.tab é a página; só desktop: mapa sempre à direita)

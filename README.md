@@ -54,7 +54,7 @@ Download the binary for your system from the [Releases](https://github.com/deiva
 
   The first time, Windows may show **"Windows protected your PC"** (SmartScreen). That happens because the `.exe` has no paid digital signature, not because it does anything wrong. Click **More info → Run anyway**. If you would rather check it first, compare the file with the release's `SHA256SUMS` or build it from source (below).
 
-The game **tells you** when a new version is out: when the hero gets back to town, it checks the releases (at most once an hour). "New version vX · u update" shows up at the top. Press `u` and confirm: it downloads, checks the checksum, swaps the binary and restarts with your save intact. The current version is shown in the bottom right corner.
+The game **tells you** when a new version is out: when you open the game and when the hero gets back to town, it checks the releases (at most once an hour). "New version vX · u update" shows up at the top. Press `u` and confirm: it downloads, checks the checksum, swaps the binary and restarts with your save intact. The current version is shown in the bottom right corner.
 
 ## Play in the browser and on your phone
 

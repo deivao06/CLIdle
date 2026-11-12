@@ -54,7 +54,7 @@ Baixe o binário do seu sistema na página de [Releases](https://github.com/deiv
 
   Na primeira vez, o Windows pode mostrar **"Windows protected your PC"** (SmartScreen). Isso acontece porque o `.exe` não tem assinatura digital paga, não porque ele faça algo errado. Clique em **More info → Run anyway**. Se preferir conferir antes, compare o arquivo com o `SHA256SUMS` da release ou compile do código (abaixo).
 
-O jogo **avisa sozinho** quando sai uma versão nova: ao voltar à cidade, ele consulta as releases (no máximo 1 vez por hora). Aparece "Nova versão vX · u atualizar" no topo. Com `u` e a confirmação, ele baixa, confere o checksum, troca o binário e reinicia com o save intacto. A versão atual aparece no canto direito do rodapé.
+O jogo **avisa sozinho** quando sai uma versão nova: ao abrir o jogo e ao voltar à cidade, ele consulta as releases (no máximo 1 vez por hora). Aparece "Nova versão vX · u atualizar" no topo. Com `u` e a confirmação, ele baixa, confere o checksum, troca o binário e reinicia com o save intacto. A versão atual aparece no canto direito do rodapé.
 
 ## Jogar no navegador e no celular
 

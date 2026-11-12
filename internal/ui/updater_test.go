@@ -63,3 +63,20 @@ func TestTownArrivalChecksAtMostHourly(t *testing.T) {
 		t.Fatal("did not check after an hour")
 	}
 }
+
+func TestStartInDungeonChecksOnce(t *testing.T) {
+	old := update.Version
+	t.Cleanup(func() { update.Version = old })
+	update.Version = "v0.1.0"
+	g := game.New(1, game.Warrior)
+	g.Depart()
+	m := New(g)
+	now := time.Now()
+	if m.townArrival(now) == nil {
+		t.Fatal("opening with the hero away did not check")
+	}
+	m.checking = false
+	if m.townArrival(now.Add(time.Second)) != nil {
+		t.Fatal("checked again on the next tick")
+	}
+}
