@@ -87,6 +87,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 
 ## Herói
 
+- **Nome (2026-11-13):** `Hero.Name`. Jogo novo pede o nome antes da classe; save sem nome pede só o nome (depois da simulação offline, com o jogo pausado). Até 16 caracteres: letras, números, espaço, `-` `'` `.`; vazio não confirma. `ChooseClass` mantém o nome. Aparece no topo do painel do herói (`Nome · Classe nível N`). Na web, `ui.Typing` liga o teclado do celular (`inputmode` text) só nessa tela; tocar na tela abre o teclado.
 - Um herói, com **classe escolhida no jogo novo**: Guerreiro, Mago, Ladino ou Clérigo. Save antigo vira Guerreiro. Trocar de classe fica para o prestígio.
 - HP base por classe: Guerreiro 30, Clérigo 28, Mago 26, Ladino 25. O mago não pode ser frágil a ponto de morrer nos primeiros andares da primeira expedição.
 - Atributos: **FOR** (dano corpo a corpo), **DES** (velocidade), **INT** (magia e mana), **CON** (vida). Cada classe tem valores iniciais e ganho por nível próprios. O treino da cidade sobe esses quatro, com o mesmo preço para todos (2026-11-13; antes a DES custava 3× mais).

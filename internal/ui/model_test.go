@@ -41,6 +41,7 @@ func TestResetSaveAsksThenStartsOver(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "save.json")
 	g := game.New(1, game.Mage)
 	g.Gold = 500
+	g.Hero.Name = "Test"
 	var tm tea.Model = NewWithSave(g, path, 0, false)
 	tm, _ = tm.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
@@ -275,6 +276,7 @@ func TestNewsOpensOnceAfterAnUpdate(t *testing.T) {
 		t.Fatal("a fresh game should not open the news")
 	}
 	g.SeenNews = "v9.9.8"
+	g.Hero.Name = "Test"
 	var tm tea.Model = NewWithSave(g, "", 0, false)
 	tm, _ = tm.Update(newsMsg{notes: []update.Note{{Version: "v9.9.9", Body: "* new thing"}}})
 	if m := tm.(Model); !m.help || helpPages[m.helpPage] != newsPage || !strings.Contains(m.newsText(), "new thing") {
@@ -306,5 +308,47 @@ func TestScrollMovesTheListNotTheCursor(t *testing.T) {
 	m = press(m, "down")
 	if m.listFree || m.cursor != 1 {
 		t.Fatal("arrow keys should follow the cursor again")
+	}
+}
+
+func TestNameComesBeforeClassAndStaysAfterIt(t *testing.T) {
+	var tm tea.Model = NewWithSave(game.New(1, game.Warrior), "", 0, true)
+	tm, _ = tm.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	if m := tm.(Model); !m.naming || !strings.Contains(m.View(), lang.T("name.title")) {
+		t.Fatal("a fresh game should ask for the name first")
+	}
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	if !tm.(Model).naming {
+		t.Fatal("an empty name was accepted")
+	}
+	for _, k := range []tea.KeyMsg{{Type: tea.KeyRunes, Runes: []rune("Zé!q")}, {Type: tea.KeySpace}, {Type: tea.KeyRunes, Runes: []rune("Xx")}, {Type: tea.KeyBackspace}, {Type: tea.KeyEnter}} {
+		tm, _ = tm.Update(k)
+	}
+	m := tm.(Model)
+	if m.naming || !m.choosing || m.g.Hero.Name != "Zéq X" {
+		t.Fatalf("name %q naming %v choosing %v", m.g.Hero.Name, m.naming, m.choosing)
+	}
+	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyDown})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	if m = tm.(Model); m.g.Hero.Class != game.Mage || m.g.Hero.Name != "Zéq X" {
+		t.Fatalf("class %v name %q", m.g.Hero.Class, m.g.Hero.Name)
+	}
+}
+
+func TestOldSaveWithoutNameAsksOnlyTheName(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := game.New(1, game.Rogue)
+	var tm tea.Model = NewWithSave(g, path, 0, false)
+	if m := tm.(Model); !m.naming || m.choosing {
+		t.Fatal("an unnamed hero should be asked for a name, not a class")
+	}
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("Ana")})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	got, _, err := game.Load(path)
+	if m := tm.(Model); m.naming || m.choosing || err != nil || got.Hero.Name != "Ana" || got.Hero.Class != game.Rogue {
+		t.Fatalf("naming %v choosing %v err %v", m.naming, m.choosing, err)
+	}
+	if NewWithSave(got, path, 0, false).naming {
+		t.Fatal("a named hero was asked again")
 	}
 }

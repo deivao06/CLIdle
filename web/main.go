@@ -55,6 +55,7 @@ func main() {
 			out.Write(b)
 		}
 	}()
+	ui.Typing = func(on bool) { page.Call("typing", on) }
 	p := tea.NewProgram(ui.NewWithSave(g, savePath, away, fresh),
 		tea.WithAltScreen(), tea.WithMouseCellMotion(), tea.WithInput(in), tea.WithOutput(termWriter{page.Get("write")}),
 		tea.WithoutSignalHandler())

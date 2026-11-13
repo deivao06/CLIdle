@@ -58,6 +58,9 @@
   "stats.bag": " · Mochila %d/%d",
 
   "hero.level": "nível %d",
+  "name.title": "Dê um nome ao seu herói",
+  "name.keys": "digite um nome · enter confirma",
+  "name.touch": "toque para abrir o teclado · retorno confirma",
   "choose.title": "Escolha a classe do herói",
   "choose.keys": "↑↓ escolher · enter confirmar",
   "hero.attrs": "FOR %d · DES %d · INT %d · CON %d",

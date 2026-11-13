@@ -82,7 +82,7 @@ func (m *Model) updateFound(r *update.Release) {
 }
 
 func (m *Model) askUpdate() {
-	if m.release == nil || m.updating || m.confirmDo != nil || m.summary != nil || m.choosing {
+	if m.release == nil || m.updating || m.confirmDo != nil || m.summary != nil || m.choosing || m.naming {
 		return
 	}
 	m.ask(lang.T("confirm.update", m.release.Version, update.Version), func(m *Model) {

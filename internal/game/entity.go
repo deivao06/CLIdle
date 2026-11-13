@@ -105,6 +105,7 @@ func spawnBoss(rng *RNG, depth int) *Monster {
 func scaled(v int, s float64) int { return int(float64(v)*s + 0.5) }
 
 type Hero struct {
+	Name     string `json:",omitempty"`
 	Class    Class
 	Pos      Pos
 	HP       int

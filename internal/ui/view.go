@@ -58,6 +58,9 @@ func (m Model) view() string {
 			sMuted.Render(lang.T("ui.too_small_size", minW, minH, m.w, m.h))
 		return lipgloss.Place(m.w, m.h, lipgloss.Center, lipgloss.Center, msg)
 	}
+	if m.naming && !m.catching {
+		return m.viewName()
+	}
 	if m.choosing {
 		return m.viewChoose()
 	}
@@ -766,6 +769,9 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 	g := m.g
 	h := g.Hero
 	var b strings.Builder
+	if h.Name != "" {
+		b.WriteString(sTitle.Render(h.Name) + " · ")
+	}
 	fmt.Fprintf(&b, "%s %s\n", sSection.Render(h.Class.Name()), lang.T("hero.level", h.Level))
 	wrap := lipgloss.NewStyle().Width(w)
 	b.WriteString(wrap.Render(stat("hero.attrs", h.Attr(game.Str), h.Attr(game.Dex), h.Attr(game.Int), h.Attr(game.Con))) + "\n")

@@ -241,6 +241,9 @@ func (m Model) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 	if m.summary != nil {
 		return m.Update(keyMsg("enter"))
 	}
+	if m.naming {
+		return m, nil
+	}
 	if m.choosing {
 		for c := range int(game.NumClasses) {
 			for j := range maxDescLines + 1 {

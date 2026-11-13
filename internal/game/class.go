@@ -43,7 +43,9 @@ func (c Class) CanUse(it *Item) bool {
 // ChooseClass picks the hero's class for a brand new game.
 func (g *Game) ChooseClass(c Class) {
 	if g.ExpNum == 0 {
+		name := g.Hero.Name
 		g.Hero = NewHero(c)
+		g.Hero.Name = name
 		g.Config.Gambits = heroGambits(g.Hero)
 	}
 }

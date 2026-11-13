@@ -66,8 +66,10 @@ type Model struct {
 	confirmDo   func(*Model)
 	confirmTown bool
 
-	choosing bool
-	crt      bool
+	choosing  bool
+	naming    bool
+	nameDraft []rune
+	crt       bool
 	// seeAll draws the whole floor in the playground, without changing what the hero knows.
 	seeAll bool
 
@@ -103,6 +105,10 @@ func New(g *game.Game) Model {
 func NewWithSave(g *game.Game, path string, away time.Duration, fresh bool) Model {
 	m := New(g)
 	m.choosing = fresh
+	m.naming = g.Hero.Name == ""
+	if m.naming {
+		Typing(true)
+	}
 	m.savePath = path
 	m.away = away
 	m.catching = away >= wakeGap
@@ -185,7 +191,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tick()
 		}
 		now := time.Time(msg)
-		if m.choosing {
+		if m.choosing || m.naming {
 			m.lastTick = now
 			return m, tick()
 		}
@@ -223,6 +229,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.summary != nil {
 			m.summary = nil
+			return m, nil
+		}
+		if m.naming && msg.String() != "ctrl+c" {
+			m.nameKey(msg)
+			if !m.naming && !m.choosing {
+				m.save(time.Now())
+			}
 			return m, nil
 		}
 		if m.choosing && msg.String() != "ctrl+c" && msg.String() != "q" {

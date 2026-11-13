@@ -50,6 +50,7 @@
   term.open(document.getElementById("term"));
   fit.fit();
 
+  let typing = false;
   if (touch) term.textarea.setAttribute("inputmode", "none");
 
   window.addEventListener("scroll", () => { if (window.scrollY || window.scrollX) window.scrollTo(0, 0); });
@@ -62,6 +63,7 @@
     lines = 0;
   };
   el.addEventListener("touchstart", (e) => { lastY = e.touches[0].clientY; moved = 0; }, { capture: true, passive: true });
+  el.addEventListener("touchend", () => { if (typing) term.textarea.focus(); }, { capture: true, passive: true });
   el.addEventListener("touchmove", (e) => {
     if (lastY === null || !window.clidle.scroll) return;
     const y = e.touches[0].clientY;
@@ -82,6 +84,12 @@
     get rows() { return term.rows; },
     write: (bytes) => term.write(bytes),
     fail: (text) => { msg.textContent = text; },
+    typing: (on) => {
+      typing = on;
+      if (!touch) return;
+      term.textarea.setAttribute("inputmode", on ? "text" : "none");
+      term.textarea.blur();
+    },
     exit: () => { term.reset(); msg.textContent = "Saved. Reload the page to play again."; },
     reload: async () => {
       term.reset();

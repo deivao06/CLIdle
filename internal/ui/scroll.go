@@ -7,7 +7,7 @@ type ScrollMsg int
 type scrolled struct{ top, max int }
 
 func (m *Model) scroll(n int) {
-	if m.summary != nil || m.choosing || m.confirmDo != nil {
+	if m.summary != nil || m.choosing || m.naming || m.confirmDo != nil {
 		return
 	}
 	top := clamp(m.shown.top+n, 0, m.shown.max)
