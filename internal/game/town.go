@@ -130,7 +130,7 @@ func (g *Game) UpgradeBag() {
 }
 
 func (g *Game) Train(t Trait) {
-	if !g.InTown() || !g.spend(TrainCost(t, g.Hero.Training[t])) {
+	if !g.InTown() || !g.spend(TrainCost(g.Hero.Training[t])) {
 		return
 	}
 	g.Hero.Training[t]++

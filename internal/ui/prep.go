@@ -159,7 +159,7 @@ func (m Model) townRows() []prepRow {
 
 	for t := range game.NumTraits {
 		lvl := g.Hero.Training[t]
-		cost := game.TrainCost(t, lvl)
+		cost := game.TrainCost(lvl)
 		text := lang.T("prep.train_row", t.Name(), lvl, t.Effect(), cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.buyable(cost),
 			enter: func() { g.Train(t) }, desc: m.trainDesc(t)})

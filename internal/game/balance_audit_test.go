@@ -65,7 +65,7 @@ func auditCheapest(g *Game) (int, int) {
 		}
 	}
 	for _, t := range auditTraits[g.Hero.Class] {
-		try(100+int(t), TrainCost(t, g.Hero.Training[t]))
+		try(100+int(t), TrainCost(g.Hero.Training[t]))
 	}
 	if _, c, ok := g.NextBag(); ok {
 		try(200, c)

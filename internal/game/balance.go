@@ -290,7 +290,7 @@ func UpgradeCost(it *Item, level int) int {
 	return int(float64(value+10) * math.Pow(1.6, float64(level)))
 }
 
-var trainBase = [NumTraits]float64{Str: 40, Dex: 120, Int: 40, Con: 30}
+const TrainBase = 40
 
 type classHP struct{ Base, PerLevel int }
 
@@ -323,8 +323,8 @@ func BagCost(level int) int {
 	return int(100 * math.Pow(1.8, float64(level)))
 }
 
-func TrainCost(t Trait, level int) int {
-	return int(trainBase[t] * math.Pow(1.5, float64(level)))
+func TrainCost(level int) int {
+	return int(TrainBase * math.Pow(1.5, float64(level)))
 }
 
 const OfflineCap = 12 * time.Hour
