@@ -7,7 +7,7 @@ func TestWarriorKeepsTodaysCurve(t *testing.T) {
 	h.Equip[Weapon] = nil
 	h.Level = 9
 	h.Training[Con], h.Training[Str], h.Training[Dex] = 2, 3, 1
-	if h.MaxHP() != 30+8*8+2*5 || h.Atk() != 5+12+3 || h.Def() != 1+4 || h.Spd() != 4+1 {
+	if h.MaxHP() != 30+8*8+2*5 || h.Atk() != 5+12+3 || h.Def() != 1+4 || h.Spd() != 4+9/3+1/5 {
 		t.Fatalf("hp %d atk %d def %d spd %d", h.MaxHP(), h.Atk(), h.Def(), h.Spd())
 	}
 }

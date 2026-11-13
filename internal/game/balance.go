@@ -6,10 +6,11 @@ import (
 )
 
 const (
-	HeroBaseAtk   = 5
-	HeroBaseDef   = 1
-	HeroBaseSpd   = 4
-	ExploreDexDiv = 2
+	HeroBaseAtk = 5
+	HeroBaseDef = 1
+	HeroBaseSpd = 4
+	SpdLevelDiv = 3
+	SpdDexDiv   = 5
 
 	MissEven       = 0.20
 	CritTop        = 0.30

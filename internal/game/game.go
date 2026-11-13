@@ -116,7 +116,7 @@ func (g *Game) StepMs() int64 {
 	if g.inCombat() && g.Exp.Fighting {
 		return CombatRoundMs
 	}
-	return int64(1000 / StepsPerSec(g.Hero.Spd()-g.Hero.Attr(Dex)/ExploreDexDiv))
+	return int64(1000 / StepsPerSec(g.Hero.Spd()))
 }
 
 // Advance runs the simulation for ms milliseconds of game time.

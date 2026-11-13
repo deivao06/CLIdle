@@ -165,7 +165,9 @@ func (h *Hero) Atk() int {
 func (h *Hero) Def() int {
 	return HeroBaseDef + (h.Level-1)/2 + h.bonus(Armor) + h.bonus(Helmet) + h.bonus(Shield)
 }
-func (h *Hero) Spd() int { return HeroBaseSpd + h.bonus(Boots) + h.Attr(Dex) }
+func (h *Hero) Spd() int {
+	return HeroBaseSpd + h.bonus(Boots) + h.Level/SpdLevelDiv + h.Attr(Dex)/SpdDexDiv
+}
 
 func (h *Hero) MissChance(def int) float64 { return MissChance(h.Attr(Dex), def) }
 func (h *Hero) CritChance(def int) float64 {
