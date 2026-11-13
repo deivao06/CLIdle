@@ -87,11 +87,14 @@ func departed(seed uint64) *Game {
 }
 
 func TestDexSetsMissAndCritForEveryone(t *testing.T) {
-	if MissChance(0) != MissBase || MissChance(1000) != MissMin || CritChance(0) != 0 || CritChance(1000) != CritMax {
-		t.Fatal("miss/crit limits")
+	if MissChance(7, 7) != MissEven || CritChance(7, 7) != 0 || CritChance(0, 30) != 0 {
+		t.Fatal("even dex: base miss, no critical")
 	}
-	if MissChance(10) >= MissChance(0) || CritChance(10) <= CritChance(0) {
-		t.Fatal("dex does not help")
+	if MissChance(20, 10) >= MissChance(10, 10) || CritChance(20, 10) <= 0 || MissChance(10, 20) <= MissChance(10, 10) {
+		t.Fatal("dex does not compare")
+	}
+	if MissChance(1000, 0) <= 0 || MissChance(0, 1000) >= 2*MissEven || CritChance(1000, 0) >= CritTop {
+		t.Fatal("no hard cap: limits come from the ratio")
 	}
 	rng := NewRNG(1)
 	shallow, deep := spawnMonster(rng, 1), spawnMonster(rng, 40)

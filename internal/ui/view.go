@@ -735,6 +735,15 @@ func statIn(styles []lipgloss.Style, key string, args ...any) string {
 	return b.String()
 }
 
+// typicalDex is the DEX of a common monster on the hero's floor, or on the deepest floor while in town.
+func (m Model) typicalDex() int {
+	depth := m.g.MaxDepth
+	if e := m.g.Exp; e != nil {
+		depth = e.Level.Depth
+	}
+	return game.TypicalDex(max(1, depth))
+}
+
 // heroCombat lists the numbers that decide a fight, from the same formulas the game uses.
 func (m Model) heroCombat() string {
 	h := m.g.Hero
@@ -742,7 +751,7 @@ func (m Model) heroCombat() string {
 	if sp := h.SpellAtk(); sp > 0 {
 		s += statIn([]lipgloss.Style{sMP}, "hero.spell", sp)
 	}
-	s += stat("hero.rates", pct(h.MissChance()), pct(h.CritChance()))
+	s += stat("hero.rates", pct(h.MissChance(m.typicalDex())), pct(h.CritChance(m.typicalDex())))
 	if d := h.DodgeChance(); d > 0 {
 		s += stat("hero.dodge", pct(d))
 	}

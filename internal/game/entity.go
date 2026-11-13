@@ -39,14 +39,28 @@ func (m *Monster) Info() MonsterKind {
 }
 
 func spawnMonster(rng *RNG, depth int) *Monster {
+	eligible := eligibleKinds(depth)
+	return newMonster(eligible[rng.Intn(len(eligible))], depth)
+}
+
+func eligibleKinds(depth int) []int {
 	var eligible []int
 	for i, k := range MonsterKinds {
 		if k.MinDepth <= depth {
 			eligible = append(eligible, i)
 		}
 	}
-	eligible = eligible[max(0, len(eligible)-MonsterWindow):]
-	return newMonster(eligible[rng.Intn(len(eligible))], depth)
+	return eligible[max(0, len(eligible)-MonsterWindow):]
+}
+
+// TypicalDex is the average DEX of the monsters that spawn on a floor.
+func TypicalDex(depth int) int {
+	kinds := eligibleKinds(depth)
+	sum := 0
+	for _, k := range kinds {
+		sum += newMonster(k, depth).Dex
+	}
+	return (sum + len(kinds)/2) / len(kinds)
 }
 
 func newMonster(kind, depth int) *Monster {
@@ -153,8 +167,10 @@ func (h *Hero) Def() int {
 }
 func (h *Hero) Spd() int { return HeroBaseSpd + h.bonus(Boots) + h.Attr(Dex) }
 
-func (h *Hero) MissChance() float64 { return MissChance(h.Attr(Dex)) }
-func (h *Hero) CritChance() float64 { return CritChance(h.Attr(Dex)) + float64(h.Effect(Crit))/100 }
+func (h *Hero) MissChance(def int) float64 { return MissChance(h.Attr(Dex), def) }
+func (h *Hero) CritChance(def int) float64 {
+	return CritChance(h.Attr(Dex), def) + float64(h.Effect(Crit))/100
+}
 
 func (h *Hero) DodgeChance() float64 {
 	if !h.Has(Dodge) {

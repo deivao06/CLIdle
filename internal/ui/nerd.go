@@ -41,11 +41,9 @@ func (m Model) nerdRows() []prepRow {
 
 	sec = lang.T("nerd.section.combat")
 	add("damage", lang.T("nerd.damage.value"))
-	add("miss_base", nerdPct(game.MissBase))
-	add("miss_per_dex", "−"+nerdPct(game.MissPerDex))
-	add("miss_min", nerdPct(game.MissMin))
-	add("crit_per_dex", "+"+nerdPct(game.CritPerDex))
-	add("crit_max", nerdPct(game.CritMax))
+	add("miss_even", nerdPct(game.MissEven))
+	add("crit_top", nerdPct(game.CritTop))
+	add("dex_soften", fmt.Sprint(game.DexSoften))
 	add("combat_round", fmt.Sprintf("%d ms", game.CombatRoundMs))
 
 	sec = lang.T("nerd.section.monsters")
@@ -169,7 +167,7 @@ func (m Model) nerdRows() []prepRow {
 
 	sec = lang.T("nerd.section.luck")
 	h := m.g.Hero
-	add("luck_miss", nerdPct(h.MissChance()))
+	add("luck_miss", nerdPct(h.MissChance(m.typicalDex())))
 	add("luck_dodge", nerdPct(h.DodgeChance()))
 	add("luck_min", fmt.Sprint(game.LuckStreakMin))
 	add("luck_hero", streakValue(m.g.BestHeroMisses))

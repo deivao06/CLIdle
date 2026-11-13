@@ -443,7 +443,7 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	name := lang.T(m.Info().Name)
 	sneak := h.Has(SneakAttack) && (!m.Awake || m.HP == m.MaxHP)
 	m.Awake = true
-	miss := h.MissChance()
+	miss := h.MissChance(m.Dex)
 	if e.Blessed > 0 {
 		miss /= 2
 	}
@@ -462,7 +462,7 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	}
 	d := damage(e.RNG, h.Atk(), m.Def)
 	key := "combat.hero_hit"
-	if c := h.CritChance(); c > 0 && e.RNG.Chance(c) {
+	if c := h.CritChance(m.Dex); c > 0 && e.RNG.Chance(c) {
 		d *= 2
 		key = "combat.hero_crit"
 	}
@@ -622,7 +622,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	e := g.Exp
 	h := g.Hero
 	mr := r.of(m)
-	if e.RNG.Chance(MissChance(m.Dex)) || h.Has(Dodge) && e.RNG.Chance(h.DodgeChance()) {
+	if e.RNG.Chance(MissChance(m.Dex, h.Attr(Dex))) || h.Has(Dodge) && e.RNG.Chance(h.DodgeChance()) {
 		mr.misses++
 		r.monLuck = e.MonMisses.add(MonsterMissChance(m.Dex, h), &g.BestMonMisses)
 		return
@@ -633,7 +633,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 		def += BlessDef
 	}
 	d := damage(e.RNG, m.Atk, def)
-	if c := CritChance(m.Dex); c > 0 && e.RNG.Chance(c) {
+	if c := CritChance(m.Dex, h.Attr(Dex)); c > 0 && e.RNG.Chance(c) {
 		d *= 2
 	}
 	g.emit(Event{Kind: EventHurt, Pos: h.Pos, Value: d, Big: d*BigHitDiv >= h.MaxHP()})

@@ -11,11 +11,9 @@ const (
 	HeroBaseSpd   = 4
 	ExploreDexDiv = 2
 
-	MissBase       = 0.20
-	MissPerDex     = 0.005
-	MissMin        = 0.05
-	CritPerDex     = 0.005
-	CritMax        = 0.25
+	MissEven       = 0.20
+	CritTop        = 0.30
+	DexSoften      = 10
 	CombatRoundMs  = 1000
 	MonsterWindow  = 4
 	MonsterAtkMult = 1.3
@@ -36,13 +34,20 @@ func MonsterScale(depth, minDepth int) float64 {
 	return 1 + MonsterGrowthLin*float64(max(0, depth-minDepth))
 }
 
-// MissChance and CritChance are the same for heroes and monsters.
-func MissChance(dex int) float64 { return max(MissMin, MissBase-MissPerDex*float64(dex)) }
-func CritChance(dex int) float64 { return min(CritMax, CritPerDex*float64(dex)) }
+// MissChance and CritChance compare the attacker's DEX with the defender's, the same for heroes and monsters.
+func MissChance(atk, def int) float64 {
+	a, d := float64(atk+DexSoften), float64(def+DexSoften)
+	return 2 * MissEven * d / (a + d)
+}
+
+func CritChance(atk, def int) float64 {
+	a, d := float64(atk+DexSoften), float64(def+DexSoften)
+	return CritTop * max(0, a-d) / (a + d)
+}
 
 // MonsterMissChance is the chance that a monster's attack misses the hero, its own miss or the hero's dodge.
 func MonsterMissChance(dex int, h *Hero) float64 {
-	m := MissChance(dex)
+	m := MissChance(dex, h.Attr(Dex))
 	return m + (1-m)*h.DodgeChance()
 }
 
@@ -224,8 +229,8 @@ const (
 	SecondWindHealPct = 40
 
 	SneakMult      = 3
-	DodgePerDex    = 0.03
-	DodgeCap       = 0.35
+	DodgePerDex    = 0.005
+	DodgeCap       = 0.15
 	NoseGoldMult   = 1.5
 	NoseItemChance = 0.5
 
