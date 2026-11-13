@@ -219,7 +219,7 @@
     if (!batches.length) {
       grid.innerHTML = `<div class="empty"><h2>Nenhuma simulação ainda</h2>
         <p>Rode uma simulação com <code>SIMVIEW_BATCH</code> definido e ela aparece aqui, atualizando a cada 5s:</p>
-        <pre>SIMVIEW_BATCH=minha-sim SIMVIEW_TITLE="Minha simulação" go test ./internal/game -run TestTmpClear</pre></div>`;
+        <pre>SIMVIEW_BATCH=minha-sim SIMVIEW_TITLE="Minha simulação" SIMVIEW_FILE=warrior SIM_CLASS=0 go test ./internal/game -run TestSimDungeon -timeout 2h</pre></div>`;
     } else {
       grid.innerHTML = batches.map(cardHTML).join("");
       grid.querySelectorAll(".card").forEach((c) => c.addEventListener("click", () => open(c.dataset.id)));

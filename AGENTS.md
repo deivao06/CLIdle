@@ -15,7 +15,7 @@ go test -short ./...     # pula o teste de desempenho
 go vet ./...
 gofmt -l .               # precisa sair vazio
 GOOS=windows go vet ./...   # o update tem código só de Windows
-cd tools/simview && python3 -m http.server   # gráficos das simulações (localhost:8000); sims gravam lá com SIMVIEW_BATCH=id SIMVIEW_TITLE="..." SIMVIEW_FILE=nome (helper simRecorder em internal/game/simview_test.go; dados em tools/simview/data, ignorados)
+cd tools/simview && python3 -m http.server   # gráficos das simulações (localhost:8000); sims gravam lá com SIMVIEW_BATCH=id SIMVIEW_TITLE="..." SIMVIEW_FILE=nome (helper simRecorder em internal/game/simview_test.go; `SIM_CLASS=0 go test ./internal/game -run TestSimDungeon` joga até concluir a dungeon 1 com duas políticas de gasto, um processo por classe; dados em tools/simview/data, ignorados)
 go run ./cmd/playground  # playground: monta andares e testa mecânicas (nas releases como clidle-playground-*, web em /playground/, não toca no save)
 ./web/build.sh           # versão web em web/dist (servir com: cd web/dist && python3 -m http.server)
 git tag vX.Y.Z && git push origin vX.Y.Z   # publica uma release (pergunte ao dono antes)
