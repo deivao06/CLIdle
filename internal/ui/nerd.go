@@ -79,6 +79,8 @@ func (m Model) nerdRows() []prepRow {
 	add("dungeon_step", fmt.Sprint(game.DungeonStep))
 	add("dungeon_bonus", fmt.Sprintf("+%d", game.DungeonAttrBonus))
 	add("dungeon_gold", fmt.Sprint(game.DungeonGoldPiles))
+	add("prestige_level", fmt.Sprint(game.PrestigeLevel))
+	add("prestige_tier", fmt.Sprintf("+%d", game.PrestigePerTier))
 
 	sec = lang.T("nerd.section.loot")
 	add("gold_piles", fmt.Sprintf("%d–%d", game.GoldPilesMin, game.GoldPilesMax))

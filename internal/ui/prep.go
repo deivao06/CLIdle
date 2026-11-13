@@ -193,6 +193,17 @@ func (m Model) townRows() []prepRow {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.bag_max", size-game.BagSlotsPerLevel), style: sMuted})
 	}
 
+	if g.Dungeon > 0 {
+		row := prepRow{section: lang.T("prep.section.prestige"), text: lang.T("prep.prestige_row", g.PrestigeGain()), style: logStyles[game.LogEpic],
+			confirm: lang.T("confirm.prestige", g.PrestigeGain()), do: func(m *Model) { m.choosing, m.prestige, m.cursor = true, true, int(m.g.Hero.Class) },
+			desc: lang.T("town.prestige.desc", g.Dungeon, g.PrestigeGain())}
+		if !g.CanPrestige() {
+			row.text += lang.T("prep.prestige_level", game.PrestigeLevel)
+			row.style, row.confirm, row.do = sMuted, "", nil
+		}
+		rows = append(rows, row)
+	}
+
 	chest := lang.T("prep.section.chest", len(g.Stash))
 	for i, it := range g.Stash {
 		text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.SellPrice(), m.compare(it))

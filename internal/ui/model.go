@@ -68,6 +68,7 @@ type Model struct {
 
 	choosing  bool
 	naming    bool
+	prestige  bool
 	nameDraft []rune
 	crt       bool
 	// seeAll draws the whole floor in the playground, without changing what the hero knows.

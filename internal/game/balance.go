@@ -126,6 +126,9 @@ const (
 	DungeonStep      = 75
 	DungeonAttrBonus = 5
 	DungeonGoldPiles = 10
+
+	PrestigeLevel   = 30
+	PrestigePerTier = 2
 )
 
 var (

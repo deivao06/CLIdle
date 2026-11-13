@@ -113,3 +113,34 @@ func TestV9ShallowSaveStaysInTheFirstDungeon(t *testing.T) {
 		t.Fatalf("dungeon %d reached %d shortcuts %v err %v", got.Dungeon, got.Reached, got.ShortcutList(), err)
 	}
 }
+
+func TestPrestigeStartsOverAndKeepsTheLegacy(t *testing.T) {
+	g := New(1, Warrior)
+	g.Hero.Name, g.Hero.Level, g.Hero.Training[Str], g.Hero.Bonus = "Ana", 40, 3, 2*DungeonAttrBonus
+	g.Gold, g.BagLevel, g.Dungeon, g.Reached = 5000, 3, 2, 40
+	g.Stash = []*Item{{ID: 99, Slot: Weapon, Rarity: Legendary, Base: 50}}
+	if g.PrestigeGain() != PrestigePerTier*(1+2) {
+		t.Fatalf("gain %d", g.PrestigeGain())
+	}
+	g.Prestige(Mage)
+	h := g.Hero
+	if h.Class != Mage || h.Level != 1 || h.Name != "Ana" || h.Legacy != 6 || h.Bonus != 0 || h.Training[Str] != 0 {
+		t.Fatalf("hero %+v", h)
+	}
+	if g.Gold != 0 || g.BagLevel != 0 || g.Dungeon != 0 || g.Reached != 0 || len(g.Stash) != 1 || g.Prestiges != 1 || g.startFloor() != 1 {
+		t.Fatal("prestige did not start over")
+	}
+	if h.Attr(Con) != 6 || g.CanPrestige() {
+		t.Fatal("legacy missing, or prestige available with no dungeon cleared")
+	}
+	g.Dungeon = 1
+	g.Prestige(Mage)
+	if g.Prestiges != 1 {
+		t.Fatal("prestige below the level")
+	}
+	g.Hero.Level = PrestigeLevel
+	g.Prestige(Mage)
+	if g.Hero.Legacy != 6+PrestigePerTier || g.Prestiges != 2 {
+		t.Fatalf("legacy %d", g.Hero.Legacy)
+	}
+}

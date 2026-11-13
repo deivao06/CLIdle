@@ -74,6 +74,7 @@ type Game struct {
 	Noun       int `json:",omitempty"`
 	Adj        int `json:",omitempty"`
 	Reached    int `json:",omitempty"`
+	Prestiges  int `json:",omitempty"`
 	Deaths     int
 	Returns    int
 	Auto       bool

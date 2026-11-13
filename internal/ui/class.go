@@ -17,8 +17,17 @@ func (m *Model) chooseKey(key string) {
 		m.cursor = max(0, m.cursor-1)
 	case "down", "j":
 		m.cursor = min(int(game.NumClasses)-1, m.cursor+1)
+	case "esc":
+		if m.prestige {
+			m.choosing, m.prestige, m.cursor = false, false, 0
+		}
 	case "enter", " ":
-		m.g.ChooseClass(game.Class(m.cursor))
+		if m.prestige {
+			m.g.Prestige(game.Class(m.cursor))
+			m.tab, m.prestige = tabDungeon, false
+		} else {
+			m.g.ChooseClass(game.Class(m.cursor))
+		}
 		m.choosing, m.cursor = false, 0
 	}
 }
@@ -26,7 +35,11 @@ func (m *Model) chooseKey(key string) {
 func (m Model) viewChoose() string {
 	descW := min(m.w-6, 72)
 	var b strings.Builder
-	b.WriteString(sTitle.Render(lang.T("choose.title")) + "\n\n")
+	title, keys := "choose.title", "choose.keys"
+	if m.prestige {
+		title, keys = "choose.prestige_title", "choose.prestige_keys"
+	}
+	b.WriteString(sTitle.Render(lang.T(title)) + "\n\n")
 	for c := range game.NumClasses {
 		name := sPlain.Render(c.Name())
 		prefix := "  "
@@ -43,7 +56,7 @@ func (m Model) viewChoose() string {
 			b.WriteString(zone.Mark(fmt.Sprintf("class:%d.%d", c, j), l+strings.Repeat(" ", max(0, descW+4-lipgloss.Width(l)))) + "\n")
 		}
 	}
-	b.WriteString("\n" + sMuted.Render(m.keysHint("choose.keys")))
+	b.WriteString("\n" + sMuted.Render(m.keysHint(keys)))
 	block := b.String()
 	block = lipgloss.NewStyle().Width(lipgloss.Width(block)).Render(block)
 	return lipgloss.Place(m.w, m.h, lipgloss.Center, lipgloss.Center, block)

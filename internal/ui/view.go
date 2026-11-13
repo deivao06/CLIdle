@@ -744,7 +744,7 @@ func statIn(styles []lipgloss.Style, key string, args ...any) string {
 
 // typicalDex is the DEX of a common monster on the hero's floor, or on the deepest floor while in town.
 func (m Model) typicalDex() int {
-	depth := m.g.MaxDepth
+	depth := m.g.Deepest()
 	if e := m.g.Exp; e != nil {
 		depth = e.Level.Depth
 	}
@@ -777,7 +777,11 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 		b.WriteString(sTitle.Render(h.Name) + " · ")
 	}
 	fmt.Fprintf(&b, "%s %s\n", sSection.Render(h.Class.Name()), lang.T("hero.level", h.Level))
-	b.WriteString(sMuted.Render(g.DungeonName()) + "\n")
+	dungeon := g.DungeonName()
+	if g.Prestiges > 0 {
+		dungeon += lang.T("hero.prestige", g.Prestiges, h.Legacy)
+	}
+	b.WriteString(sMuted.Render(dungeon) + "\n")
 	wrap := lipgloss.NewStyle().Width(w)
 	b.WriteString(wrap.Render(stat("hero.attrs", h.Attr(game.Str), h.Attr(game.Dex), h.Attr(game.Int), h.Attr(game.Con))) + "\n")
 	fmt.Fprintf(&b, "HP  %s\n", numBar(h.HP, h.MaxHP(), w-4, hpStyle(h.HP, h.MaxHP())))

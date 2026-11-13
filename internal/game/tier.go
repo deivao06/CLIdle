@@ -43,3 +43,33 @@ func (g *Game) nextDungeon() {
 
 // dungeonFor is the highest dungeon whose floors include depth.
 func dungeonFor(depth int) int { return max(0, (depth-1)/DungeonStep) }
+
+// Deepest is the depth of the deepest floor reached in the current dungeon.
+func (g *Game) Deepest() int { return max(1, g.Offset()+g.Reached) }
+
+// PrestigeGain is what a prestige adds to every attribute for good: more for each tier cleared since the last one.
+func (g *Game) PrestigeGain() int { return PrestigePerTier * g.Dungeon * (g.Dungeon + 1) / 2 }
+
+func (g *Game) CanPrestige() bool {
+	return g.InTown() && g.Dungeon > 0 && g.Hero.Level >= PrestigeLevel
+}
+
+// Prestige starts over with a new hero of class c in the first tier; only the name, the chest and the legacy bonus stay.
+func (g *Game) Prestige(c Class) {
+	if !g.CanPrestige() {
+		return
+	}
+	old, gain := g.Hero, g.PrestigeGain()
+	g.Hero = NewHero(c)
+	g.Hero.Name, g.Hero.Legacy = old.Name, old.Legacy+gain
+	if c != old.Class {
+		g.Config.Gambits = heroGambits(g.Hero)
+	}
+	g.Gold, g.BagLevel = 0, 0
+	g.Dungeon, g.Reached, g.Shortcuts = 0, 0, nil
+	g.Config.StartFloor = 1
+	g.Prestiges++
+	g.rollDungeonName(g.RNG)
+	g.refreshShop()
+	g.logf(LogEpic, "%s", lang.T("log.prestige", g.Prestiges, gain, g.DungeonName()))
+}

@@ -51,7 +51,7 @@ func (g *Game) ToggleAuto() {
 func (g *Game) refreshShop() {
 	g.Shop = g.Shop[:0]
 	for range ShopSize {
-		g.Shop = append(g.Shop, newItemOf(g.RNG, max(1, g.MaxDepth), rollRarity(g.RNG, Epic)))
+		g.Shop = append(g.Shop, newItemOf(g.RNG, g.Deepest(), rollRarity(g.RNG, Epic)))
 	}
 }
 

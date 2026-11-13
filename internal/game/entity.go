@@ -117,6 +117,8 @@ type Hero struct {
 	Training [NumTraits]int
 	// Bonus adds to every attribute: earned by clearing dungeons.
 	Bonus int `json:",omitempty"`
+	// Legacy adds to every attribute for good: earned by prestige.
+	Legacy int `json:",omitempty"`
 }
 
 func NewHero(c Class) *Hero {
@@ -159,7 +161,7 @@ func (h *Hero) MaxMP() int {
 
 func (h *Hero) Attr(t Trait) int {
 	s := ClassStats[h.Class]
-	return s.Start[t] + s.Growth[t]*(h.Level-1)/2 + h.Training[t] + h.Bonus
+	return s.Start[t] + s.Growth[t]*(h.Level-1)/2 + h.Training[t] + h.Bonus + h.Legacy
 }
 
 func (h *Hero) Atk() int {

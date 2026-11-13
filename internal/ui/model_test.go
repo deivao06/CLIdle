@@ -3,6 +3,7 @@ package ui
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -350,5 +351,35 @@ func TestOldSaveWithoutNameAsksOnlyTheName(t *testing.T) {
 	}
 	if NewWithSave(got, path, 0, false).naming {
 		t.Fatal("a named hero was asked again")
+	}
+}
+
+func TestPrestigeAsksThenChoosesTheClass(t *testing.T) {
+	g := game.New(1, game.Warrior)
+	g.Hero.Name, g.Hero.Level, g.Dungeon = "Ana", 50, 1
+	var tm tea.Model = NewWithSave(g, "", 0, false)
+	tm, _ = tm.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+	m := tm.(Model)
+	at := slices.IndexFunc(m.townRows(), func(r prepRow) bool { return r.section == lang.T("prep.section.prestige") })
+	if at < 0 {
+		t.Fatal("no prestige row with a dungeon cleared")
+	}
+	m.cursor = at
+	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	if m = tm.(Model); m.confirmDo == nil {
+		t.Fatal("prestige did not ask first")
+	}
+	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("y")})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyEsc})
+	if m = tm.(Model); m.choosing || m.g.Prestiges != 0 {
+		t.Fatal("esc on the class screen should cancel the prestige")
+	}
+	m.cursor = at
+	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("y")})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyDown})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	if m = tm.(Model); m.choosing || m.g.Prestiges != 1 || m.g.Hero.Class != game.Mage || m.g.Hero.Legacy != game.PrestigePerTier {
+		t.Fatalf("prestiges %d class %v legacy %d", m.g.Prestiges, m.g.Hero.Class, m.g.Hero.Legacy)
 	}
 }

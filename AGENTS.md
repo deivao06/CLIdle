@@ -15,6 +15,7 @@ go test -short ./...     # pula o teste de desempenho
 go vet ./...
 gofmt -l .               # precisa sair vazio
 GOOS=windows go vet ./...   # o update tem código só de Windows
+cd tools/simview && python3 -m http.server   # gráficos das simulações (localhost:8000); sims gravam lá com SIMVIEW_BATCH=id SIMVIEW_TITLE="..." SIMVIEW_FILE=nome (helper simRecorder em internal/game/simview_test.go; dados em tools/simview/data, ignorados)
 go run ./cmd/playground  # playground: monta andares e testa mecânicas (nas releases como clidle-playground-*, web em /playground/, não toca no save)
 ./web/build.sh           # versão web em web/dist (servir com: cd web/dist && python3 -m http.server)
 git tag vX.Y.Z && git push origin vX.Y.Z   # publica uma release (pergunte ao dono antes)
@@ -39,7 +40,7 @@ internal/game/          lógica pura, sem I/O de terminal
   lab.go                playground: Scenario com vários LabFloor (andar sem salas não existe), NewLab, LabPreview, LabStep (para na morte, na < ou na > do último andar)
   luck.go               Streak: erros seguidos (herói e monstros), chance no log e recordes da aba Nerd
   death.go              DeathScene: recorte do mapa guardado na morte (aba Herói)
-  tier.go               dungeons de 100 andares: Offset/Floor (andar local), nome, completeDungeon/nextDungeon
+  tier.go               dungeons de 100 andares: Offset/Floor (andar local), nome, completeDungeon/nextDungeon; prestígio (Prestige, PrestigeGain, Hero.Legacy)
   town.go               loja, ferreiro, treino, mochila, baú, poções, chegada na cidade (tudo só na cidade)
   offline.go            CatchUp (simulação do tempo fora) e Summary
   save.go               save/load JSON (store_file.go: arquivo atômico; store_js.go: localStorage no navegador)
