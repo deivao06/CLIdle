@@ -693,6 +693,8 @@
   "nerd.upgrade_cost": "Preço do ferreiro",
   "nerd.upgrade_cost.value": "(valor da base comum + 10), %s a cada",
   "nerd.upgrade_cost.desc": "Preço do upgrade: valor da base do item como se fosse comum (multiplicado pela raridade, como o preço de venda) + 10, multiplicado a cada upgrade já feito. Cada um custa bem mais que o anterior.",
+  "nerd.max_gold": "Ouro máximo",
+  "nerd.max_gold.desc": "O ouro para aqui em vez de continuar subindo. É o maior número inteiro que o jogo consegue guardar.",
   "nerd.train": "Treino",
   "nerd.train.desc": "Preço do primeiro treino de um atributo, igual para todos, multiplicado a cada treino seguinte.",
   "nerd.class.value": "HP %d +%d/nv",

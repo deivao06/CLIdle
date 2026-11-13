@@ -117,6 +117,7 @@ func (m Model) nerdRows() []prepRow {
 	add("upgrade_max", fmt.Sprintf("+%d", game.UpgradeMax))
 	big := &game.Item{Base: 1000}
 	add("upgrade_cost", lang.T("nerd.upgrade_cost.value", ratio(float64(game.UpgradeCost(big, 1)), float64(game.UpgradeCost(big, 0)))))
+	add("max_gold", fmt.Sprint(game.MaxGold))
 	add("train", lang.T("nerd.growth.value", fmt.Sprint(game.TrainCost(0)), ratio(float64(game.TrainCost(10)), float64(game.TrainCost(9)))))
 
 	sec = lang.T("nerd.section.classes")

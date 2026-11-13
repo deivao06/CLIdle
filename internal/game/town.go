@@ -55,7 +55,7 @@ func (g *Game) refreshShop() {
 	}
 }
 
-func ShopPrice(it *Item) int { return it.Value() * ShopMarkup }
+func ShopPrice(it *Item) int { return pctOf(it.Value(), 100*ShopMarkup) }
 
 func (g *Game) spend(cost int) bool {
 	if g.Gold < cost {
@@ -164,7 +164,7 @@ func (g *Game) arriveInTown() {
 	g.Hero.HP = g.Hero.MaxHP()
 	if n := g.Hero.Potions - MaxPotions; n > 0 {
 		g.Hero.Potions = MaxPotions
-		g.Gold += n * PotionSellPrice
+		g.Gold = addGold(g.Gold, n*PotionSellPrice)
 		key := "log.sell_potions"
 		if n == 1 {
 			key = "log.sell_potion"
@@ -210,6 +210,6 @@ func (g *Game) SellStash(i int) {
 	}
 	it := g.Stash[i]
 	g.Stash = slices.Delete(g.Stash, i, i+1)
-	g.Gold += it.SellPrice()
+	g.Gold = addGold(g.Gold, it.SellPrice())
 	g.logf(LogInfo, "%s", lang.T("log.sell_item", it.Title(), it.SellPrice()))
 }

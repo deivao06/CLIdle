@@ -102,7 +102,7 @@ func (it *Item) Value() int {
 	for _, e := range it.Effects {
 		piles += EffectValuePiles * float64(e.Value) / float64(EffectRange[e.Kind][1])
 	}
-	return max(1, int(GoldPerPile(ItemDepth(it.Slot, it.Kind, it.Rarity, it.Base))*piles+0.5))
+	return max(1, goldOf(GoldPerPile(ItemDepth(it.Slot, it.Kind, it.Rarity, it.Base))*piles+0.5))
 }
 
 func (it *Item) SellPrice() int {
@@ -112,7 +112,7 @@ func (it *Item) SellPrice() int {
 		at.Upgrade = lvl
 		spent += UpgradeCost(&at, lvl)
 	}
-	return max(1, it.Value()+spent*UpgradeRefundPct/100)
+	return max(1, addGold(it.Value(), pctOf(spent, UpgradeRefundPct)))
 }
 
 // Label translates the item name; saves from before translation hold the Portuguese name itself.
@@ -224,7 +224,7 @@ func (l *Level) placeLoot(rng *RNG, startRoom int, nose bool) {
 		if nose {
 			gold *= NoseGoldMult
 		}
-		l.Items = append(l.Items, &FloorItem{Pos: l.RandomFloor(rng, room()), Gold: max(1, int(gold))})
+		l.Items = append(l.Items, &FloorItem{Pos: l.RandomFloor(rng, room()), Gold: max(1, goldOf(gold))})
 	}
 	if rng.Chance(PotionChance) {
 		l.Items = append(l.Items, &FloorItem{Pos: l.RandomFloor(rng, room()), Potion: true})

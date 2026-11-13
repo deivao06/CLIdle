@@ -45,6 +45,9 @@ func migrate(f *saveFile, old *legacy) {
 	if f.Version < 8 {
 		migrateV8Forged(f.Game, q)
 	}
+	if f.Version < 9 {
+		migrateV9Gold(f.Game)
+	}
 	f.Version = saveVersion
 }
 
@@ -114,5 +117,15 @@ func migrateV4Refund(g *Game, q *queueV3) {
 func migrateV8Forged(g *Game, q *queueV3) {
 	for _, it := range savedItems(g, q) {
 		it.Forged = it.Upgrade * max(1, it.Base/10)
+	}
+}
+
+// migrateV9Gold gives back the gold that wrapped below zero before v9 capped it at MaxGold.
+func migrateV9Gold(g *Game) {
+	if g.Gold < 0 {
+		g.Gold = MaxGold
+	}
+	if g.Exp != nil && g.Exp.Gold < 0 {
+		g.Exp.Gold = MaxGold
 	}
 }

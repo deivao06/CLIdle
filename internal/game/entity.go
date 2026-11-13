@@ -145,7 +145,7 @@ func (h *Hero) Effect(k Effect) int {
 	return min(n, EffectCap[k])
 }
 
-func boosted(n, pct int) int { return n * (100 + pct) / 100 }
+func boosted(n, pct int) int { return pctOf(n, 100+pct) }
 
 func (h *Hero) MaxMP() int {
 	if ClassMana[h.Class] == 0 {

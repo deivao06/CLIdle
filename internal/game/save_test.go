@@ -126,3 +126,27 @@ func TestV7UpgradesKeepTheirBonus(t *testing.T) {
 		t.Fatalf("bonus %d err %v", it.Bonus(), err)
 	}
 }
+
+func TestV8NegativeGoldBecomesMaxGold(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := New(1, Warrior)
+	g.Gold = -9139714478572972266
+	raw, _ := json.Marshal(saveFile{8, time.Now(), g})
+	os.WriteFile(path, raw, 0o644)
+	got, _, err := Load(path)
+	if err != nil || got.Gold != MaxGold {
+		t.Fatalf("gold %d err %v", got.Gold, err)
+	}
+}
+
+func TestGoldStopsAtMaxGold(t *testing.T) {
+	if addGold(MaxGold-5, 10) != MaxGold || addGold(5, 10) != 15 {
+		t.Fatal("addGold")
+	}
+	if pctOf(MaxGold, 200) != MaxGold || pctOf(MaxGold, 25) != MaxGold/100*25+MaxGold%100*25/100 || pctOf(1234, 150) != 1234*150/100 {
+		t.Fatal("pctOf")
+	}
+	if goldOf(GoldPerPile(1000)) != MaxGold || goldOf(12.9) != 12 {
+		t.Fatal("goldOf")
+	}
+}

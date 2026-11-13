@@ -693,6 +693,8 @@
   "nerd.upgrade_cost": "Blacksmith price",
   "nerd.upgrade_cost.value": "(common base value + 10), %s each",
   "nerd.upgrade_cost.desc": "Price of an upgrade: value of the item's base as if it were common (multiplied by rarity, like the sell price) + 10, multiplied for each upgrade already done. Each one costs much more than the last.",
+  "nerd.max_gold": "Max gold",
+  "nerd.max_gold.desc": "Gold stops here instead of growing further. The largest whole number the game can store.",
   "nerd.train": "Training",
   "nerd.train.desc": "Price of the first training of an attribute, the same for all of them, multiplied for each training after.",
   "nerd.class.value": "HP %d +%d/lv",

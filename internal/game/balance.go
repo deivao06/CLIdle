@@ -328,3 +328,5 @@ func TrainCost(level int) int {
 }
 
 const OfflineCap = 12 * time.Hour
+
+const MaxGold = math.MaxInt64

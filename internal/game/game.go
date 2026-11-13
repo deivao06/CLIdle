@@ -256,14 +256,14 @@ func (g *Game) returnToTown() {
 			kept++
 			continue
 		}
-		sold += it.SellPrice()
+		sold = addGold(sold, it.SellPrice())
 	}
-	g.Gold += e.Gold + sold
+	g.Gold = addGold(g.Gold, addGold(e.Gold, sold))
 	g.Returns++
 	if len(e.Bag) == kept {
 		g.logf(LogGood, "%s", lang.T("log.return", e.Num, e.RetreatWhy, e.Gold))
 	} else {
-		g.logf(LogGood, "%s", lang.T("log.return_sold", e.Num, e.RetreatWhy, e.Gold+sold, e.Gold, len(e.Bag)-kept, sold))
+		g.logf(LogGood, "%s", lang.T("log.return_sold", e.Num, e.RetreatWhy, addGold(e.Gold, sold), e.Gold, len(e.Bag)-kept, sold))
 	}
 	if kept > 0 {
 		g.logf(LogLoot, "%s", lang.T("log.chest_kept", kept))
@@ -329,7 +329,7 @@ func (g *Game) pickup(r *round) {
 	switch {
 	case f.Gold > 0:
 		gold := boosted(f.Gold, h.Effect(GoldFind))
-		e.Gold += gold
+		e.Gold = addGold(e.Gold, gold)
 		add(LogLoot, "log.pick_gold", gold)
 	case f.Potion:
 		h.Potions++
@@ -497,7 +497,7 @@ func (g *Game) hurt(m *Monster, d int, r *round) bool {
 	}
 	gold := boosted(GoldPerKill(m.XP), h.Effect(GoldFind))
 	xp := boosted(m.XP, h.Effect(XPBoost))
-	e.Gold += gold
+	e.Gold = addGold(e.Gold, gold)
 	g.Kills++
 	r.after = append(r.after, LogEntry{Text: lang.T("log.kill", name, xp, gold), Kind: LogGood})
 	if m.Boss {
@@ -658,13 +658,13 @@ func (g *Game) foundEquipped() int {
 	return n
 }
 
-func (e *Expedition) deathKeep() int { return e.Gold * DeathKeepGoldPct / 100 }
+func (e *Expedition) deathKeep() int { return pctOf(e.Gold, DeathKeepGoldPct) }
 
 func (g *Game) die(killer *Monster) {
 	g.LastDeath = slices.Clone(g.Log[max(0, len(g.Log)-DeathLogLines):])
 	g.DeathScene = g.deathScene(killer)
 	g.Hero.Equip = g.Exp.StartEquip
-	g.Gold += g.Exp.deathKeep()
+	g.Gold = addGold(g.Gold, g.Exp.deathKeep())
 	g.Exp = nil
 	g.Deaths++
 	if g.Auto && g.Config.DeathLimit > 0 {
