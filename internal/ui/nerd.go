@@ -74,6 +74,12 @@ func (m Model) nerdRows() []prepRow {
 	add("boss_epic", nerdPct(game.BossEpicChance))
 	add("boss_legendary", nerdPct(game.BossLegendaryChance))
 
+	sec = lang.T("nerd.section.dungeons")
+	add("dungeon_floors", fmt.Sprint(game.DungeonFloors))
+	add("dungeon_step", fmt.Sprint(game.DungeonStep))
+	add("dungeon_bonus", fmt.Sprintf("+%d", game.DungeonAttrBonus))
+	add("dungeon_gold", fmt.Sprint(game.DungeonGoldPiles))
+
 	sec = lang.T("nerd.section.loot")
 	add("gold_piles", fmt.Sprintf("%d–%d", game.GoldPilesMin, game.GoldPilesMax))
 	add("gold_pile", lang.T("nerd.growth.value", num(game.GoldPerPile(1)), ratio(game.GoldPerPile(11), game.GoldPerPile(10))))

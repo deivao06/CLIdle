@@ -115,7 +115,25 @@ const (
 	UpgradeRefundPct  = 20
 )
 
-func GoldPerPile(depth int) float64 { return 5 * math.Pow(1.08, float64(depth-1)) }
+// GoldPerPile grows 8% a floor up to the first dungeon's last floor, then by the same amount each floor.
+func GoldPerPile(depth int) float64 {
+	top := 5 * math.Pow(1.08, float64(min(depth, DungeonFloors)-1))
+	return top * (1 + 0.08*float64(max(0, depth-DungeonFloors)))
+}
+
+const (
+	DungeonFloors    = 100
+	DungeonStep      = 75
+	DungeonAttrBonus = 5
+	DungeonGoldPiles = 10
+)
+
+var (
+	dungeonNouns = []string{"dungeon.noun.cave", "dungeon.noun.crypt", "dungeon.noun.dungeon", "dungeon.noun.catacombs", "dungeon.noun.fortress",
+		"dungeon.noun.grotto", "dungeon.noun.tomb", "dungeon.noun.citadel", "dungeon.noun.tower", "dungeon.noun.mine"}
+	dungeonAdjs = []string{"dungeon.adj.infernal", "dungeon.adj.forgotten", "dungeon.adj.shadowed", "dungeon.adj.cursed", "dungeon.adj.deep",
+		"dungeon.adj.burning", "dungeon.adj.frozen", "dungeon.adj.bloody", "dungeon.adj.silent", "dungeon.adj.lost", "dungeon.adj.venomous", "dungeon.adj.ancient"}
+)
 
 const GoldKillDiv = 8
 

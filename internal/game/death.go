@@ -36,7 +36,7 @@ func (g *Game) deathScene(killer *Monster) *DeathScene {
 	h := g.Hero.Pos
 	x0 := min(max(0, h.X-DeathSceneW/2), MapW-DeathSceneW)
 	y0 := min(max(0, h.Y-DeathSceneH/2), MapH-DeathSceneH)
-	s := &DeathScene{Depth: l.Depth}
+	s := &DeathScene{Depth: g.Floor(l.Depth)}
 	for y := y0; y < y0+DeathSceneH; y++ {
 		glyphs, marks := make([]rune, DeathSceneW), make([]byte, DeathSceneW)
 		for x := x0; x < x0+DeathSceneW; x++ {

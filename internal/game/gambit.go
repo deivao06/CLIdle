@@ -283,9 +283,9 @@ func (g *Game) holds(c Cond) bool {
 	case CondPotions:
 		return c.Op.cmp(h.Potions, c.N)
 	case CondFloor:
-		return c.Op.cmp(e.Level.Depth, c.N)
+		return c.Op.cmp(g.Floor(e.Level.Depth), c.N)
 	case CondAtStairs:
-		return g.atStairs && c.Op.cmp(e.Level.Depth, c.N)
+		return g.atStairs && c.Op.cmp(g.Floor(e.Level.Depth), c.N)
 	case CondLoot:
 		best := -1
 		for _, it := range e.Bag {
@@ -420,7 +420,7 @@ func (g *Game) retreatWhy(gb Gambit) string {
 		case CondBagFull:
 			return lang.T("retreat.bag_full")
 		case CondAtStairs:
-			return lang.T("retreat.floor_done", g.Exp.Level.Depth)
+			return lang.T("retreat.floor_done", g.Floor(g.Exp.Level.Depth))
 		}
 	}
 	if gb.If[0].Kind == CondPotions && gb.If[1].Kind == CondHP {

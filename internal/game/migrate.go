@@ -48,6 +48,9 @@ func migrate(f *saveFile, old *legacy) {
 	if f.Version < 9 {
 		migrateV9Gold(f.Game)
 	}
+	if f.Version < 10 {
+		migrateV10Dungeons(f.Game)
+	}
 	f.Version = saveVersion
 }
 
@@ -128,4 +131,27 @@ func migrateV9Gold(g *Game) {
 	if g.Exp != nil && g.Exp.Gold < 0 {
 		g.Exp.Gold = MaxGold
 	}
+}
+
+// migrateV10Dungeons moves heroes past floor 100 into the dungeon that holds their deepest floor, with the attribute
+// bonus of the dungeons below it; a running expedition keeps its floor inside that dungeon.
+func migrateV10Dungeons(g *Game) {
+	g.rollDungeonName(g.RNG)
+	d := max(0, (g.MaxDepth-DungeonFloors+DungeonStep-1)/DungeonStep)
+	if g.Exp != nil {
+		d = min(d, dungeonFor(g.Exp.Level.Depth))
+	}
+	g.Dungeon = d
+	g.Hero.Bonus = d * DungeonAttrBonus
+	g.Reached = min(DungeonFloors, max(0, g.MaxDepth-g.Offset()))
+	var kept []int
+	for _, s := range g.Shortcuts {
+		if f := g.Floor(s); f > 1 && f <= DungeonFloors && (f-1)%BossEvery == 0 {
+			kept = append(kept, s)
+		}
+	}
+	if len(kept) > 0 {
+		kept = append([]int{g.Offset() + 1}, kept...)
+	}
+	g.Shortcuts = kept
 }

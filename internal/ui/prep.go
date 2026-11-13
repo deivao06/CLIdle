@@ -117,7 +117,7 @@ func (m Model) prepRows() []prepRow {
 	cfg("prep.mode", mode, func(int) { c.Mode = 1 - c.Mode })
 	floors := g.ShortcutList()
 	at := max(0, slices.Index(floors, c.StartFloor))
-	cfg("prep.start_floor", lang.T("prep.start_floor_value", floors[at], len(floors)-1), func(d int) {
+	cfg("prep.start_floor", lang.T("prep.start_floor_value", g.Floor(floors[at]), len(floors)-1), func(d int) {
 		c.StartFloor = floors[(at+d+len(floors))%len(floors)]
 	})
 	section = lang.T("prep.section.potions")

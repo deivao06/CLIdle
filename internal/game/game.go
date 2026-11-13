@@ -17,7 +17,9 @@ type Expedition struct {
 	Bag        []*Item
 	StartEquip [NumSlots]*Item
 	Retreating bool
-	RetreatWhy string
+	// DungeonDone marks the expedition that killed the last floor's boss.
+	DungeonDone bool `json:",omitempty"`
+	RetreatWhy  string
 
 	Attacks        int
 	SecondWindUsed bool
@@ -58,15 +60,20 @@ func DefaultConfig() Config {
 }
 
 type Game struct {
-	RNG        *RNG
-	Hero       *Hero
-	Exp        *Expedition
-	Config     Config
-	Log        []LogEntry
-	Gold       int
-	ExpNum     int
-	AccMs      int64
-	MaxDepth   int
+	RNG      *RNG
+	Hero     *Hero
+	Exp      *Expedition
+	Config   Config
+	Log      []LogEntry
+	Gold     int
+	ExpNum   int
+	AccMs    int64
+	MaxDepth int
+	// Dungeon counts the dungeons cleared; Noun and Adj name the current one; Reached is its deepest floor.
+	Dungeon    int `json:",omitempty"`
+	Noun       int `json:",omitempty"`
+	Adj        int `json:",omitempty"`
+	Reached    int `json:",omitempty"`
 	Deaths     int
 	Returns    int
 	Auto       bool
@@ -102,6 +109,7 @@ func New(seed uint64, c Class) *Game {
 		Config: DefaultConfig(),
 	}
 	g.Config.Gambits = heroGambits(g.Hero)
+	g.rollDungeonName(NewRNG(^seed))
 	g.refreshShop()
 	g.logf(LogInfo, "%s", lang.T("log.welcome"))
 	return g
@@ -174,15 +182,16 @@ func (g *Game) enterLevel(depth int) {
 		l.Mons = append(l.Mons, m)
 	}
 	l.placeLoot(e.RNG, startRoom, g.Hero.Has(TreasureNose))
-	if depth%BossEvery == 0 {
+	if g.Floor(depth)%BossEvery == 0 {
 		b := spawnBoss(e.RNG, depth)
 		b.Pos = l.RandomFloor(e.RNG, l.RoomAt(l.Down))
 		l.Mons = append(l.Mons, b)
 	}
 	g.MaxDepth = max(g.MaxDepth, depth)
+	g.Reached = max(g.Reached, g.Floor(depth))
 	g.Hero.Pos = l.Up
 	l.Reveal(g.Hero.Pos)
-	g.logf(LogInfo, "%s", lang.T("log.arrive_floor", depth))
+	g.logf(LogInfo, "%s", lang.T("log.arrive_floor", g.Floor(depth)))
 	if b := l.boss(); b != nil {
 		g.logf(LogBad, "%s", lang.T("log.boss_guard", lang.T(b.Info().Name)))
 	}
@@ -268,8 +277,7 @@ func (g *Game) returnToTown() {
 	if kept > 0 {
 		g.logf(LogLoot, "%s", lang.T("log.chest_kept", kept))
 	}
-	g.Exp = nil
-	g.arriveInTown()
+	g.endExpedition()
 }
 
 func (g *Game) wants(f *FloorItem) bool {
@@ -524,12 +532,17 @@ func (g *Game) killBoss(m *Monster, r *round) {
 	case roll < BossLegendaryChance+BossEpicChance:
 		rarity = Epic
 	}
+	if g.lab == nil && g.Floor(depth) >= DungeonFloors {
+		r.after = append(r.after, LogEntry{Text: lang.T("log.boss_dead_last", lang.T(m.Info().Name)), Kind: LogEpic})
+		g.completeDungeon(r)
+		return
+	}
 	drop := newItemOf(e.RNG, depth, rarity)
 	e.Level.Items = append(e.Level.Items, &FloorItem{Pos: m.Pos, Item: drop})
 	text := lang.T("log.boss_dead", lang.T(m.Info().Name), drop.Title())
 	if !slices.Contains(g.ShortcutList(), depth+1) {
 		g.Shortcuts = append(g.ShortcutList(), depth+1)
-		text += lang.T("log.shortcut", depth+1)
+		text += lang.T("log.shortcut", g.Floor(depth+1))
 	}
 	r.after = append(r.after, LogEntry{Text: text, Kind: LogEpic})
 }
@@ -537,7 +550,7 @@ func (g *Game) killBoss(m *Monster, r *round) {
 // ShortcutList is the set of floors an expedition can start from.
 func (g *Game) ShortcutList() []int {
 	if len(g.Shortcuts) == 0 {
-		return []int{1}
+		return []int{g.Offset() + 1}
 	}
 	return g.Shortcuts
 }
@@ -546,7 +559,7 @@ func (g *Game) startFloor() int {
 	if slices.Contains(g.ShortcutList(), g.Config.StartFloor) {
 		return g.Config.StartFloor
 	}
-	return 1
+	return g.Offset() + 1
 }
 
 func (l *Level) removeMonster(m *Monster) {
@@ -643,7 +656,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	if h.HP <= 0 {
 		h.HP = 0
 		r.after = append(r.after, LogEntry{Text: lang.T("log.death",
-			mr.name, e.Level.Depth, e.Gold-e.deathKeep(), len(e.Bag)+g.foundEquipped(), e.deathKeep()), Kind: LogBad})
+			mr.name, g.Floor(e.Level.Depth), e.Gold-e.deathKeep(), len(e.Bag)+g.foundEquipped(), e.deathKeep()), Kind: LogBad})
 		g.die(m)
 	}
 }
@@ -665,7 +678,6 @@ func (g *Game) die(killer *Monster) {
 	g.DeathScene = g.deathScene(killer)
 	g.Hero.Equip = g.Exp.StartEquip
 	g.Gold = addGold(g.Gold, g.Exp.deathKeep())
-	g.Exp = nil
 	g.Deaths++
 	if g.Auto && g.Config.DeathLimit > 0 {
 		g.AutoDeaths++
@@ -673,6 +685,15 @@ func (g *Game) die(killer *Monster) {
 			g.Auto = false
 			g.logf(LogBad, "%s", lang.T("log.auto_death_limit", g.AutoDeaths))
 		}
+	}
+	g.endExpedition()
+}
+
+func (g *Game) endExpedition() {
+	done := g.Exp.DungeonDone
+	g.Exp = nil
+	if done {
+		g.nextDungeon()
 	}
 	g.arriveInTown()
 }
@@ -772,9 +793,9 @@ func (g *Game) Doing() string {
 	case i == goalItem:
 		return lang.T("doing.loot")
 	case i == goalFrontier:
-		return lang.T("doing.explore", e.Level.Depth)
+		return lang.T("doing.explore", g.Floor(e.Level.Depth))
 	case i == goalLast && e.Level.boss() != nil:
 		return lang.T("doing.boss", lang.T(e.Level.boss().Info().Name))
 	}
-	return lang.T("doing.descend", e.Level.Depth+1)
+	return lang.T("doing.descend", g.Floor(e.Level.Depth+1))
 }

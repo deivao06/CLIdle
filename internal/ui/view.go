@@ -173,7 +173,7 @@ func (m Model) statusLine() string {
 	hp := hpStyle(h.HP, h.MaxHP()).Render(fmt.Sprintf("HP %d/%d", h.HP, h.MaxHP()))
 	where := lang.T("status.town")
 	if g.Exp != nil {
-		where = lang.T("status.floor", g.Exp.Level.Depth)
+		where = lang.T("status.floor", g.Floor(g.Exp.Level.Depth))
 	}
 	return hp + sMuted.Render(lang.T("status.level", h.Level, where)) + sGold.Render(lang.T("status.gold", g.Gold))
 }
@@ -279,7 +279,11 @@ func (m Model) viewSummary() string {
 	}
 	b.WriteString(sGold.Render(lang.T("summary.gold", s.Gold)) + "\n")
 	b.WriteString(lang.T("summary.level", s.LevelFrom, s.LevelTo))
-	b.WriteString(lang.T("summary.depth", s.DepthFrom, s.DepthTo))
+	if s.Dungeons > 0 {
+		b.WriteString(logStyles[game.LogEpic].Render(lang.T("summary.dungeons", s.Dungeons, m.g.DungeonName(), s.DepthTo)) + "\n")
+	} else {
+		b.WriteString(lang.T("summary.depth", s.DepthFrom, s.DepthTo))
+	}
 	if s.Capped {
 		b.WriteString("\n" + sMuted.Render(lang.T("summary.capped", fmtDuration(game.OfflineCap))) + "\n")
 	}
@@ -773,6 +777,7 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 		b.WriteString(sTitle.Render(h.Name) + " · ")
 	}
 	fmt.Fprintf(&b, "%s %s\n", sSection.Render(h.Class.Name()), lang.T("hero.level", h.Level))
+	b.WriteString(sMuted.Render(g.DungeonName()) + "\n")
 	wrap := lipgloss.NewStyle().Width(w)
 	b.WriteString(wrap.Render(stat("hero.attrs", h.Attr(game.Str), h.Attr(game.Dex), h.Attr(game.Int), h.Attr(game.Con))) + "\n")
 	fmt.Fprintf(&b, "HP  %s\n", numBar(h.HP, h.MaxHP(), w-4, hpStyle(h.HP, h.MaxHP())))
@@ -802,7 +807,7 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 		b.WriteString(m.heroAbilityNames(w))
 	}
 	if e := g.Exp; e != nil {
-		fmt.Fprintf(&b, "\n%s %s", sTitle.Render(lang.T("hero.expedition")), stat("hero.exp_floor", e.Num, e.Level.Depth))
+		fmt.Fprintf(&b, "\n%s %s", sTitle.Render(lang.T("hero.expedition")), stat("hero.exp_floor", e.Num, g.Floor(e.Level.Depth)))
 		b.WriteString(statIn([]lipgloss.Style{sGold, sValue}, "hero.exp_loot", e.Gold, len(e.Bag), g.BagCap()))
 		if e.Retreating {
 			b.WriteString(sWarn.Render(lang.T("hero.retreating")) + "\n")
@@ -813,7 +818,7 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 		records = "hero.records_tab"
 	}
 	bottom := "\n" + sTitle.Render(lang.T("hero.records")) + "\n" +
-		stat(records, g.MaxDepth, g.BossKills, g.Returns, g.Deaths)
+		stat(records, g.Reached, g.BossKills, g.Returns, g.Deaths)
 	if e := g.Exp; e != nil {
 		avail := maxH - strings.Count(b.String(), "\n") - strings.Count(bottom, "\n")
 		shown, used := 0, 0

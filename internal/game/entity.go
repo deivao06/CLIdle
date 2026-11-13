@@ -115,6 +115,8 @@ type Hero struct {
 	Potions  int
 	Equip    [NumSlots]*Item
 	Training [NumTraits]int
+	// Bonus adds to every attribute: earned by clearing dungeons.
+	Bonus int `json:",omitempty"`
 }
 
 func NewHero(c Class) *Hero {
@@ -157,7 +159,7 @@ func (h *Hero) MaxMP() int {
 
 func (h *Hero) Attr(t Trait) int {
 	s := ClassStats[h.Class]
-	return s.Start[t] + s.Growth[t]*(h.Level-1)/2 + h.Training[t]
+	return s.Start[t] + s.Growth[t]*(h.Level-1)/2 + h.Training[t] + h.Bonus
 }
 
 func (h *Hero) Atk() int {

@@ -17,6 +17,7 @@ type Summary struct {
 	LevelTo     int
 	DepthFrom   int
 	DepthTo     int
+	Dungeons    int
 }
 
 // Eventful reports whether anything worth showing happened while away.
@@ -37,7 +38,8 @@ func (g *Game) CatchUp(away time.Duration, progress func(float64)) Summary {
 		BossKills:   -g.BossKills,
 		Gold:        -g.Gold,
 		LevelFrom:   g.Hero.Level,
-		DepthFrom:   g.MaxDepth,
+		DepthFrom:   g.Reached,
+		Dungeons:    -g.Dungeon,
 	}
 	total := min(away, OfflineCap).Milliseconds()
 	for done := int64(0); done < total; {
@@ -55,6 +57,7 @@ func (g *Game) CatchUp(away time.Duration, progress func(float64)) Summary {
 	s.BossKills += g.BossKills
 	s.Gold += g.Gold
 	s.LevelTo = g.Hero.Level
-	s.DepthTo = g.MaxDepth
+	s.DepthTo = g.Reached
+	s.Dungeons += g.Dungeon
 	return s
 }

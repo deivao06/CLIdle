@@ -39,6 +39,7 @@ internal/game/          lógica pura, sem I/O de terminal
   lab.go                playground: Scenario com vários LabFloor (andar sem salas não existe), NewLab, LabPreview, LabStep (para na morte, na < ou na > do último andar)
   luck.go               Streak: erros seguidos (herói e monstros), chance no log e recordes da aba Nerd
   death.go              DeathScene: recorte do mapa guardado na morte (aba Herói)
+  tier.go               dungeons de 100 andares: Offset/Floor (andar local), nome, completeDungeon/nextDungeon
   town.go               loja, ferreiro, treino, mochila, baú, poções, chegada na cidade (tudo só na cidade)
   offline.go            CatchUp (simulação do tempo fora) e Summary
   save.go               save/load JSON (store_file.go: arquivo atômico; store_js.go: localStorage no navegador)
@@ -73,7 +74,7 @@ web/                    versão de navegador (WASM + xterm.js): main.go (ponte J
 2. **`Advance` é independente do fatiamento.** `Advance(120000)` precisa dar o mesmo estado que 2400× `Advance(50)`. O tempo é contado em milissegundos inteiros (`AccMs`). Não zere nem arredonde `AccMs` no meio do loop. Há testes para isso (`TestAdvanceChunkingIsDeterministic`, `TestCatchUpMatchesOnlinePlay`).
 3. **Offline usa a mesma lógica do jogo ao vivo.** `CatchUp` só chama `Advance`. Não crie atalhos estatísticos.
 4. **Save/load preserva a simulação.** `TestSaveLoadRoundTripKeepsSimulationIdentical` garante que carregar e continuar dá o mesmo resultado. Ponteiros não sobrevivem ao JSON: identidade de item é por `Item.ID`, não por ponteiro.
-5. **Compatibilidade do save.** `saveVersion = 9`. Campos novos devem funcionar com valor zero (ex.: `Shortcuts` vazio vira `ShortcutList() == [1]`). O que valor zero não resolve ganha um passo em `migrate.go`; nunca edite um passo já publicado. Não renomeie campos exportados de structs salvas sem migração.
+5. **Compatibilidade do save.** `saveVersion = 10`. Campos novos devem funcionar com valor zero (ex.: `Shortcuts` vazio vira `ShortcutList() == [1]`). O que valor zero não resolve ganha um passo em `migrate.go`; nunca edite um passo já publicado. Não renomeie campos exportados de structs salvas sem migração.
 6. **Concorrência.** `path.go` usa um buffer global (`scratch`) e o jogo não é thread-safe. Enquanto `Model.catching` for verdadeiro, a UI não pode tocar em `m.g` (a goroutine do `CatchUp` está rodando). `View` retorna cedo nesse estado.
 7. **Desempenho.** 12h offline devem simular em poucos segundos (`TestTwelveHoursIsFastEnough`, limite de 15s). O custo está no `search` por passo. Evite BFS extras por passo.
 8. **Bubble Tea:** `Init` tem receiver por valor; mudanças no model feitas ali se perdem. Configure o estado no construtor (`NewWithSave`).
@@ -90,6 +91,7 @@ web/                    versão de navegador (WASM + xterm.js): main.go (ponte J
 - **Efeitos de item:** `Item.Effects` (raro 1, épico 2, lendário 3: `EffectCount`), somados por `Hero.Effect` até o teto `EffectCap`. Aparecem no `StatLabel`. Crítico só gasta RNG se o herói tiver o efeito, para não mudar a sequência de quem não tem.
 - **Baú:** `Game.Stash`, sem limite de tamanho. Comprar na loja equipa na hora e manda o item antigo para o baú (`equipBought`). Só enche com `Config.KeepLoot` (vender loot desligado): `returnToTown` guarda a mochila no baú em vez de vender. `Config.ManualEquip` (auto-equipar desligado) é separado: `better()` devolve falso. O passo v5 de `migrate.go` liga `KeepLoot` em quem tinha `ManualEquip`.
 - **Item level:** `Item.Floor` é o andar onde o item nasceu (`newItemOf`); `Item.Title()` mostra `(iLvl N)`. Zero (saves antigos, arma inicial) não mostra nada.
+- **Dungeons:** `Level.Depth` é a dificuldade efetiva; tudo que o jogador vê (status, log, atalhos, táticas "andar") usa `Game.Floor(depth)`. Chefe do andar 100 conclui a dungeon (`completeDungeon`); a próxima abre em `endExpedition`. Ver docs/design.md → Dungeon.
 - **Mochila:** tamanho é `Game.BagCap()` (`BagSize` + `BagLevel`×2), nunca a constante `BagSize` direto. `Config.MinRarity` filtra o que vai para a mochila em `wants`.
 - **Morte:** restaura `StartEquip`, perde ouro e mochila da expedição; mantém poções e XP.
 - **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item raro, épico ou lendário (`BossEpicChance`, `BossLegendaryChance`) e libera atalho para `andar+1`. Dorme até o herói encostar (`BossWakeDist`). O herói não estima a luta com o chefe (o dono quis que ele não soubesse): não há recuo por chefe forte. Recuando (por qualquer motivo), só rodam as regras acima do recuo (por padrão, a cura) e ele anda para `<`; ataca apenas se um monstro bloqueia o único caminho.

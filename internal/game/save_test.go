@@ -146,7 +146,7 @@ func TestGoldStopsAtMaxGold(t *testing.T) {
 	if pctOf(MaxGold, 200) != MaxGold || pctOf(MaxGold, 25) != MaxGold/100*25+MaxGold%100*25/100 || pctOf(1234, 150) != 1234*150/100 {
 		t.Fatal("pctOf")
 	}
-	if goldOf(GoldPerPile(1000)) != MaxGold || goldOf(12.9) != 12 {
+	if goldOf(1e30) != MaxGold || goldOf(12.9) != 12 {
 		t.Fatal("goldOf")
 	}
 }
