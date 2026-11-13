@@ -3,3 +3,4 @@ clidle
 .impeccable/
 *.syso
 web/dist/
+tools/simview/data/

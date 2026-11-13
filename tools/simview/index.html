@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLIdle · simulações</title>
+<style>
+  :root {
+    --bg: #0c0c0c;
+    --surface: #151515;
+    --surface-2: #1c1c1c;
+    --line: #2e2e2e;
+    --grid: #232323;
+    --text: #e4e4e4;
+    --muted: #8a8a8a;
+    --accent: #ffaf00;
+    --warn: #ff5f5f;
+    --good: #87d787;
+    --warrior: #ff5f5f;
+    --mage: #5fafff;
+    --rogue: #87d787;
+    --cleric: #ffd700;
+    --mono: ui-monospace, "JetBrains Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body { margin: 0; color: var(--text); font: 14px/1.5 var(--mono); font-variant-numeric: tabular-nums; }
+  ::selection { background: var(--accent); color: #000; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; padding: 28px 32px 8px; }
+  h1 { margin: 0; font-size: 20px; font-weight: 700; color: var(--accent); }
+  #status { color: var(--muted); font-size: 12px; }
+  #status .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--good); margin-right: 6px; vertical-align: 1px; }
+  #status.err .dot { background: var(--warn); }
+
+  main { padding: 16px 32px 48px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .card { all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 16px 16px 14px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+    transition: border-color 160ms ease-out, background 160ms ease-out; }
+  .card:hover { border-color: #4a4a4a; background: var(--surface-2); }
+  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card h2 { margin: 0; font-size: 15px; font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
+  .meta { color: var(--muted); font-size: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .tag { padding: 0 6px; border-radius: 4px; border: 1px solid var(--line); }
+  .tag.run { color: var(--good); border-color: #3a5a3a; }
+  .tag.stale { color: var(--warn); border-color: #5a3434; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .legend b { font-weight: 700; }
+  .sw { display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; }
+
+  .empty { max-width: 72ch; color: var(--muted); }
+  .empty h2 { color: var(--text); font-size: 16px; margin: 0 0 8px; }
+  .empty pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; color: var(--text); overflow-x: auto; }
+
+  svg text { font: 11px var(--mono); fill: var(--muted); }
+  .chart { width: 100%; height: auto; display: block; }
+
+  dialog { width: min(1100px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 0; color: var(--text);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 24px 64px rgba(0,0,0,.6); }
+  dialog::backdrop { background: rgba(0,0,0,.65); }
+  dialog[open] { animation: rise 200ms cubic-bezier(.16,1,.3,1); }
+  @keyframes rise { from { transform: translateY(8px); opacity: .6; } }
+  .dhead { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: var(--surface); border-bottom: 1px solid var(--line); }
+  .dhead h2 { margin: 0 0 2px; font-size: 16px; overflow-wrap: anywhere; }
+  .close { all: unset; cursor: pointer; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 6px; color: var(--muted); }
+  .close:hover { background: var(--surface-2); color: var(--text); }
+  .close:focus-visible { outline: 2px solid var(--accent); }
+  .dbody { padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 22px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { all: unset; cursor: pointer; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .chip[aria-pressed="true"] { color: var(--text); border-color: #555; background: var(--surface-2); }
+  .chip:focus-visible { outline: 2px solid var(--accent); }
+  .panel h3 { margin: 0 0 6px; font-size: 13px; color: var(--accent); font-weight: 700; }
+  .plot { position: relative; }
+  .tip { position: absolute; pointer-events: none; background: #0a0a0a; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font-size: 12px; white-space: nowrap; z-index: 1; box-shadow: 0 6px 18px rgba(0,0,0,.5); }
+  .tip div { display: flex; gap: 8px; justify-content: space-between; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--grid); }
+  th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+  th { color: var(--muted); font-weight: 400; }
+  @media (max-width: 600px) { header, main { padding-left: 16px; padding-right: 16px; } .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>CLIdle · simulações</h1>
+  <span id="status"><span class="dot"></span>carregando…</span>
+</header>
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+<dialog id="dlg" aria-labelledby="dtitle">
+  <div class="dhead">
+    <div style="flex:1;min-width:0"><h2 id="dtitle"></h2><div class="meta" id="dlive"></div></div>
+    <button class="close" id="close" aria-label="Fechar">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+    </button>
+  </div>
+  <div class="dbody" id="dbody"></div>
+</dialog>
+<script>
+(() => {
+  const CLASS_COLOR = { Warrior: "var(--warrior)", Mage: "var(--mage)", Rogue: "var(--rogue)", Cleric: "var(--cleric)" };
+  const CLASS_ORDER = ["Warrior", "Mage", "Rogue", "Cleric"];
+  const METRICS = [["floor", "Andar efetivo"], ["level", "Nível"], ["deaths", "Mortes"]];
+  const color = (c) => CLASS_COLOR[c] || "var(--text)";
+  const $ = (s) => document.querySelector(s);
+  let batches = [], openId = null, hidden = new Set();
+
+  const links = async (url) => {
+    const html = await (await fetch(url, { cache: "no-store" })).text();
+    return [...html.matchAll(/href="([^"?#]+)"/g)].map((m) => decodeURIComponent(m[1])).filter((h) => !h.startsWith("/") && !h.startsWith(".."));
+  };
+
+  async function load() {
+    const dirs = (await links("data/")).filter((d) => d.endsWith("/"));
+    const out = [];
+    for (const d of dirs) {
+      const files = (await links("data/" + d)).filter((f) => f.endsWith(".json"));
+      const parts = await Promise.all(files.map((f) => fetch("data/" + d + f, { cache: "no-store" }).then((r) => r.json()).catch(() => null)));
+      const ok = parts.filter(Boolean);
+      if (!ok.length) continue;
+      out.push({
+        id: d.slice(0, -1),
+        title: ok.find((p) => p.title)?.title || d.slice(0, -1),
+        updated: new Date(Math.max(...ok.map((p) => +new Date(p.updated)))),
+        started: startOf(d, ok),
+        series: ok.flatMap((p) => p.series || []),
+      });
+    }
+    return out.sort((a, b) => b.updated - a.updated);
+  }
+
+  const firstSeen = {};
+  const startOf = (d, parts) => {
+    const t = parts.map((p) => +new Date(p.started)).filter((v) => v > 0);
+    if (t.length) return new Date(Math.min(...t));
+    return new Date(firstSeen[d] ??= Date.now());
+  };
+  const dur = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60; return h ? `${h}h ${m}min` : m ? `${m}min ${r}s` : `${r}s`; };
+  const clock = (d) => d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const last = (s) => s.points[s.points.length - 1] || { h: 0, floor: 0, level: 0, deaths: 0, dungeon: 0 };
+  const hours = (b) => Math.max(1, ...b.series.map((s) => last(s).h));
+  const state = (b) => b.series.every((s) => s.done) ? "done" : (Date.now() - b.updated < 30000 ? "run" : "stale");
+  const classesOf = (b) => CLASS_ORDER.filter((c) => b.series.some((s) => s.class === c));
+  const labelsOf = (b) => [...new Set(b.series.map((s) => s.label).filter(Boolean))];
+
+  function averageByClass(b, metric) {
+    const xMax = hours(b);
+    return classesOf(b).map((c) => {
+      const ss = b.series.filter((s) => s.class === c && s.points.length);
+      const pts = [];
+      for (let h = 0; h <= Math.ceil(xMax); h++) {
+        const vals = ss.map((s) => { let v = null; for (const p of s.points) { if (p.h > h + 1e-9) break; v = p[metric]; } return v; }).filter((v) => v !== null);
+        if (vals.length) pts.push([h, vals.reduce((a, v) => a + v, 0) / vals.length]);
+      }
+      return { key: c, color: color(c), points: pts };
+    });
+  }
+
+  function niceMax(v) { if (v <= 5) return 5; const p = 10 ** Math.floor(Math.log10(v)); const n = v / p; return (n <= 2 ? 2 : n <= 5 ? 5 : 10) * p; }
+
+  function chart(lines, { w, h, xMax, yMax, axes = true }) {
+    const pad = axes ? { l: 40, r: 10, t: 8, b: 22 } : { l: 2, r: 2, t: 4, b: 4 };
+    const X = (x) => pad.l + (x / xMax) * (w - pad.l - pad.r), Y = (y) => h - pad.b - (y / yMax) * (h - pad.t - pad.b);
+    let g = "";
+    const ticks = yMax % 5 === 0 && yMax / 5 >= 1 && Number.isInteger(yMax / 5) ? 5 : 4;
+    for (let i = 0; i <= ticks; i++) {
+      const v = (yMax / ticks) * i, y = Y(v);
+      g += `<line x1="${pad.l}" x2="${w - pad.r}" y1="${y}" y2="${y}" stroke="var(--grid)"/>`;
+      if (axes) g += `<text x="${pad.l - 6}" y="${y + 4}" text-anchor="end">${Math.round(v)}</text>`;
+    }
+    if (axes) {
+      const step = niceMax(xMax / 6);
+      for (let x = 0; x <= xMax + 1e-9; x += step) g += `<text x="${X(x)}" y="${h - 6}" text-anchor="middle">${Math.round(x)}h</text>`;
+    }
+    for (const l of lines) {
+      if (!l.points.length) continue;
+      const d = l.points.map(([x, y], i) => `${i ? "L" : "M"}${X(x).toFixed(1)},${Y(y).toFixed(1)}`).join("");
+      g += `<path d="${d}" fill="none" stroke="${l.color}" stroke-width="${l.width || 1.8}" stroke-opacity="${l.opacity ?? 1}" ${l.dash ? `stroke-dasharray="${l.dash}"` : ""} stroke-linejoin="round" stroke-linecap="round"/>`;
+    }
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img">${g}</svg>`;
+  }
+
+  function cardHTML(b) {
+    const st = state(b), avg = averageByClass(b, "floor");
+    const yMax = niceMax(Math.max(1, ...avg.flatMap((l) => l.points.map((p) => p[1]))));
+    const tag = st === "run" ? `<span class="tag run">rodando</span>` : st === "stale" ? `<span class="tag stale">parada</span>` : `<span class="tag">terminada</span>`;
+    const legend = avg.map((l) => `<span><span class="sw" style="background:${l.color}"></span>${l.key} <b style="color:var(--text)">${Math.round(l.points.at(-1)?.[1] || 0)}</b></span>`).join("");
+    return `<button class="card" data-id="${b.id}">
+      <h2>${esc(b.title)}</h2>
+      <div class="meta">${tag}<span>${b.series.length} runs</span><span>${Math.round(hours(b))}h simuladas</span></div>
+      <div class="meta" data-live="${b.id}"></div>
+      ${chart(avg, { w: 320, h: 110, xMax: hours(b), yMax, axes: false })}
+      <div class="legend">${legend}</div>
+    </button>`;
+  }
+
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+  function liveText(b) {
+    const end = state(b) === "run" ? Date.now() : +b.updated;
+    const run = state(b) === "run" ? "rodando há" : "rodou por";
+    return `<span>começou ${clock(b.started)}</span><span>${run} <b style="color:var(--text)">${dur(end - b.started)}</b></span><span>última atualização há ${dur(Date.now() - b.updated)}</span>`;
+  }
+  function paintLive() {
+    document.querySelectorAll("[data-live]").forEach((el) => { const b = batches.find((x) => x.id === el.dataset.live); if (b) el.innerHTML = liveText(b); });
+  }
+  setInterval(paintLive, 1000);
+
+  function render() {
+    const grid = $("#grid");
+    if (!batches.length) {
+      grid.innerHTML = `<div class="empty"><h2>Nenhuma simulação ainda</h2>
+        <p>Rode uma simulação com <code>SIMVIEW_BATCH</code> definido e ela aparece aqui, atualizando a cada 5s:</p>
+        <pre>SIMVIEW_BATCH=minha-sim SIMVIEW_TITLE="Minha simulação" go test ./internal/game -run TestTmpClear</pre></div>`;
+    } else {
+      grid.innerHTML = batches.map(cardHTML).join("");
+      grid.querySelectorAll(".card").forEach((c) => c.addEventListener("click", () => open(c.dataset.id)));
+    }
+    if (openId) renderModal();
+    paintLive();
+  }
+
+  function seriesKey(s) { return `${s.class}|${s.label}|${s.seed}`; }
+
+  function renderModal() {
+    const b = batches.find((x) => x.id === openId);
+    if (!b) return;
+    $("#dtitle").textContent = b.title;
+    $("#dlive").dataset.live = b.id;
+    const labels = labelsOf(b), classes = classesOf(b);
+    const visible = b.series.filter((s) => !hidden.has(s.class) && !hidden.has("label:" + s.label));
+    const seeds = [...new Set(b.series.map((s) => s.seed))].sort((a, b) => a - b);
+    const dash = (s) => labels.length > 1 && s.label === labels[0] ? "5 4" : "";
+    const opacity = (s) => 1 - 0.25 * seeds.indexOf(s.seed) / Math.max(1, seeds.length - 1);
+    const chip = (key, text, sw) => `<button class="chip" data-key="${esc(key)}" aria-pressed="${!hidden.has(key)}">${sw ? `<span class="sw" style="background:${sw}"></span>` : ""}${esc(text)}</button>`;
+    const filters = classes.map((c) => chip(c, c, color(c))).join("") + (labels.length > 1 ? labels.map((l, i) => chip("label:" + l, (i === 0 ? "- - " : "—— ") + l)).join("") : "");
+    const xMax = hours(b);
+    const panels = METRICS.map(([m, name]) => {
+      const yMax = niceMax(Math.max(1, ...visible.flatMap((s) => s.points.map((p) => p[m]))));
+      const lines = visible.map((s) => ({ color: color(s.class), dash: dash(s), opacity: opacity(s), points: s.points.map((p) => [p.h, p[m]]) }));
+      return `<section class="panel"><h3>${name}</h3><div class="plot" data-metric="${m}" data-ymax="${yMax}">${chart(lines, { w: 1040, h: 220, xMax, yMax })}</div></section>`;
+    }).join("");
+    const rows = visible.map((s) => { const p = last(s); return `<tr><td><span class="sw" style="background:${color(s.class)}"></span>${s.class}</td><td>${esc(s.label || "")} · seed ${s.seed}</td><td>${p.h.toFixed(0)}h</td><td>${p.floor}</td><td>${p.level}</td><td>${p.deaths}</td><td>${p.dungeon}</td><td>${s.done ? "sim" : "não"}</td></tr>`; }).join("");
+    $("#dbody").innerHTML = `<div class="filters">${filters}</div>${panels}
+      <section class="panel"><h3>Final de cada run</h3><table><thead><tr><th>classe</th><th>run</th><th>horas</th><th>andar</th><th>nível</th><th>mortes</th><th>dungeons</th><th>terminou</th></tr></thead><tbody>${rows}</tbody></table></section>`;
+    $("#dbody").querySelectorAll(".chip").forEach((c) => c.addEventListener("click", () => {
+      const k = c.dataset.key; hidden.has(k) ? hidden.delete(k) : hidden.add(k); renderModal();
+    }));
+    $("#dbody").querySelectorAll(".plot").forEach((p) => hover(p, visible, xMax));
+  }
+
+  function hover(plot, visible, xMax) {
+    const m = plot.dataset.metric, svg = plot.querySelector("svg");
+    let tip = null;
+    plot.addEventListener("mousemove", (e) => {
+      const r = svg.getBoundingClientRect(), sx = (e.clientX - r.left) * (1040 / r.width);
+      const h = Math.max(0, Math.min(xMax, ((sx - 40) / (1040 - 50)) * xMax));
+      const rows = visible.map((s) => { let v = null; for (const p of s.points) { if (p.h > h) break; v = p[m]; } return v === null ? "" :
+        `<div><span><span class="sw" style="background:${color(s.class)}"></span>${s.class} ${esc(s.label || "")} s${s.seed}</span><b>${v}</b></div>`; }).join("");
+      if (!tip) { tip = document.createElement("div"); tip.className = "tip"; plot.appendChild(tip); }
+      tip.innerHTML = `<div style="color:var(--muted)">${h.toFixed(0)}h</div>${rows}`;
+      const left = e.clientX - plot.getBoundingClientRect().left;
+      tip.style.left = Math.min(left + 14, plot.clientWidth - tip.offsetWidth - 4) + "px";
+      tip.style.top = "8px";
+    });
+    plot.addEventListener("mouseleave", () => { tip?.remove(); tip = null; });
+  }
+
+  function open(id) { openId = id; hidden = new Set(); renderModal(); $("#dlg").showModal(); }
+  $("#close").addEventListener("click", () => $("#dlg").close());
+  $("#dlg").addEventListener("close", () => { openId = null; });
+  $("#dlg").addEventListener("click", (e) => { if (e.target === $("#dlg")) $("#dlg").close(); });
+
+  async function tick() {
+    const st = $("#status");
+    try {
+      batches = await load();
+      st.className = "";
+      st.innerHTML = `<span class="dot"></span>atualiza a cada 5s · ${new Date().toLocaleTimeString("pt-BR")}`;
+      render();
+      const want = decodeURIComponent(location.hash.slice(1));
+      if (want && !openId && !$("#dlg").open && batches.some((b) => b.id === want)) { open(want); history.replaceState(null, "", location.pathname); }
+    } catch (e) {
+      st.className = "err";
+      st.innerHTML = `<span class="dot"></span>não consegui ler data/ — sirva esta pasta com: python3 -m http.server`;
+    }
+  }
+  tick();
+  setInterval(tick, 5000);
+})();
+</script>
+</body>
+</html>
