@@ -112,7 +112,7 @@ func TestFleeLeavesTheRoomInsteadOfTheCorner(t *testing.T) {
 			}
 			g.Hero.Pos = p
 		}
-		if l.RoomAt(g.Hero.Pos) == room && l.At(g.Hero.Pos) != Door {
+		if l.RoomAt(g.Hero.Pos) == room && l.At(g.Hero.Pos) != Door && l.Visible(g.Hero.Pos, l.Mons[0].Pos) {
 			t.Errorf("seed %d: still inside the start room at %v", seed, g.Hero.Pos)
 		}
 	}
@@ -122,10 +122,10 @@ func TestHuntWalksToTheTarget(t *testing.T) {
 	g := heroAt(Warrior, 1, 5)
 	l := g.Exp.Level
 	r := l.Rooms[l.RoomAt(g.Hero.Pos)]
-	var far Pos
+	far := g.Hero.Pos
 	for y := r.Y + 1; y < r.Y+r.H-1; y++ {
 		for x := r.X + 1; x < r.X+r.W-1; x++ {
-			if p := (Pos{x, y}); p.Dist(g.Hero.Pos) > far.Dist(g.Hero.Pos) && l.At(p).Walkable() {
+			if p := (Pos{x, y}); p.Dist(g.Hero.Pos) > far.Dist(g.Hero.Pos) && l.At(p).Walkable() && l.Visible(g.Hero.Pos, p) {
 				far = p
 			}
 		}

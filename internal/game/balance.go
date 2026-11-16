@@ -256,6 +256,7 @@ const (
 	NoseGoldMult   = 1.5
 	NoseItemChance = 0.5
 
+	ViewRadius      = 7
 	SpellRange      = 5
 	SleepMinHPPct   = 50
 	SleepRounds     = 6

@@ -777,6 +777,8 @@
   "nerd.nose_gold.desc": "Gold pile multiplier for the rogue's treasure nose.",
   "nerd.nose_item": "Treasure nose item",
   "nerd.nose_item.desc": "Chance treasure nose adds one extra item to each floor.",
+  "nerd.view_radius": "View radius",
+  "nerd.view_radius.desc": "How far (in tiles, across) the hero sees; half as far up and down, so it looks round on screen. Walls block it.",
   "nerd.spell_range": "Spell range",
   "nerd.spell_range.desc": "How far (in tiles) spells reach. Higher = the mage hits more before monsters close in.",
   "nerd.spell_power": "Power: %s",

@@ -136,30 +136,54 @@ func (l *Level) ItemAt(p Pos) int {
 	return -1
 }
 
-// Visible follows Rogue: a lit room is fully visible from inside, otherwise only adjacent tiles.
+// Visible is true within ViewRadius (twice as far across as down, so it looks round on screen) with a clear line.
 func (l *Level) Visible(from, p Pos) bool {
 	if from.Dist(p) <= 1 {
 		return true
 	}
-	ri := l.RoomAt(from)
-	return ri >= 0 && l.Rooms[ri].Contains(p) && l.At(from) != Door
+	dx, dy := p.X-from.X, p.Y-from.Y
+	if dx*dx+4*dy*dy > ViewRadius*ViewRadius {
+		return false
+	}
+	return l.clearLine(from, p)
+}
+
+// clearLine walks a Bresenham line; only the tiles between the ends must let light through.
+func (l *Level) clearLine(a, b Pos) bool {
+	dx, dy := abs(b.X-a.X), -abs(b.Y-a.Y)
+	sx, sy := 1, 1
+	if b.X < a.X {
+		sx = -1
+	}
+	if b.Y < a.Y {
+		sy = -1
+	}
+	err := dx + dy
+	for {
+		e2 := 2 * err
+		if e2 >= dy {
+			err += dy
+			a.X += sx
+		}
+		if e2 <= dx {
+			err += dx
+			a.Y += sy
+		}
+		if a == b {
+			return true
+		}
+		if !l.At(a).Walkable() {
+			return false
+		}
+	}
 }
 
 func (l *Level) Reveal(from Pos) {
-	for _, d := range append(Dirs8, Pos{}) {
-		p := from.Add(d)
-		if l.In(p) {
-			l.Seen[p.Y*MapW+p.X] = 1
-		}
-	}
-	ri := l.RoomAt(from)
-	if ri < 0 || l.At(from) == Door {
-		return
-	}
-	r := l.Rooms[ri]
-	for y := r.Y; y < r.Y+r.H; y++ {
-		for x := r.X; x < r.X+r.W; x++ {
-			l.Seen[y*MapW+x] = 1
+	for y := from.Y - ViewRadius/2; y <= from.Y+ViewRadius/2; y++ {
+		for x := from.X - ViewRadius; x <= from.X+ViewRadius; x++ {
+			if p := (Pos{x, y}); l.In(p) && l.Visible(from, p) {
+				l.Seen[y*MapW+x] = 1
+			}
 		}
 	}
 }

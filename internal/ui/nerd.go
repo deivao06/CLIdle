@@ -158,6 +158,7 @@ func (m Model) nerdRows() []prepRow {
 	add("dodge_cap", nerdPct(game.DodgeCap))
 	add("nose_gold", "×"+num(game.NoseGoldMult))
 	add("nose_item", nerdPct(game.NoseItemChance))
+	add("view_radius", fmt.Sprint(game.ViewRadius))
 	add("spell_range", fmt.Sprint(game.SpellRange))
 	for _, a := range []game.Ability{game.MagicMissile, game.Fireball, game.FrostRay} {
 		rows = append(rows, nerdRow(sec, lang.T("nerd.spell_power", a.Name()), fmt.Sprint(game.SpellPower[a]), lang.T("nerd.spell_power.desc")))

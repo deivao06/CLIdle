@@ -777,6 +777,8 @@
   "nerd.nose_gold.desc": "Multiplicador das pilhas de ouro com o faro do ladino.",
   "nerd.nose_item": "Faro: item extra",
   "nerd.nose_item.desc": "Chance do faro pôr um item a mais em cada andar.",
+  "nerd.view_radius": "Raio de visão",
+  "nerd.view_radius.desc": "Até quantas casas (na horizontal) o herói enxerga; na vertical é a metade, para parecer redondo na tela. Paredes bloqueiam.",
   "nerd.spell_range": "Alcance das magias",
   "nerd.spell_range.desc": "Até quantas casas as magias alcançam. Maior = o mago acerta mais antes do monstro chegar.",
   "nerd.spell_power": "Poder: %s",
