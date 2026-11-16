@@ -134,6 +134,7 @@ const (
 var (
 	dungeonNouns = []string{"dungeon.noun.cave", "dungeon.noun.crypt", "dungeon.noun.dungeon", "dungeon.noun.catacombs", "dungeon.noun.fortress",
 		"dungeon.noun.grotto", "dungeon.noun.tomb", "dungeon.noun.citadel", "dungeon.noun.tower", "dungeon.noun.mine"}
+	caveNouns   = []string{"dungeon.noun.cave", "dungeon.noun.grotto", "dungeon.noun.mine"}
 	dungeonAdjs = []string{"dungeon.adj.infernal", "dungeon.adj.forgotten", "dungeon.adj.shadowed", "dungeon.adj.cursed", "dungeon.adj.deep",
 		"dungeon.adj.burning", "dungeon.adj.frozen", "dungeon.adj.bloody", "dungeon.adj.silent", "dungeon.adj.lost", "dungeon.adj.venomous", "dungeon.adj.ancient"}
 )
@@ -256,13 +257,17 @@ const (
 	NoseGoldMult   = 1.5
 	NoseItemChance = 0.5
 
-	ViewRadius      = 7
-	SpellRange      = 5
-	SleepMinHPPct   = 50
-	SleepRounds     = 6
-	SleepBossRounds = 2
-	FrostSlowRounds = 5
-	BlinkHPPct      = 35
+	ViewRadius       = 7
+	CaveRockPct      = 0.48
+	CavePasses       = 5
+	CaveMinFloorPct  = 20
+	CaveZoneMinFloor = 12
+	SpellRange       = 5
+	SleepMinHPPct    = 50
+	SleepRounds      = 6
+	SleepBossRounds  = 2
+	FrostSlowRounds  = 5
+	BlinkHPPct       = 35
 
 	HealPct        = 35
 	BlessRounds    = 8

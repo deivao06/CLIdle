@@ -80,7 +80,7 @@ func (g *Game) sceneCell(l *Level, p Pos, killer *Monster) (rune, byte) {
 		return t.Glyph(), MarkDim
 	}
 	switch t {
-	case HWall, VWall:
+	case HWall, VWall, CaveWall:
 		return t.Glyph(), MarkWall
 	case Door:
 		return t.Glyph(), MarkDoor

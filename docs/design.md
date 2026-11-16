@@ -35,6 +35,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Mapa ASCII estilo Rogue; o jogador vê o `@` explorando sozinho.
 - Andar de tamanho fixo (~80×21); a câmera segue o `@` em terminais menores.
 - Névoa de guerra. **Campo de visão (2026-11-16):** o herói vê até `ViewRadius` casas na horizontal e metade na vertical (redondo na tela), com linha de visão (paredes e rocha bloqueiam). Não vê mais a sala inteira ao entrar. Monstros só acordam quando entram nesse campo.
+- **Cavernas (2026-11-16):** o tipo do andar vem do nome da dungeon: Caverna, Gruta e Mina geram cavernas (30% das dungeons), o resto é calabouço (salas 3×3). Caverna = autômato celular (`CaveRockPct` de rocha, `CavePasses` rodadas, regra 5 de 9), só a maior área aberta fica; se ela cobre menos de `CaveMinFloorPct` do mapa, gera de novo. Parede `░`. Para monstros, itens, escadas e chefe, a caverna é dividida em zonas 3×3 que contam como salas (zona com pelo menos `CaveZoneMinFloor` casas de chão). Não muda dificuldade nem loot. Saves antigos não mudam: a dungeon atual vira caverna só se o nome já for de caverna.
 - **Impacto no combate:** o dano sobe flutuando em cima do alvo (~0,7s): claro no golpe do herói, laranja com `!` no golpe forte/crítico/furtivo, vermelho com `-` no dano recebido. O alvo pisca no golpe. Só golpes grandes (golpe forte, crítico, furtivo, ou dano recebido ≥ 1/4 do HP máximo) tremem o mapa 1 coluna por ~0,12s. O jogo só avisa a tela por `Game.Events`, fora do save.
 - **Momentos:** monstro morto vira um `*` laranja que apaga em `·` (~0,3s; chefe estoura nas 8 casas em volta). Item raro ou melhor pego brilha nas diagonais do herói na cor da raridade (~0,6s; lendário também em cruz). Subir de nível solta um anel dourado que se expande do `@` (~0,7s).
 - **Lamparina:** um raio de luz quente com cintilação em volta do `@` (mesmo degradê da fogueira). Usa o mesmo raio do campo de visão e ilumina só o que o herói vê. Só visual: usa o relógio da tela, nunca o RNG do jogo. Monstros, itens e escadas mantêm a cor própria.
@@ -169,7 +170,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Grupo (vários `@` com cores diferentes).
 - Prestígio (reset com bônus permanente).
 - Itens lendários (únicos).
-- Cavernas e outras variações de andar.
+- ~~Cavernas~~ (feito) e outras variações de andar.
 - Magias por loot (livros/pergaminhos).
 - Materiais, outros prédios.
 - ~~Regras de retirada mais elaboradas~~ (feito com as táticas).

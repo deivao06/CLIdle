@@ -79,6 +79,11 @@ func (m Model) nerdRows() []prepRow {
 	add("dungeon_step", fmt.Sprint(game.DungeonStep))
 	add("dungeon_bonus", fmt.Sprintf("+%d", game.DungeonAttrBonus))
 	add("dungeon_gold", fmt.Sprint(game.DungeonGoldPiles))
+	add("cave_chance", nerdPct(game.CaveChance()))
+	add("cave_rock", nerdPct(game.CaveRockPct))
+	add("cave_passes", fmt.Sprint(game.CavePasses))
+	add("cave_min_floor", fmt.Sprintf("%d%%", game.CaveMinFloorPct))
+	add("cave_zone", fmt.Sprint(game.CaveZoneMinFloor))
 	add("prestige_level", fmt.Sprint(game.PrestigeLevel))
 	add("prestige_tier", fmt.Sprintf("+%d", game.PrestigePerTier))
 

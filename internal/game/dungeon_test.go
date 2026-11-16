@@ -6,8 +6,11 @@ import (
 )
 
 func TestLevelFullyConnected(t *testing.T) {
-	for seed := range uint64(200) {
-		l := GenerateLevel(NewRNG(seed), 1)
+	for seed := range uint64(400) {
+		l := GenerateLevel(NewRNG(seed/2), 1)
+		if seed%2 == 1 {
+			l = GenerateCave(NewRNG(seed/2), 1)
+		}
 		dist := l.distMap(l.Up)
 		for y := range MapH {
 			for x := range MapW {
@@ -29,6 +32,20 @@ func TestHeroExploresAndDescends(t *testing.T) {
 	g.Advance(10 * 60 * 1000)
 	if g.MaxDepth < 3 {
 		t.Fatalf("hero stuck, max depth %d", g.MaxDepth)
+	}
+}
+
+func TestHeroExploresCaves(t *testing.T) {
+	g := New(42, Warrior)
+	g.Noun = 0
+	if !g.Cave() {
+		t.Fatal("noun 0 should be a cave")
+	}
+	g.Depart()
+	g.Auto = true
+	g.Advance(10 * 60 * 1000)
+	if g.MaxDepth < 3 {
+		t.Fatalf("hero stuck in caves, max depth %d", g.MaxDepth)
 	}
 }
 

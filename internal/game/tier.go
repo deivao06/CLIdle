@@ -1,6 +1,10 @@
 package game
 
-import "clidle/internal/lang"
+import (
+	"slices"
+
+	"clidle/internal/lang"
+)
 
 // Offset is the difficulty the current dungeon adds to its floors: floor f is depth Offset()+f.
 func (g *Game) Offset() int { return g.Dungeon * DungeonStep }
@@ -12,6 +16,12 @@ func (g *Game) Floor(depth int) int { return depth - g.Offset() }
 func (g *Game) DungeonName() string {
 	return lang.T("dungeon.name", lang.T(dungeonNouns[g.Noun%len(dungeonNouns)]), lang.T(dungeonAdjs[g.Adj%len(dungeonAdjs)]), g.Dungeon+1)
 }
+
+// Cave tells whether the current dungeon's floors are caves; it follows the dungeon's name.
+func (g *Game) Cave() bool { return slices.Contains(caveNouns, dungeonNouns[g.Noun%len(dungeonNouns)]) }
+
+// CaveChance is the share of dungeon names that make a cave.
+func CaveChance() float64 { return float64(len(caveNouns)) / float64(len(dungeonNouns)) }
 
 func (g *Game) rollDungeonName(rng *RNG) {
 	g.Noun, g.Adj = rng.Intn(len(dungeonNouns)), rng.Intn(len(dungeonAdjs))

@@ -169,7 +169,11 @@ func (g *Game) StartExpedition() {
 
 func (g *Game) enterLevel(depth int) {
 	e := g.Exp
-	e.Level = GenerateLevel(e.RNG, depth)
+	if g.Cave() {
+		e.Level = GenerateCave(e.RNG, depth)
+	} else {
+		e.Level = GenerateLevel(e.RNG, depth)
+	}
 	e.SecondWindUsed = false
 	l := e.Level
 	startRoom := l.RoomAt(l.Up)

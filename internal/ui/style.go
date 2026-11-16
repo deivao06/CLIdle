@@ -92,7 +92,7 @@ var logStyles = map[game.LogKind]lipgloss.Style{
 
 func tileStyle(t game.Tile) *lipgloss.Style {
 	switch t {
-	case game.HWall, game.VWall:
+	case game.HWall, game.VWall, game.CaveWall:
 		return &sWall
 	case game.Door:
 		return &sDoor

@@ -16,6 +16,7 @@ const (
 	Corridor
 	StairsDown
 	StairsUp
+	CaveWall
 )
 
 func (t Tile) Walkable() bool {
@@ -42,6 +43,8 @@ func (t Tile) Glyph() rune {
 		return '>'
 	case StairsUp:
 		return '<'
+	case CaveWall:
+		return '░'
 	}
 	return ' '
 }
@@ -224,6 +227,11 @@ func GenerateLevel(rng *RNG, depth int) *Level {
 		all[i] = true
 	}
 	l := carveLevel(rng, depth, all)
+	placeStairs(l, rng)
+	return l
+}
+
+func placeStairs(l *Level, rng *RNG) {
 	up := rng.Intn(len(l.Rooms))
 	down := rng.Intn(len(l.Rooms) - 1)
 	if down >= up {
@@ -233,7 +241,6 @@ func GenerateLevel(rng *RNG, depth int) *Level {
 	l.Set(l.Up, StairsUp)
 	l.Down = l.RandomFloor(rng, down)
 	l.Set(l.Down, StairsDown)
-	return l
 }
 
 // carveLevel lays out the 3x3 grid; rooms that are off keep their rectangle but stay solid rock.

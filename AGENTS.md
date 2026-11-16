@@ -33,7 +33,8 @@ internal/game/          lógica pura, sem I/O de terminal
   gambit.go             táticas (gambits): Gambit/Cond/Action, lista padrão (`gambitsV5`), escolha do comportamento (`behavior`), ações (`instant`/`act`), comportamentos (`perform`), editar a lista
   spell.go              magias do mago e do clérigo (cast, castTarget, blink, cura, bênção)
   migrate.go            migração de saves antigos (um passo por versão)
-  dungeon.go            Level, tiles, geração estilo Rogue (grade 3x3 de salas), visibilidade/névoa
+  dungeon.go            Level, tiles, geração estilo Rogue (grade 3x3 de salas), campo de visão (`ViewRadius`, linha de visão)/névoa
+  cave.go               cavernas (autômato celular; zonas 3×3 contam como salas); o tipo vem do nome da dungeon (`Game.Cave`)
   path.go               BFS do herói (search, multi-objetivo) e mapa de distância dos monstros
   entity.go             Hero, Monster, spawn de monstros e chefes, dano
   items.go              Item, raridade, FloorItem, geração de loot, preço de venda (SellPrice)
