@@ -458,6 +458,7 @@ func (g *Game) act(gb Gambit, r *round) bool {
 		}
 		heal := min(g.potionHeal(), h.MaxHP()-h.HP)
 		h.HP += heal
+		g.emitHeal(-1, heal)
 		h.Potions--
 		r.hero = lang.T("log.drink", heal)
 		return true

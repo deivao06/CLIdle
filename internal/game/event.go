@@ -16,6 +16,10 @@ const (
 	EventKill
 	EventLoot
 	EventLevelUp
+	EventMiss
+	EventDodge
+	EventSkill // Value is the Ability
+	EventHeal  // Value is the HP healed
 )
 
 const maxEvents = 32

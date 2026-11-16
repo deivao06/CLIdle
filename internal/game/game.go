@@ -461,6 +461,7 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 		miss /= 2
 	}
 	if e.RNG.Chance(miss) {
+		g.emit(Event{Kind: EventMiss, Pos: m.Pos})
 		r.hero = lang.T("combat.hero_miss", name)
 		if e.HeroMisses.add(miss, &g.BestHeroMisses) {
 			r.hero += " " + e.HeroMisses.Odds()
@@ -480,6 +481,7 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 		key = "combat.hero_crit"
 	}
 	if sneak {
+		g.emit(Event{Kind: EventSkill, Pos: h.Pos, Value: int(SneakAttack)})
 		d *= SneakMult
 		key = "ability.sneak_attack.log"
 	}
@@ -640,7 +642,13 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	e := g.Exp
 	h := g.Hero
 	mr := r.of(m)
-	if e.RNG.Chance(MissChance(m.Dex, h.Attr(Dex))) || h.Has(Dodge) && e.RNG.Chance(h.DodgeChance()) {
+	miss := e.RNG.Chance(MissChance(m.Dex, h.Attr(Dex)))
+	if dodge := !miss && h.Has(Dodge) && e.RNG.Chance(h.DodgeChance()); miss || dodge {
+		kind := EventMiss
+		if dodge {
+			kind = EventDodge
+		}
+		g.emit(Event{Kind: kind, Pos: h.Pos})
 		mr.misses++
 		r.monLuck = e.MonMisses.add(MonsterMissChance(m.Dex, h), &g.BestMonMisses)
 		return

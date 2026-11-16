@@ -72,6 +72,8 @@
   "town.prestige.desc": "%d dungeon(s) cleared since the last prestige: +%d to every attribute forever. Each tier cleared is worth more, so clearing more before a prestige pays off.",
   "hero.prestige": " · Prestige %d (+%d)",
   "log.prestige": "Prestige %d! A new hero starts over with +%d to every attribute forever, in %s.",
+  "fx.miss": "miss",
+  "fx.dodge": "dodge",
   "nerd.prestige_level": "Prestige level",
   "nerd.prestige_level.desc": "Lowest hero level to prestige. You also need a dungeon cleared since the last prestige.",
   "nerd.prestige_tier": "Prestige per tier",

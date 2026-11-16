@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"clidle/internal/game"
+	"clidle/internal/lang"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -29,6 +30,10 @@ var (
 	sDmgHit    = lipgloss.NewStyle().Foreground(lipgloss.Color("230")).Bold(true)
 	sDmgBig    = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true)
 	sDmgHurt   = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true)
+	sFxMiss    = lipgloss.NewStyle().Foreground(lipgloss.Color("245")).Bold(true)
+	sFxDodge   = lipgloss.NewStyle().Foreground(lipgloss.Color("51")).Bold(true)
+	sFxSkill   = lipgloss.NewStyle().Foreground(lipgloss.Color("75")).Bold(true)
+	sFxHeal    = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Bold(true)
 )
 
 // fx is a short-lived visual effect born from a game event, timed by the UI clock.
@@ -77,32 +82,62 @@ func (m Model) fxLayers() (overlay, flash map[game.Pos]fxCell, shake int) {
 	}
 	for _, f := range m.fx {
 		age := m.lastTick.Sub(f.at)
-		if age < 0 || age >= fxFloat || f.Kind != game.EventHit && f.Kind != game.EventHurt {
+		text, st, fl := floatText(f.Event)
+		if age < 0 || age >= fxFloat || text == "" {
 			continue
 		}
 		if full && f.Big && age < fxShake {
 			shake = 1 - 2*int(age/fxShakeStep%2)
 		}
-		text, st, fl := fmt.Sprint(f.Value), &sDmgHit, &sFlashHit
-		switch {
-		case f.Kind == game.EventHurt:
-			text, st, fl = "-"+text, &sDmgHurt, &sFlashHurt
-		case f.Big:
-			text, st = text+"!", &sDmgBig
-		}
-		if age < fxFlash {
+		if fl != nil && age < fxFlash {
 			flash[f.Pos] = fxCell{st: fl}
 		}
 		y := f.Pos.Y - 1
 		if age >= fxFloat/2 {
 			y--
 		}
-		x := f.Pos.X - len(text)/2
-		for i, r := range text {
+		runes := []rune(text)
+		x := f.Pos.X - len(runes)/2
+		for taken(overlay, x, y, len(runes)) {
+			y--
+		}
+		for i, r := range runes {
 			overlay[game.Pos{X: x + i, Y: y}] = fxCell{r, st}
 		}
 	}
 	return overlay, flash, shake
+}
+
+// taken tells whether any of the n tiles from x on row y already holds floating text.
+func taken(overlay map[game.Pos]fxCell, x, y, n int) bool {
+	for i := range n + 2 {
+		if _, ok := overlay[game.Pos{X: x - 1 + i, Y: y}]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+// floatText is the text that rises from an event, its style and the flash on the tile (nil for none).
+func floatText(e game.Event) (string, *lipgloss.Style, *lipgloss.Style) {
+	switch e.Kind {
+	case game.EventHit:
+		if e.Big {
+			return fmt.Sprint(e.Value) + "!", &sDmgBig, &sFlashHit
+		}
+		return fmt.Sprint(e.Value), &sDmgHit, &sFlashHit
+	case game.EventHurt:
+		return "-" + fmt.Sprint(e.Value), &sDmgHurt, &sFlashHurt
+	case game.EventMiss:
+		return lang.T("fx.miss"), &sFxMiss, nil
+	case game.EventDodge:
+		return lang.T("fx.dodge"), &sFxDodge, nil
+	case game.EventSkill:
+		return game.Ability(e.Value).Name(), &sFxSkill, nil
+	case game.EventHeal:
+		return "+" + fmt.Sprint(e.Value), &sFxHeal, nil
+	}
+	return "", nil, nil
 }
 
 var (

@@ -11,7 +11,20 @@ func (g *Game) ready(a Ability) bool {
 	return g.Hero.Has(a) && g.Hero.MP >= AbilityInfo[a].Mana
 }
 
-func (g *Game) useMana(a Ability) { g.Hero.MP -= AbilityInfo[a].Mana }
+func (g *Game) useMana(a Ability) {
+	g.Hero.MP -= AbilityInfo[a].Mana
+	if a != Heal {
+		g.emit(Event{Kind: EventSkill, Pos: g.Hero.Pos, Value: int(a)})
+	}
+}
+
+// emitHeal shows the ability's name (none for a potion, a < 0) and then the HP healed.
+func (g *Game) emitHeal(a Ability, heal int) {
+	if a >= 0 {
+		g.emit(Event{Kind: EventSkill, Pos: g.Hero.Pos, Value: int(a)})
+	}
+	g.emit(Event{Kind: EventHeal, Pos: g.Hero.Pos, Value: heal})
+}
 
 func (g *Game) healSpell(r *round) bool {
 	h := g.Hero
@@ -21,6 +34,7 @@ func (g *Game) healSpell(r *round) bool {
 	g.useMana(Heal)
 	heal := min(h.MaxHP()*HealPct/100+h.Attr(Int), h.MaxHP()-h.HP)
 	h.HP += heal
+	g.emitHeal(Heal, heal)
 	r.hero = lang.T("spell.heal.log", heal)
 	return true
 }

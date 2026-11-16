@@ -72,6 +72,8 @@
   "town.prestige.desc": "%d dungeon(s) concluída(s) desde o último prestígio: +%d em todos os atributos para sempre. Cada tier concluído vale mais, então concluir mais antes do prestígio compensa.",
   "hero.prestige": " · Prestígio %d (+%d)",
   "log.prestige": "Prestígio %d! Um novo herói recomeça com +%d em todos os atributos para sempre, em %s.",
+  "fx.miss": "errou",
+  "fx.dodge": "esquiva",
   "nerd.prestige_level": "Nível do prestígio",
   "nerd.prestige_level.desc": "Nível mínimo do herói para o prestígio. Também é preciso ter concluído uma dungeon desde o último prestígio.",
   "nerd.prestige_tier": "Prestígio por tier",

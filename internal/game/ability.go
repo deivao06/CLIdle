@@ -74,6 +74,11 @@ func (g *Game) powerStrike(m *Monster, r *round) {
 	if adj := g.adjacentMonsters(); g.Hero.Has(Whirlwind) && len(adj) >= 2 {
 		targets = adj
 	}
+	skill := PowerStrike
+	if len(targets) > 1 {
+		skill = Whirlwind
+	}
+	g.emit(Event{Kind: EventSkill, Pos: g.Hero.Pos, Value: int(skill)})
 	var hits []string
 	g.strong = true
 	defer func() { g.strong = false }()
@@ -97,6 +102,7 @@ func (g *Game) secondWind(r *round) bool {
 	}
 	heal := min(h.MaxHP()*SecondWindHealPct/100, h.MaxHP()-h.HP)
 	h.HP += heal
+	g.emitHeal(SecondWind, heal)
 	e.SecondWindUsed = true
 	r.hero = lang.T("ability.second_wind.log", heal)
 	return true
