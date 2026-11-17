@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// simPoint is one simulated hour of a run, for tools/simview.
+// simPoint is one sample of a run (every 15 simulated minutes in TestSimDungeon), for tools/simview.
 type simPoint struct {
 	H       float64 `json:"h"`
 	Floor   int     `json:"floor"`
@@ -15,25 +15,44 @@ type simPoint struct {
 	Deaths  int     `json:"deaths"`
 	Dungeon int     `json:"dungeon"`
 	Gold    int     `json:"gold"`
+	Spent   int     `json:"spent"`
+	Train   int     `json:"train"`
 }
 
 type simSeries struct {
-	Class  string     `json:"class"`
-	Label  string     `json:"label"`
-	Seed   uint64     `json:"seed"`
-	Done   bool       `json:"done"`
-	Points []simPoint `json:"points"`
+	Class  string      `json:"class"`
+	Label  string      `json:"label"`
+	Seed   uint64      `json:"seed"`
+	Done   bool        `json:"done"`
+	Points []simPoint  `json:"points"`
+	Fights []bossPoint `json:"fights,omitempty"`
+	spent  int
+}
+
+// bossPoint is one boss of a boss check: how many of the fights the hero won and how much boss HP was left.
+type bossPoint struct {
+	Floor    int    `json:"floor"`
+	Level    int    `json:"level"`
+	Fights   int    `json:"fights"`
+	Wins     int    `json:"wins"`
+	Pct      int    `json:"pct"`
+	BossLeft int    `json:"bossLeft"`
+	Seed     uint64 `json:"seed"`
+	Won      bool   `json:"won"`
+	Code     string `json:"code"`
 }
 
 type simFile struct {
+	Kind    string       `json:"kind,omitempty"`
 	Batch   string       `json:"batch"`
 	Title   string       `json:"title"`
+	Note    string       `json:"note,omitempty"`
 	Started time.Time    `json:"started"`
 	Updated time.Time    `json:"updated"`
 	Series  []*simSeries `json:"series"`
 }
 
-// simRecorder writes a run's hourly points where tools/simview reads them; it does nothing unless SIMVIEW_BATCH is set.
+// simRecorder writes a run's points where tools/simview reads them; it does nothing unless SIMVIEW_BATCH is set.
 // Each process writes its own file (SIMVIEW_FILE), since the game cannot run in parallel inside one process.
 type simRecorder struct {
 	path string
@@ -52,7 +71,7 @@ func newSimRecorder() *simRecorder {
 	}
 	dir := filepath.Join("..", "..", "tools", "simview", "data", batch)
 	os.MkdirAll(dir, 0o755)
-	return &simRecorder{path: filepath.Join(dir, name+".json"), file: simFile{Batch: batch, Title: os.Getenv("SIMVIEW_TITLE"), Started: time.Now()}}
+	return &simRecorder{path: filepath.Join(dir, name+".json"), file: simFile{Batch: batch, Title: os.Getenv("SIMVIEW_TITLE"), Note: os.Getenv("SIMVIEW_NOTE"), Started: time.Now()}}
 }
 
 func (r *simRecorder) series(class Class, label string, seed uint64) *simSeries {
@@ -62,8 +81,12 @@ func (r *simRecorder) series(class Class, label string, seed uint64) *simSeries 
 }
 
 func (r *simRecorder) add(s *simSeries, ms int64, g *Game) {
-	s.Points = append(s.Points, simPoint{float64(ms) / 3.6e6, g.MaxDepth, g.Hero.Level, g.Deaths, g.Dungeon, g.Gold})
-	if time.Since(r.last) > 2*time.Second {
+	train := 0
+	for _, n := range g.Hero.Training {
+		train += n
+	}
+	s.Points = append(s.Points, simPoint{float64(ms) / 3.6e6, g.MaxDepth, g.Hero.Level, g.Deaths, g.Dungeon, g.Gold, s.spent, train})
+	if time.Since(r.last) > 500*time.Millisecond {
 		r.flush()
 	}
 }

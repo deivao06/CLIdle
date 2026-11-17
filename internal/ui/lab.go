@@ -1,7 +1,9 @@
 package ui
 
 import (
+	"encoding/base64"
 	"fmt"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -34,6 +36,7 @@ const (
 	labMaxSteps = 5000
 	labBigStep  = 10
 	labSeedLen  = 20
+	labCodeLen  = 400
 	labCellW    = 16
 	labLeftMinW = 3*labCellW + 6
 	labMinW     = labLeftMinW + 2 + game.MapW
@@ -51,8 +54,11 @@ type labState struct {
 	room   int
 	inRoom bool
 	typing bool
+	code   bool
 	buf    string
 	warn   string
+	note   string
+	copy   string
 }
 
 // Lab is the playground: it builds a fight from a scenario and plays it with the game's own rules.
@@ -106,8 +112,16 @@ func (l Lab) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		l.advance(time.Time(msg))
 		return l, tick()
 	case tea.KeyMsg:
-		if l.key(msg.String()) {
+		k := msg.String()
+		if msg.Paste {
+			k = string(msg.Runes)
+		}
+		if l.key(k) {
 			return l, tea.Quit
+		}
+		if c := l.st.copy; c != "" {
+			l.st.copy = ""
+			return l, copyCmd(c)
 		}
 	}
 	return l, nil
@@ -153,7 +167,7 @@ func (l *Lab) key(k string) bool {
 	case k == "ctrl+c":
 		return true
 	case l.st.typing:
-		l.typeSeed(k)
+		l.typeText(k)
 		return false
 	case l.confirmDo != nil:
 		switch k {
@@ -166,10 +180,13 @@ func (l *Lab) key(k string) bool {
 		}
 		return false
 	}
-	l.st.warn = ""
+	l.st.warn, l.st.note = "", ""
 	switch k {
 	case "q":
 		return true
+	case "c":
+		code := l.sc.Code()
+		l.st.note, l.st.copy = lang.T("lab.code.copied", code), code
 	case "1", "2", "3", "4", "5", "6":
 		page := int(k[0] - '1')
 		l.st.inRoom = false
@@ -200,22 +217,57 @@ func (l *Lab) key(k string) bool {
 	return false
 }
 
-func (l *Lab) typeSeed(k string) {
+// typeText edits the seed or the run code being typed; a paste arrives as one string.
+func (l *Lab) typeText(k string) {
 	st := l.st
-	switch r := []rune(k); {
-	case k == "enter":
-		if n, err := strconv.ParseUint(st.buf, 10, 64); err == nil {
+	switch k {
+	case "enter":
+		st.typing = false
+		if st.code {
+			l.loadCode(st.buf)
+		} else if n, err := strconv.ParseUint(st.buf, 10, 64); err == nil {
 			l.sc.Seed = n
 		}
+		return
+	case "esc":
 		st.typing = false
-	case k == "esc":
-		st.typing = false
-	case k == "backspace":
+		return
+	case "backspace":
 		if rs := []rune(st.buf); len(rs) > 0 {
 			st.buf = string(rs[:len(rs)-1])
 		}
-	case len(r) == 1 && unicode.IsDigit(r[0]) && len(st.buf) < labSeedLen:
-		st.buf += k
+		return
+	}
+	for _, r := range k {
+		code := unicode.IsLetter(r) && r < unicode.MaxASCII || r == '-' || r == '_'
+		switch {
+		case st.code && (unicode.IsDigit(r) || code) && len(st.buf) < labCodeLen,
+			!st.code && unicode.IsDigit(r) && len(st.buf) < labSeedLen:
+			st.buf += string(r)
+		}
+	}
+}
+
+// loadCode replaces the scenario with the one a run code describes.
+func (l *Lab) loadCode(code string) {
+	sc, err := game.ParseCode(code)
+	if err != nil {
+		l.st.warn = lang.T("lab.code.invalid")
+		return
+	}
+	*l.sc = sc
+	l.st.floor, l.st.inRoom = 1, false
+	if len(sc.Floors) > 0 {
+		l.st.floor = sc.Floors[0].Depth
+	}
+	l.st.note = lang.T("lab.code.loaded")
+}
+
+// copyCmd sends text to the terminal's clipboard with OSC 52, which most terminals accept.
+func copyCmd(text string) tea.Cmd {
+	return func() tea.Msg {
+		fmt.Fprintf(os.Stdout, "\x1b]52;c;%s\x07", base64.StdEncoding.EncodeToString([]byte(text)))
+		return nil
 	}
 }
 
@@ -427,11 +479,17 @@ func (l Lab) header() string {
 func (l Lab) footer() string {
 	switch {
 	case l.st.typing:
-		return hints(l.w, lang.T("lab.key.type"), lang.T("lab.key.seed"), "enter", lang.T("lab.key.confirm"), "esc", lang.T("lab.key.cancel"))
+		what := lang.T("lab.key.seed")
+		if l.st.code {
+			what = lang.T("lab.key.code")
+		}
+		return hints(l.w, lang.T("lab.key.type"), what, "enter", lang.T("lab.key.confirm"), "esc", lang.T("lab.key.cancel"))
+	case l.st.note != "":
+		return truncate(sTitle.Render(l.st.note), l.w)
 	case l.confirmDo != nil:
 		return hints(l.w, "y/enter", lang.T("lab.key.confirm"), "n/esc", lang.T("lab.key.cancel"))
 	}
 	return hints(l.w, lang.T("lab.key.space"), lang.T("lab.key.play"), "p", lang.T("lab.key.step"), "+/-", lang.T("lab.key.speed"),
 		"r", lang.T("lab.key.restart"), "n", lang.T("lab.key.new_seed"), "v", lang.T("lab.key.see_all", onOff(l.seeAll)),
-		"1-6", lang.T("lab.key.screens"), "q", lang.T("lab.key.quit"))
+		"c", lang.T("lab.key.copy_code"), "1-6", lang.T("lab.key.screens"), "q", lang.T("lab.key.quit"))
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"clidle/internal/game"
 	"clidle/internal/lang"
@@ -167,6 +168,9 @@ func (l Lab) floorRows() []prepRow {
 	seed := fmt.Sprint(sc.Seed)
 	if st.typing {
 		seed = st.buf + "▏"
+		if st.code {
+			seed = fmt.Sprint(sc.Seed)
+		}
 	}
 	rows := []prepRow{
 		labRow(sec, lang.T("lab.depth"), value, lang.T("lab.depth.desc", list), func(d int) {
@@ -176,9 +180,9 @@ func (l Lab) floorRows() []prepRow {
 			sc.Mode = 1 - sc.Mode
 		}),
 		{section: sec, text: fmt.Sprintf("%-24s %s", lang.T("lab.seed"), seed), style: sPlain, desc: lang.T("lab.seed.desc"),
-			act: func(*Model) { st.typing, st.buf = true, fmt.Sprint(sc.Seed) }},
+			act: func(*Model) { st.typing, st.code, st.buf = true, false, fmt.Sprint(sc.Seed) }},
 	}
-	if st.typing {
+	if st.typing && !st.code {
 		rows[2].style = sTitle
 	}
 	if st.inRoom {
@@ -193,7 +197,8 @@ func (l Lab) floorRows() []prepRow {
 			},
 			act: func(m *Model) { st.inRoom, m.cursor = true, 0 }})
 	}
-	return rows
+	return append(rows, prepRow{section: grid, text: lang.T("lab.random_floor"), style: sPlain, desc: lang.T("lab.random_floor.desc"),
+		act: func(*Model) { *sc.EditFloor(st.floor) = game.RandomLabFloor(uint64(time.Now().UnixNano()), st.floor) }})
 }
 
 // roomRows edits the selected room; the grid stays above them, and esc or the last row goes back to it.
@@ -314,9 +319,15 @@ func (l Lab) monsterRows(sec string, f *game.LabFloor, r, j int) []prepRow {
 }
 
 func (l Lab) configRows() []prepRow {
-	g := l.g
+	g, st := l.g, l.st
 	sec := lang.T("lab.section.config")
+	code, style := l.sc.Code(), sPlain
+	if st.typing && st.code {
+		code, style = st.buf+"▏", sTitle
+	}
 	return []prepRow{
+		{section: sec, text: fmt.Sprintf("%-24s %s", lang.T("lab.code"), code), style: style, desc: lang.T("lab.code.desc"),
+			act: func(*Model) { st.typing, st.code, st.buf = true, true, "" }},
 		cfgRow(sec, "prep.language", lang.T("lang.name"), func(int) { lang.Set(lang.Next(lang.Current())) }),
 		cfgRow(sec, "prep.effects", lang.T([...]string{"prep.effects_full", "prep.effects_subtle", "prep.effects_off"}[g.Effects]), func(d int) {
 			g.Effects = (g.Effects + game.Effects(sign(d)) + game.NumEffectLevels) % game.NumEffectLevels

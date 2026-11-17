@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"fmt"
 	"slices"
 	"testing"
 )
@@ -190,4 +191,41 @@ func TestLabFloorLooksTheSameWhateverHappensAbove(t *testing.T) {
 	if string(a.Tiles) != string(b.Tiles) || a.Up != b.Up {
 		t.Fatal("floor 2 changed")
 	}
+}
+
+func TestRandomLabFloorFollowsTheDungeonRules(t *testing.T) {
+	for depth := 1; depth <= 60; depth++ {
+		f := RandomLabFloor(uint64(depth)*7, depth)
+		mons, bosses := 0, 0
+		for room, groups := range f.Mons {
+			for _, m := range groups {
+				if m.Boss {
+					bosses++
+					if room != f.Down {
+						t.Fatalf("floor %d: boss outside the > room", depth)
+					}
+					continue
+				}
+				mons += m.Count
+				if room == f.Up || MonsterKinds[m.Kind].MinDepth > depth {
+					t.Fatalf("floor %d: %+v in room %d", depth, m, room)
+				}
+			}
+		}
+		if f.Up == f.Down || slices.Contains(f.Rooms[:], false) || mons != MonstersPerLevel(depth) || bosses != btoi(depth%BossEvery == 0) {
+			t.Fatalf("floor %d: %+v", depth, f)
+		}
+		s := DefaultScenario()
+		s.Floors = []LabFloor{f}
+		if got, err := ParseCode(s.Code()); err != nil || fmt.Sprint(got) != fmt.Sprint(s) {
+			t.Fatalf("floor %d code %v", depth, err)
+		}
+	}
+}
+
+func btoi(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }

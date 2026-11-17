@@ -164,6 +164,8 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Qualquer mudança reinicia a simulação** (pausada). Mesma seed = mesma luta.
 - **Fim:** o herói morre, sai pela `<` (recuo) ou chega na `>` do último andar que existe. O log mostra tempo, passos, monstros mortos, dano dado/recebido e poções.
 - "Ver tudo" só muda o desenho: o herói continua sem saber o que não viu.
+- **Código da run (2026-11-17, pedido do dono):** `c` em qualquer tela mostra no rodapé um código com o cenário inteiro (herói, equipamento, andares, monstros, táticas, seed) e manda para a área de transferência (OSC 52); na aba Config, a linha "Código da run" aceita colar um código e monta exatamente aquela luta. O dono pediu o menor código possível: bits empacotados (exp-Golomb), valores iguais ao anterior quase de graça, táticas padrão da classe em 1 bit, base64 de URL; o padrão tem 8 caracteres e uma luta de chefe ~23. O código não leva a versão do jogo: código de outra versão pode jogar diferente.
+- **Gerar andar padrão (2026-11-17, pedido do dono):** na aba Andar, sorteia o andar pelas regras da dungeon (9 salas, escadas em salas diferentes, `MonstersPerLevel` monstros fora da sala de entrada, chefe na sala da `>` em andar de dezena) e preenche o andar como se fosse montado à mão, para editar depois. Cada enter sorteia de novo (pelo relógio da UI). Sem loot e sem cavernas.
 
 ## Para depois
 

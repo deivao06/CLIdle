@@ -77,6 +77,36 @@ func (s *Scenario) EditFloor(depth int) *LabFloor {
 	return &s.Floors[i]
 }
 
+// RandomLabFloor lays out a floor the way the dungeon does: all nine rooms, the stairs in two different rooms,
+// MonstersPerLevel monsters outside the up room and, every BossEvery floors, the boss in the down room.
+func RandomLabFloor(seed uint64, depth int) LabFloor {
+	rng := NewRNG(seed)
+	f := LabFloor{Depth: depth}
+	for i := range f.Rooms {
+		f.Rooms[i] = true
+	}
+	f.Up = rng.Intn(LabRooms)
+	if f.Down = rng.Intn(LabRooms - 1); f.Down >= f.Up {
+		f.Down++
+	}
+	for range MonstersPerLevel(depth) {
+		room := rng.Intn(LabRooms - 1)
+		if room >= f.Up {
+			room++
+		}
+		kind := spawnMonster(rng, depth).Kind
+		if i := slices.IndexFunc(f.Mons[room], func(m LabMon) bool { return m.Kind == kind }); i >= 0 {
+			f.Mons[room][i].Count++
+		} else {
+			f.Mons[room] = append(f.Mons[room], LabMon{Kind: kind, Depth: depth, Count: 1})
+		}
+	}
+	if depth%BossEvery == 0 {
+		f.Mons[f.Down] = append(f.Mons[f.Down], LabMon{Kind: (depth/BossEvery - 1) % len(BossKinds), Boss: true, Depth: depth, Count: 1})
+	}
+	return f
+}
+
 // Prune drops the floors that have no rooms.
 func (s *Scenario) Prune() {
 	s.Floors = slices.DeleteFunc(s.Floors, func(f LabFloor) bool { return !f.Exists() })
