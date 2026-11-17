@@ -58,13 +58,13 @@ func smartSpend(g *Game) {
 	}
 }
 
-// clearRun plays one hero until it clears the first dungeon or 240 simulated hours pass. The smart policy also steps
+// clearRun plays one hero until it clears the first dungeon or 480 simulated hours pass. The careful profile (smart) also steps
 // back a shortcut after three deaths in a row and forward after each return.
 func clearRun(rec *simRecorder, c Class, seed uint64, smart bool) string {
 	g := New(seed, c)
-	label := "old"
+	label := "afobado"
 	if smart {
-		label = "smart"
+		label = "cuidadoso"
 	}
 	ser := rec.series(c, label, seed)
 	nextH := int64(0)
@@ -74,10 +74,10 @@ func clearRun(rec *simRecorder, c Class, seed uint64, smart bool) string {
 	}
 	var ms int64
 	fails, start := 0, 0
-	const capMs = 240 * 3600 * 1000
+	const capMs = 480 * 3600 * 1000
 	lv100 := 0
 	for ms < capMs && g.Dungeon == 0 {
-		deaths := g.Deaths
+		deaths, before := g.Deaths, g.Gold
 		list := g.ShortcutList()
 		if smart {
 			smartSpend(g)
@@ -88,12 +88,13 @@ func clearRun(rec *simRecorder, c Class, seed uint64, smart bool) string {
 			g.Config.StartFloor = slices.Max(list)
 		}
 		g.Depart()
+		ser.spent += before - g.Gold
 		for g.Exp != nil && ms < capMs {
 			g.Advance(60000)
 			ms += 60000
 			if ms >= nextH {
 				rec.add(ser, ms, g)
-				nextH = ms + 3600*1000
+				nextH = ms + 15*60*1000
 			}
 			if lv100 == 0 && g.Exp != nil && g.Floor(g.Exp.Level.Depth) == DungeonFloors {
 				lv100 = g.Hero.Level
@@ -114,15 +115,20 @@ func clearRun(rec *simRecorder, c Class, seed uint64, smart bool) string {
 		c.Name(), smart, seed, g.Dungeon > 0, float64(ms)/3.6e6, g.Hero.Level, lv100, g.MaxDepth, g.Deaths)
 }
 
-// TestSimDungeon runs both spending policies for one class (SIM_CLASS); run one process per class.
+// TestSimDungeon runs the player profiles for one class (SIM_CLASS); SIM_PROFILE (afobado or cuidadoso) runs just
+// one of them, so each class and profile can run in its own process.
 func TestSimDungeon(t *testing.T) {
 	cs := os.Getenv("SIM_CLASS")
 	if cs == "" {
 		t.Skip()
 	}
 	ci, _ := strconv.Atoi(cs)
+	profiles := map[string][]bool{"": {false, true}, "afobado": {false}, "cuidadoso": {true}}[os.Getenv("SIM_PROFILE")]
+	if profiles == nil {
+		t.Fatal("SIM_PROFILE must be afobado or cuidadoso")
+	}
 	rec := newSimRecorder()
-	for _, smart := range []bool{false, true} {
+	for _, smart := range profiles {
 		for seed := uint64(1); seed <= 3; seed++ {
 			fmt.Println("RESULT " + clearRun(rec, Class(ci), seed, smart))
 		}

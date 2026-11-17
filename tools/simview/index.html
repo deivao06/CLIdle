@@ -6,295 +6,646 @@
 <title>CLIdle · simulações</title>
 <style>
   :root {
-    --bg: #0c0c0c;
-    --surface: #151515;
-    --surface-2: #1c1c1c;
-    --line: #2e2e2e;
-    --grid: #232323;
-    --text: #e4e4e4;
-    --muted: #8a8a8a;
+    --bg: #0e0f0f;
+    --side: #131414;
+    --surface: #171919;
+    --raise: #1f2222;
+    --line: #2b2f2f;
+    --grid: #202323;
+    --text: #e6e8e6;
+    --muted: #9aa09c;
+    --faint: #878d89;
     --accent: #ffaf00;
-    --warn: #ff5f5f;
-    --good: #87d787;
+    --run: #87d787;
+    --stale: #ff8a5f;
     --warrior: #ff5f5f;
     --mage: #5fafff;
     --rogue: #87d787;
     --cleric: #ffd700;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
     --mono: ui-monospace, "JetBrains Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
-  html { background: var(--bg); }
-  body { margin: 0; color: var(--text); font: 14px/1.5 var(--mono); font-variant-numeric: tabular-nums; }
-  ::selection { background: var(--accent); color: #000; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 var(--sans); }
+  ::selection { background: var(--accent); color: #111; }
   ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 
-  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; padding: 28px 32px 8px; }
-  h1 { margin: 0; font-size: 20px; font-weight: 700; color: var(--accent); }
-  #status { color: var(--muted); font-size: 12px; }
-  #status .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--good); margin-right: 6px; vertical-align: 1px; }
-  #status.err .dot { background: var(--warn); }
+  .app { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100%; }
+  aside { background: var(--side); border-right: 1px solid var(--line); padding: 20px 12px; display: flex; flex-direction: column; gap: 14px; }
+  aside h1 { margin: 0 8px; font-size: 15px; font-weight: 650; color: var(--accent); letter-spacing: .01em; }
+  aside nav { display: flex; flex-direction: column; gap: 2px; }
+  .item { all: unset; cursor: pointer; display: grid; gap: 2px; padding: 9px 10px; border-radius: 6px; color: var(--muted); }
+  .item:hover { background: var(--raise); color: var(--text); }
+  .item[aria-current="true"] { background: var(--raise); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+  .item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .item .t { font-weight: 550; overflow-wrap: anywhere; }
+  .item .s { font-size: 12px; color: var(--faint); display: flex; align-items: center; gap: 6px; }
+  #conn { margin: auto 8px 0; font-size: 12px; color: var(--faint); }
+  #conn.err { color: var(--stale); }
 
-  main { padding: 16px 32px 48px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
-  .card { all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 16px 16px 14px;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
-    transition: border-color 160ms ease-out, background 160ms ease-out; }
-  .card:hover { border-color: #4a4a4a; background: var(--surface-2); }
-  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .card h2 { margin: 0; font-size: 15px; font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
-  .meta { color: var(--muted); font-size: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
-  .tag { padding: 0 6px; border-radius: 4px; border: 1px solid var(--line); }
-  .tag.run { color: var(--good); border-color: #3a5a3a; }
-  .tag.stale { color: var(--warn); border-color: #5a3434; }
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
-  .legend b { font-weight: 700; }
-  .sw { display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; }
+  main { padding: 24px 32px 48px; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+  .vhead h2 { margin: 0 0 6px; font-size: 20px; font-weight: 650; line-height: 1.25; text-wrap: balance; }
+  .status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; color: var(--muted); font-size: 13px; }
+  .status b { color: var(--text); font-weight: 600; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
+  .dot.run { background: var(--run); animation: pulse 1.6s ease-out infinite; }
+  .dot.stale { background: var(--stale); }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(135,215,135,.55); } 100% { box-shadow: 0 0 0 7px rgba(135,215,135,0); } }
+  .state { font-weight: 600; }
+  .state.run { color: var(--run); } .state.stale { color: var(--stale); } .state.done { color: var(--text); }
 
-  .empty { max-width: 72ch; color: var(--muted); }
-  .empty h2 { color: var(--text); font-size: 16px; margin: 0 0 8px; }
-  .empty pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; color: var(--text); overflow-x: auto; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+  .seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+  .seg button { all: unset; cursor: pointer; padding: 5px 12px; border-radius: 5px; color: var(--muted); font-size: 13px; transition: background 150ms ease-out, color 150ms ease-out; }
+  .seg button:hover { color: var(--text); }
+  .seg button[aria-pressed="true"] { background: var(--raise); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.4); }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .seg-label { color: var(--faint); font-size: 12px; margin-right: 6px; }
+  .check { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; cursor: pointer; }
+  .check input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
 
-  svg text { font: 11px var(--mono); fill: var(--muted); }
-  .chart { width: 100%; height: auto; display: block; }
+  .charts { display: grid; gap: 28px 20px; }
+  .charts.split { grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); }
+  .pane { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .pane h3 { margin: 0; font-size: 15px; font-weight: 650; }
+  .chartbox { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 8px 8px; }
+  canvas { display: block; width: 100%; height: clamp(240px, 42vh, 440px); cursor: crosshair; }
+  .split canvas { height: clamp(220px, 36vh, 380px); }
+  .tip { position: absolute; top: 14px; pointer-events: none; min-width: 170px; background: #0b0c0c; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.55); opacity: 0; transition: opacity 120ms ease-out; }
+  .tip.on { opacity: 1; }
+  .tip .h { color: var(--muted); margin-bottom: 4px; }
+  .tip .r { display: flex; justify-content: space-between; gap: 14px; }
+  .tip .r span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+  .tip .rng { color: var(--faint); margin-left: 6px; }
+  .hint { margin: -6px 0 0; color: var(--faint); font-size: 12px; }
 
-  dialog { width: min(1100px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 0; color: var(--text);
-    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 24px 64px rgba(0,0,0,.6); }
-  dialog::backdrop { background: rgba(0,0,0,.65); }
-  dialog[open] { animation: rise 200ms cubic-bezier(.16,1,.3,1); }
-  @keyframes rise { from { transform: translateY(8px); opacity: .6; } }
-  .dhead { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: var(--surface); border-bottom: 1px solid var(--line); }
-  .dhead h2 { margin: 0 0 2px; font-size: 16px; overflow-wrap: anywhere; }
-  .close { all: unset; cursor: pointer; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 6px; color: var(--muted); }
-  .close:hover { background: var(--surface-2); color: var(--text); }
-  .close:focus-visible { outline: 2px solid var(--accent); }
-  .dbody { padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 22px; }
-  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
-  .chip { all: unset; cursor: pointer; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-  .chip[aria-pressed="true"] { color: var(--text); border-color: #555; background: var(--surface-2); }
-  .chip:focus-visible { outline: 2px solid var(--accent); }
-  .panel h3 { margin: 0 0 6px; font-size: 13px; color: var(--accent); font-weight: 700; }
-  .plot { position: relative; }
-  .tip { position: absolute; pointer-events: none; background: #0a0a0a; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font-size: 12px; white-space: nowrap; z-index: 1; box-shadow: 0 6px 18px rgba(0,0,0,.5); }
-  .tip div { display: flex; gap: 8px; justify-content: space-between; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--grid); }
-  th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
-  th { color: var(--muted); font-weight: 400; }
-  @media (max-width: 600px) { header, main { padding-left: 16px; padding-right: 16px; } .grid { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  th { color: var(--faint); font-weight: 500; font-size: 12px; }
+  th:first-child, td:first-child { text-align: left; }
+  td .rng { color: var(--faint); font-size: 12px; margin-left: 4px; }
+  tr.off td { color: var(--faint); }
+  tr.off .sw { opacity: .3; }
+  .cls { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; font-weight: 600; }
+  .cls:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+  .tablewrap { overflow-x: auto; }
+
+  .side-h { margin: 6px 10px 0; font-size: 12px; font-weight: 500; color: var(--faint); }
+  .side-empty { margin: 0 10px; font-size: 12px; color: var(--faint); }
+  td.pass { color: var(--run); } td.fail { color: var(--stale); }
+  .codebtn { all: unset; cursor: pointer; padding: 2px 6px; margin: -2px -6px; border-radius: 4px; }
+  .codebtn:hover { background: var(--raise); text-decoration: underline; text-underline-offset: 3px; }
+  .codebtn:focus-visible { outline: 2px solid var(--accent); }
+  #toast { position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, 8px); max-width: min(720px, calc(100vw - 32px));
+    background: #0b0c0c; border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--muted);
+    box-shadow: 0 12px 32px rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity 160ms ease-out, transform 160ms ease-out; z-index: 5; }
+  #toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  #toast b { color: var(--text); }
+  #toast code { display: inline-block; margin: 6px 0; padding: 3px 8px; border-radius: 5px; background: var(--raise); color: var(--accent); font: 14px var(--mono); user-select: all; }
+  .pane .sum { margin: -6px 0 0; color: var(--muted); font-size: 13px; }
+  .pane .sum a, .profiles a { color: var(--accent); text-underline-offset: 3px; }
+  .profiles { max-width: 1100px; display: flex; flex-direction: column; gap: 18px; }
+  .profiles h2 { margin: 0; font-size: 20px; font-weight: 650; }
+  .profiles > p { margin: 0; color: var(--muted); max-width: 72ch; }
+  .ptable { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .ptable th, .ptable td { text-align: left; vertical-align: top; white-space: normal; padding: 12px 14px; border-bottom: 1px solid var(--grid); }
+  .ptable thead th { color: var(--text); font-size: 16px; font-weight: 650; border-bottom: 1px solid var(--line); }
+  .ptable thead th span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; font-weight: 400; }
+  .ptable tbody th { color: var(--faint); font-size: 12px; font-weight: 500; width: 130px; }
+  .ptable td { color: var(--text); line-height: 1.5; }
+  .ptable code, .profiles code { font: 12px var(--mono); color: var(--muted); }
+  .empty { max-width: 68ch; color: var(--muted); }
+  .empty h2 { color: var(--text); font-size: 18px; margin: 8px 0; }
+  .empty pre { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; color: var(--text); overflow-x: auto; font: 12px/1.5 var(--mono); }
+
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; }
+    aside { border-right: 0; border-bottom: 1px solid var(--line); padding: 14px 8px; }
+    #batches { flex-direction: row; overflow-x: auto; }
+    .item { min-width: 180px; }
+    #conn { margin: 0 8px; }
+    main { padding: 18px 16px 40px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .dot.run { animation: none; } }
 </style>
 </head>
 <body>
-<header>
-  <h1>CLIdle · simulações</h1>
-  <span id="status"><span class="dot"></span>carregando…</span>
-</header>
-<main>
-  <div class="grid" id="grid"></div>
-</main>
-<dialog id="dlg" aria-labelledby="dtitle">
-  <div class="dhead">
-    <div style="flex:1;min-width:0"><h2 id="dtitle"></h2><div class="meta" id="dlive"></div></div>
-    <button class="close" id="close" aria-label="Fechar">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
-    </button>
-  </div>
-  <div class="dbody" id="dbody"></div>
-</dialog>
+<div class="app">
+  <aside>
+    <h1>CLIdle · simulações</h1>
+    <nav aria-label="Páginas"><button class="item" id="profilesBtn"><span class="t">Perfis de jogador</span><span class="s">o que cada perfil faz</span></button></nav>
+    <p class="side-h">Simulações</p>
+    <nav id="batches" aria-label="Simulações"></nav>
+    <p class="side-h">Testes de chefe</p>
+    <nav id="bossBatches" aria-label="Testes de chefe"></nav>
+    <p id="conn">conectando…</p>
+  </aside>
+  <main id="view"></main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
 <script>
 (() => {
-  const CLASS_COLOR = { Warrior: "var(--warrior)", Mage: "var(--mage)", Rogue: "var(--rogue)", Cleric: "var(--cleric)" };
-  const CLASS_ORDER = ["Warrior", "Mage", "Rogue", "Cleric"];
-  const METRICS = [["floor", "Andar efetivo"], ["level", "Nível"], ["deaths", "Mortes"]];
-  const color = (c) => CLASS_COLOR[c] || "var(--text)";
-  const $ = (s) => document.querySelector(s);
-  let batches = [], openId = null, hidden = new Set();
+  const CLASSES = ["Warrior", "Mage", "Rogue", "Cleric"];
+  const CLASS_PT = { Warrior: "Guerreiro", Mage: "Mago", Rogue: "Ladino", Cleric: "Clérigo" };
+  const METRICS = [["floor", "Andar"], ["level", "Nível"], ["deaths", "Mortes"], ["gold", "Saldo"], ["spent", "Gasto"], ["train", "Treino"]];
+  const BOSS_METRICS = [["pct", "% de vitória"], ["bossLeft", "HP do chefe que sobrou"]];
+  const BOSS_PASS = 50;
+  const BOSS_HELP = {
+    pct: `% de vitória: em quantas das lutas o herói matou o chefe. Passa com ${BOSS_PASS}% ou mais.`,
+    bossLeft: "HP do chefe que sobrou: a média de vida que o chefe ainda tinha no fim das lutas (0% quando morre). Mostra o quão longe o herói ficou.",
+  };
+  const isBoss = () => current?.kind === "boss";
+  const metricsNow = () => isBoss() ? BOSS_METRICS : METRICS;
+  const METRIC_HELP = {
+    floor: "Andar: o andar mais fundo que o herói já alcançou.",
+    level: "Nível: o nível do herói.",
+    deaths: "Mortes: total de mortes até ali.",
+    gold: "Saldo: o ouro no bolso naquele momento. Cai quando o jogador gasta na cidade.",
+    spent: "Gasto: todo o ouro gasto na cidade até ali (ferreiro, treino, loja, mochila e poções).",
+    train: "Treino: a soma dos níveis comprados no treino, nos 4 atributos.",
+  };
+  const LIVE_MS = 1000, LIST_MS = 4000, STALE_MS = 15000;
+  const css = getComputedStyle(document.documentElement);
+  const tok = (n) => css.getPropertyValue(n).trim();
+  const COLOR = Object.fromEntries(CLASSES.map((c) => [c, tok("--" + c.toLowerCase())]));
+  const colorOf = (c) => COLOR[c] || tok("--text");
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const fmt = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
+  const compact = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 });
+  const num = (v) => (Math.abs(v) >= 10000 ? compact : fmt).format(v);
+  const dur = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60; return h ? `${h}h ${m}min` : m ? `${m}min ${r}s` : `${r}s`; };
+  const ago = (ms) => ms < 3000 ? "agora" : "há " + dur(ms);
 
+  // ---------- data ----------
   const links = async (url) => {
     const html = await (await fetch(url, { cache: "no-store" })).text();
     return [...html.matchAll(/href="([^"?#]+)"/g)].map((m) => decodeURIComponent(m[1])).filter((h) => !h.startsWith("/") && !h.startsWith(".."));
   };
+  const getJSON = (url) => fetch(url, { cache: "no-store" }).then((r) => r.ok ? r.json() : null).catch(() => null);
 
-  async function load() {
-    const dirs = (await links("data/")).filter((d) => d.endsWith("/"));
-    const out = [];
-    for (const d of dirs) {
-      const files = (await links("data/" + d)).filter((f) => f.endsWith(".json"));
-      const parts = await Promise.all(files.map((f) => fetch("data/" + d + f, { cache: "no-store" }).then((r) => r.json()).catch(() => null)));
-      const ok = parts.filter(Boolean);
-      if (!ok.length) continue;
-      out.push({
-        id: d.slice(0, -1),
-        title: ok.find((p) => p.title)?.title || d.slice(0, -1),
-        updated: new Date(Math.max(...ok.map((p) => +new Date(p.updated)))),
-        started: startOf(d, ok),
-        series: ok.flatMap((p) => p.series || []),
-      });
-    }
-    return out.sort((a, b) => b.updated - a.updated);
-  }
+  const batches = new Map(); // id -> {id, files: Map(name -> part)}
+  const PROFILES_HASH = "perfis";
+  let page = location.hash.slice(1) === PROFILES_HASH ? "profiles" : "sim";
+  let selected = page === "sim" ? decodeURIComponent(location.hash.slice(1)) || null : null;
+  let metric = "floor", eachRun = false;
+  const hidden = new Set();
+  let connErr = false, lastOk = 0;
 
-  const firstSeen = {};
-  const startOf = (d, parts) => {
-    const t = parts.map((p) => +new Date(p.started)).filter((v) => v > 0);
-    if (t.length) return new Date(Math.min(...t));
-    return new Date(firstSeen[d] ??= Date.now());
+  const merged = (b) => {
+    const parts = [...b.files.values()];
+    const series = parts.flatMap((p) => p.series || []);
+    const started = Math.min(...parts.map((p) => +new Date(p.started)).filter((v) => v > 0));
+    const updated = Math.max(...parts.map((p) => +new Date(p.updated)));
+    const kind = parts.find((p) => p.kind)?.kind || "run";
+    if (kind === "boss") for (const s of series) s.points = (s.fights || []).map((f) => ({ h: f.floor, ...f }));
+    return { id: b.id, kind, title: parts.find((p) => p.title)?.title || b.id, note: parts.find((p) => p.note)?.note || "", series, started, updated };
   };
-  const dur = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60; return h ? `${h}h ${m}min` : m ? `${m}min ${r}s` : `${r}s`; };
-  const clock = (d) => d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  const last = (s) => s.points[s.points.length - 1] || { h: 0, floor: 0, level: 0, deaths: 0, dungeon: 0 };
-  const hours = (b) => Math.max(1, ...b.series.map((s) => last(s).h));
-  const state = (b) => b.series.every((s) => s.done) ? "done" : (Date.now() - b.updated < 30000 ? "run" : "stale");
-  const classesOf = (b) => CLASS_ORDER.filter((c) => b.series.some((s) => s.class === c));
-  const labelsOf = (b) => [...new Set(b.series.map((s) => s.label).filter(Boolean))];
+  const stateOf = (m) => m.series.length && m.series.every((s) => s.done) ? "done" : Date.now() - m.updated < STALE_MS ? "run" : "stale";
+  const STATE_TEXT = { run: "rodando", stale: "parada", done: "terminada" };
 
-  function averageByClass(b, metric) {
-    const xMax = hours(b);
-    return classesOf(b).map((c) => {
-      const ss = b.series.filter((s) => s.class === c && s.points.length);
+  const PROFILES = {
+    afobado: { name: "Afobado", summary: "Quer chegar fundo rápido e não liga de morrer.", traits: {
+      start: "Sempre no atalho mais fundo já liberado, mesmo depois de morrer várias vezes seguidas.",
+      gold: "Compra sempre a melhoria mais barata: ferreiro, treino ou mochila. Nunca compra na loja.",
+      train: "O atributo principal da classe e CON. O ladino só treina DES.",
+      potions: "Leva 3 (o padrão do jogo) e guarda ouro para elas." } },
+    cuidadoso: { name: "Cuidadoso", summary: "Só avança quando aguenta e não sai sem poções.", traits: {
+      start: "Começa no atalho mais raso. Avança um atalho a cada volta viva e recua um depois de 3 mortes seguidas.",
+      gold: "Primeiro troca equipamento na loja quando o item é melhor que o atual. Depois compra a melhoria mais barata: ferreiro, treino ou mochila.",
+      train: "O atributo principal da classe e CON. O ladino também treina CON.",
+      potions: "Leva 5 e sempre guarda ouro para elas." } },
+  };
+  const TRAITS = [["start", "Onde começa"], ["gold", "Como gasta o ouro"], ["train", "Treino"], ["potions", "Poções"]];
+  const PROFILE_ALIAS = { old: "afobado", smart: "cuidadoso" };
+  const profileOf = (l) => PROFILES[PROFILE_ALIAS[l] || l];
+
+  async function loadBatch(id) {
+    const b = batches.get(id) || { id, files: new Map() };
+    const names = (await links(`data/${encodeURIComponent(id)}/`)).filter((f) => f.endsWith(".json"));
+    const parts = await Promise.all(names.map((f) => getJSON(`data/${encodeURIComponent(id)}/${encodeURIComponent(f)}`)));
+    let changed = false;
+    names.forEach((f, i) => {
+      const p = parts[i];
+      if (!p) return;
+      const old = b.files.get(f);
+      if (!old || old.updated !== p.updated) { b.files.set(f, p); changed = true; }
+    });
+    if (b.files.size) batches.set(id, b);
+    return changed;
+  }
+
+  async function refreshList() {
+    const dirs = (await links("data/")).filter((d) => d.endsWith("/")).map((d) => d.slice(0, -1));
+    await Promise.all(dirs.filter((d) => d !== selected || !batches.has(d)).map(loadBatch));
+    for (const id of batches.keys()) if (!dirs.includes(id)) batches.delete(id);
+    if (!selected || !batches.has(selected)) {
+      const first = [...batches.values()].map(merged).sort((a, b) => b.updated - a.updated)[0];
+      if (first && page === "sim") select(first.id);
+      else if (first) selected = first.id;
+    }
+  }
+
+  async function refreshSelected() {
+    if (!selected) return;
+    if (await loadBatch(selected)) onData();
+  }
+
+  const ok = () => { connErr = false; lastOk = Date.now(); };
+  const fail = () => { connErr = true; };
+  async function listLoop() { try { await refreshList(); ok(); renderList(); if (!view.built && page === "sim") renderView(); } catch { fail(); renderList(); } setTimeout(listLoop, LIST_MS); }
+  async function liveLoop() { if (!document.hidden) { try { await refreshSelected(); ok(); } catch { fail(); } } setTimeout(liveLoop, LIVE_MS); }
+
+  // ---------- aggregation ----------
+  const valueAt = (s, t, m) => {
+    const pts = s.points, lastP = pts[pts.length - 1];
+    if (!lastP || t < pts[0].h) return null;
+    if (t > lastP.h + 1e-9) return s.done ? lastP[m] ?? null : null;
+    let lo = 0, hi = pts.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (pts[mid].h <= t + 1e-9) lo = mid; else hi = mid - 1; }
+    return pts[lo][m] ?? null;
+  };
+  const median = (vs) => { const a = [...vs].sort((x, y) => x - y), n = a.length; return n % 2 ? a[n >> 1] : (a[n / 2 - 1] + a[n / 2]) / 2; };
+  const endH = (s) => s.points.length ? s.points[s.points.length - 1].h : 0;
+
+  let current = null; // merged selected batch
+  const labelsOf = (m) => [...new Set(m.series.map((s) => s.label || ""))];
+  const seriesOf = (m, label) => m.series.filter((s) => (label === null || (s.label || "") === label) && s.points.length);
+
+  function aggregate(series) {
+    const maxH = Math.max(0, ...series.map(endH));
+    if (isBoss()) return { maxH, classes: CLASSES.map((c) => series.find((s) => s.class === c)).filter(Boolean).map((s) =>
+      ({ cls: s.class, color: colorOf(s.class), runs: [s], live: !s.done, pts: s.points.map((p) => ({ h: p.h, med: p[metric] })) })) };
+    const step = Math.max(0.25, maxH / 500);
+    const out = [];
+    for (const c of CLASSES) {
+      const ss = series.filter((s) => s.class === c);
+      if (!ss.length) continue;
+      const until = Math.max(...ss.map(endH));
       const pts = [];
-      for (let h = 0; h <= Math.ceil(xMax); h++) {
-        const vals = ss.map((s) => { let v = null; for (const p of s.points) { if (p.h > h + 1e-9) break; v = p[metric]; } return v; }).filter((v) => v !== null);
-        if (vals.length) pts.push([h, vals.reduce((a, v) => a + v, 0) / vals.length]);
+      for (let i = 0; ; i++) {
+        const t = Math.min(until, i * step);
+        const vs = ss.map((s) => valueAt(s, t, metric)).filter((v) => v !== null);
+        if (vs.length) pts.push({ h: t, med: median(vs) });
+        if (t >= until) break;
       }
-      return { key: c, color: color(c), points: pts };
-    });
-  }
-
-  function niceMax(v) { if (v <= 5) return 5; const p = 10 ** Math.floor(Math.log10(v)); const n = v / p; return (n <= 2 ? 2 : n <= 5 ? 5 : 10) * p; }
-
-  function chart(lines, { w, h, xMax, yMax, axes = true }) {
-    const pad = axes ? { l: 40, r: 10, t: 8, b: 22 } : { l: 2, r: 2, t: 4, b: 4 };
-    const X = (x) => pad.l + (x / xMax) * (w - pad.l - pad.r), Y = (y) => h - pad.b - (y / yMax) * (h - pad.t - pad.b);
-    let g = "";
-    const ticks = yMax % 5 === 0 && yMax / 5 >= 1 && Number.isInteger(yMax / 5) ? 5 : 4;
-    for (let i = 0; i <= ticks; i++) {
-      const v = (yMax / ticks) * i, y = Y(v);
-      g += `<line x1="${pad.l}" x2="${w - pad.r}" y1="${y}" y2="${y}" stroke="var(--grid)"/>`;
-      if (axes) g += `<text x="${pad.l - 6}" y="${y + 4}" text-anchor="end">${Math.round(v)}</text>`;
+      out.push({ cls: c, color: colorOf(c), pts, runs: ss, live: ss.some((s) => !s.done) });
     }
-    if (axes) {
-      const step = niceMax(xMax / 6);
-      for (let x = 0; x <= xMax + 1e-9; x += step) g += `<text x="${X(x)}" y="${h - 6}" text-anchor="middle">${Math.round(x)}h</text>`;
+    return { classes: out, maxH };
+  }
+
+  // ---------- charts ----------
+  // One chart per policy; all charts share the axes so they can be compared side by side.
+  const view = { built: false, charts: [], x: { from: 1, to: 1, t0: 0 }, y: { from: 5, to: 5, t0: 0 },
+    reveal: { from: 0, to: 0, t0: 0 }, hover: null, dirty: true };
+  const TWEEN = 700;
+  const ease = (k) => 1 - Math.pow(1 - k, 3);
+  const tweenVal = (tw, now) => { if (reduced) return tw.to; const k = Math.min(1, (now - tw.t0) / TWEEN); return tw.from + (tw.to - tw.from) * ease(k); };
+  const retarget = (tw, to, now) => { if (tw.to === to) return; tw.from = tweenVal(tw, now); tw.to = to; tw.t0 = now; };
+  const settle = (tw) => { tw.from = tw.to; tw.t0 = 0; };
+  const animating = (now) => !reduced && [view.x, view.y, view.reveal].some((tw) => now - tw.t0 < TWEEN);
+
+  function niceMax(v) { if (v <= 5) return 5; const p = 10 ** Math.floor(Math.log10(v)); const n = v / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
+  function niceStep(span, target) { const raw = span / target, p = 10 ** Math.floor(Math.log10(raw)); const n = raw / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p; }
+
+  function updateAgg(fresh) {
+    if (!current) return;
+    const now = performance.now();
+    for (const ch of view.charts) ch.agg = aggregate(seriesOf(current, ch.label));
+    const shown = view.charts.flatMap((ch) => ch.agg.classes.filter((c) => !hidden.has(c.cls)));
+    const yTop = Math.max(1, ...shown.flatMap((c) => eachRun ? c.runs.flatMap((s) => s.points.map((p) => p[metric] ?? 0)) : c.pts.map((p) => p.med)));
+    const maxH = Math.max(0, ...view.charts.map((ch) => ch.agg.maxH));
+    retarget(view.y, isBoss() ? 100 : niceMax(yTop * 1.05), now);
+    retarget(view.x, isBoss() ? 100 : Math.max(1, niceMax(maxH)), now);
+    retarget(view.reveal, maxH, now);
+    if (fresh) [view.x, view.y, view.reveal].forEach(settle);
+    view.dirty = true;
+  }
+
+  const PAD = { l: 48, r: 92, t: 10, b: 28 };
+  const BOSS_EVERY = 10;
+  function size(ch) {
+    const r = ch.canvas.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+    ch.w = r.width; ch.h = r.height;
+    ch.canvas.width = Math.round(r.width * dpr); ch.canvas.height = Math.round(r.height * dpr);
+    ch.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    view.dirty = true;
+  }
+
+  function draw(ch, now) {
+    const { ctx, w, h, agg } = ch;
+    if (!ctx || !agg || !w) return;
+    const xMax = tweenVal(view.x, now), yMax = tweenVal(view.y, now), reveal = tweenVal(view.reveal, now);
+    const label = (c, v) => `${CLASS_PT[c.cls] || c.cls} ${num(v)}${isBoss() ? "%" : ""}`;
+    ctx.font = `600 12px ${tok("--sans")}`;
+    const padR = Math.max(60, 16 + Math.max(0, ...agg.classes.filter((c) => !hidden.has(c.cls) && c.pts.length)
+      .map((c) => ctx.measureText(label(c, c.pts[c.pts.length - 1].med)).width)));
+    const pw = w - PAD.l - padR, ph = h - PAD.t - PAD.b;
+    ch.padR = padR;
+    const X = (v) => PAD.l + (v / xMax) * pw, Y = (v) => PAD.t + ph - (v / yMax) * ph;
+    ctx.clearRect(0, 0, w, h);
+    ctx.font = `11px ${tok("--mono")}`;
+    ctx.textBaseline = "middle";
+
+    const ys = niceStep(yMax, 5);
+    for (let v = 0; v <= yMax + 1e-9; v += ys) {
+      ctx.strokeStyle = tok("--grid"); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(PAD.l, Math.round(Y(v)) + .5); ctx.lineTo(w - padR, Math.round(Y(v)) + .5); ctx.stroke();
+      ctx.fillStyle = tok("--faint"); ctx.textAlign = "right"; ctx.fillText(num(v) + (isBoss() ? "%" : ""), PAD.l - 8, Y(v));
     }
-    for (const l of lines) {
-      if (!l.points.length) continue;
-      const d = l.points.map(([x, y], i) => `${i ? "L" : "M"}${X(x).toFixed(1)},${Y(y).toFixed(1)}`).join("");
-      g += `<path d="${d}" fill="none" stroke="${l.color}" stroke-width="${l.width || 1.8}" stroke-opacity="${l.opacity ?? 1}" ${l.dash ? `stroke-dasharray="${l.dash}"` : ""} stroke-linejoin="round" stroke-linecap="round"/>`;
+    const xs = niceStep(xMax, Math.max(3, Math.floor(pw / 90)));
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    if (isBoss()) for (let v = BOSS_EVERY; v <= xMax; v += BOSS_EVERY) ctx.fillText("andar " + v, X(v), h - PAD.b + 9);
+    else for (let v = 0; v <= xMax + 1e-9; v += xs) ctx.fillText(num(v) + "h", X(v), h - PAD.b + 9);
+    ctx.textBaseline = "middle";
+    if (isBoss() && metric === "pct") {
+      const y = Math.round(Y(BOSS_PASS)) + .5;
+      ctx.strokeStyle = tok("--accent"); ctx.globalAlpha = .7; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(w - padR, y); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+      ctx.fillStyle = tok("--accent"); ctx.textAlign = "left"; ctx.textBaseline = "bottom"; ctx.fillText("passa", PAD.l + 6, y - 3); ctx.textBaseline = "middle";
     }
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img">${g}</svg>`;
-  }
 
-  function cardHTML(b) {
-    const st = state(b), avg = averageByClass(b, "floor");
-    const yMax = niceMax(Math.max(1, ...avg.flatMap((l) => l.points.map((p) => p[1]))));
-    const tag = st === "run" ? `<span class="tag run">rodando</span>` : st === "stale" ? `<span class="tag stale">parada</span>` : `<span class="tag">terminada</span>`;
-    const legend = avg.map((l) => `<span><span class="sw" style="background:${l.color}"></span>${l.key} <b style="color:var(--text)">${Math.round(l.points.at(-1)?.[1] || 0)}</b></span>`).join("");
-    return `<button class="card" data-id="${b.id}">
-      <h2>${esc(b.title)}</h2>
-      <div class="meta">${tag}<span>${b.series.length} runs</span><span>${Math.round(hours(b))}h simuladas</span></div>
-      <div class="meta" data-live="${b.id}"></div>
-      ${chart(avg, { w: 320, h: 110, xMax: hours(b), yMax, axes: false })}
-      <div class="legend">${legend}</div>
-    </button>`;
-  }
-
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-
-  function liveText(b) {
-    const end = state(b) === "run" ? Date.now() : +b.updated;
-    const run = state(b) === "run" ? "rodando há" : "rodou por";
-    return `<span>começou ${clock(b.started)}</span><span>${run} <b style="color:var(--text)">${dur(end - b.started)}</b></span><span>última atualização há ${dur(Date.now() - b.updated)}</span>`;
-  }
-  function paintLive() {
-    document.querySelectorAll("[data-live]").forEach((el) => { const b = batches.find((x) => x.id === el.dataset.live); if (b) el.innerHTML = liveText(b); });
-  }
-  setInterval(paintLive, 1000);
-
-  function render() {
-    const grid = $("#grid");
-    if (!batches.length) {
-      grid.innerHTML = `<div class="empty"><h2>Nenhuma simulação ainda</h2>
-        <p>Rode uma simulação com <code>SIMVIEW_BATCH</code> definido e ela aparece aqui, atualizando a cada 5s:</p>
-        <pre>SIMVIEW_BATCH=minha-sim SIMVIEW_TITLE="Minha simulação" SIMVIEW_FILE=warrior SIM_CLASS=0 go test ./internal/game -run TestSimDungeon -timeout 2h</pre></div>`;
-    } else {
-      grid.innerHTML = batches.map(cardHTML).join("");
-      grid.querySelectorAll(".card").forEach((c) => c.addEventListener("click", () => open(c.dataset.id)));
+    const clip = (pts) => { const out = []; for (let i = 0; i < pts.length; i++) { const p = pts[i]; if (p.h <= reveal) { out.push(p); continue; }
+      const a = pts[i - 1]; if (a) out.push({ h: reveal, med: a.med + (p.med - a.med) * (reveal - a.h) / (p.h - a.h) }); break; } return out; };
+    const ends = [];
+    for (const c of agg.classes) {
+      if (hidden.has(c.cls)) continue;
+      const pts = clip(c.pts);
+      if (!pts.length) continue;
+      if (eachRun) {
+        ctx.strokeStyle = c.color; ctx.globalAlpha = .38; ctx.lineWidth = 1.2;
+        for (const s of c.runs) {
+          ctx.beginPath(); let first = true;
+          for (const p of s.points) { if (p.h > reveal) break; if (p[metric] == null) continue; const x = X(p.h), y = Y(p[metric]); first ? ctx.moveTo(x, y) : ctx.lineTo(x, y); first = false; }
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+      ctx.strokeStyle = c.color; ctx.lineWidth = 2.2; ctx.lineJoin = "round"; ctx.lineCap = "round";
+      ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(X(p.h), Y(p.med)) : ctx.moveTo(X(p.h), Y(p.med))); ctx.stroke();
+      if (isBoss()) { ctx.fillStyle = c.color; for (const p of pts) if (p.h % BOSS_EVERY === 0) { ctx.beginPath(); ctx.arc(X(p.h), Y(p.med), 3, 0, Math.PI * 2); ctx.fill(); } }
+      const e = pts[pts.length - 1];
+      ends.push({ c, x: X(e.h), y: Y(e.med), v: e.med });
     }
-    if (openId) renderModal();
-    paintLive();
+
+    if (!agg.classes.some((c) => c.pts.length)) {
+      ctx.fillStyle = tok("--muted"); ctx.textAlign = "center"; ctx.font = `13px ${tok("--sans")}`;
+      ctx.fillText("Esta simulação não gravou este dado. As próximas gravam.", PAD.l + pw / 2, PAD.t + ph / 2);
+    }
+    const pulse = (now % 1600) / 1600;
+    for (const e of ends) {
+      if (e.c.live) {
+        ctx.fillStyle = e.c.color; ctx.globalAlpha = .35 * (1 - pulse);
+        ctx.beginPath(); ctx.arc(e.x, e.y, 4 + 8 * pulse, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+      }
+      ctx.fillStyle = e.c.color; ctx.beginPath(); ctx.arc(e.x, e.y, 3.5, 0, Math.PI * 2); ctx.fill();
+    }
+    const GAP = 15, bottom = h - PAD.b;
+    ends.sort((a, b) => a.y - b.y);
+    ends.forEach((e, i) => { e.ly = i ? Math.max(e.y, ends[i - 1].ly + GAP) : e.y; });
+    for (let i = ends.length - 1; i >= 0; i--) ends[i].ly = Math.min(ends[i].ly, i === ends.length - 1 ? bottom : ends[i + 1].ly - GAP);
+    ctx.textAlign = "left"; ctx.font = `600 12px ${tok("--sans")}`;
+    for (const e of ends) { ctx.fillStyle = e.c.color; ctx.fillText(label(e.c, e.v), w - padR + 8, e.ly); }
+
+    if (view.hover !== null) {
+      const hx = X(Math.min(view.hover, reveal));
+      ctx.strokeStyle = tok("--muted"); ctx.globalAlpha = .5; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(Math.round(hx) + .5, PAD.t); ctx.lineTo(Math.round(hx) + .5, h - PAD.b); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
+    }
   }
 
-  function seriesKey(s) { return `${s.class}|${s.label}|${s.seed}`; }
+  function frame(now) {
+    const live = view.charts.some((ch) => ch.agg?.classes.some((c) => c.live && !hidden.has(c.cls)));
+    if (view.charts.length && (view.dirty || animating(now) || live)) { view.charts.forEach((ch) => draw(ch, now)); view.dirty = false; }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 
-  function renderModal() {
-    const b = batches.find((x) => x.id === openId);
-    if (!b) return;
-    $("#dtitle").textContent = b.title;
-    $("#dlive").dataset.live = b.id;
-    const labels = labelsOf(b), classes = classesOf(b);
-    const visible = b.series.filter((s) => !hidden.has(s.class) && !hidden.has("label:" + s.label));
-    const seeds = [...new Set(b.series.map((s) => s.seed))].sort((a, b) => a - b);
-    const dash = (s) => labels.length > 1 && s.label === labels[0] ? "5 4" : "";
-    const opacity = (s) => 1 - 0.25 * seeds.indexOf(s.seed) / Math.max(1, seeds.length - 1);
-    const chip = (key, text, sw) => `<button class="chip" data-key="${esc(key)}" aria-pressed="${!hidden.has(key)}">${sw ? `<span class="sw" style="background:${sw}"></span>` : ""}${esc(text)}</button>`;
-    const filters = classes.map((c) => chip(c, c, color(c))).join("") + (labels.length > 1 ? labels.map((l, i) => chip("label:" + l, (i === 0 ? "- - " : "—— ") + l)).join("") : "");
-    const xMax = hours(b);
-    const panels = METRICS.map(([m, name]) => {
-      const yMax = niceMax(Math.max(1, ...visible.flatMap((s) => s.points.map((p) => p[m]))));
-      const lines = visible.map((s) => ({ color: color(s.class), dash: dash(s), opacity: opacity(s), points: s.points.map((p) => [p.h, p[m]]) }));
-      return `<section class="panel"><h3>${name}</h3><div class="plot" data-metric="${m}" data-ymax="${yMax}">${chart(lines, { w: 1040, h: 220, xMax, yMax })}</div></section>`;
+  function onHover(ch, e) {
+    const r = ch.canvas.getBoundingClientRect(), now = performance.now();
+    const xMax = tweenVal(view.x, now), reveal = tweenVal(view.reveal, now);
+    const t = ((e.clientX - r.left - PAD.l) / (r.width - PAD.l - (ch.padR || 60))) * xMax;
+    if (t < 0 || t > reveal + xMax * .02) { leave(); return; }
+    view.hover = Math.max(0, Math.min(reveal, t));
+    if (isBoss()) view.hover = Math.max(BOSS_EVERY, Math.min(Math.floor(reveal / BOSS_EVERY) * BOSS_EVERY, Math.round(view.hover / BOSS_EVERY) * BOSS_EVERY));
+    view.dirty = true;
+    for (const c of view.charts) showTip(c, PAD.l + (view.hover / xMax) * (c.w - PAD.l - (c.padR || 60)));
+  }
+  function showTip(ch, px) {
+    const rows = ch.agg.classes.filter((c) => !hidden.has(c.cls)).map((c) => {
+      let p = null; for (const q of c.pts) { if (q.h > view.hover + 1e-9) break; p = q; }
+      if (!p) return "";
+      const vs = c.runs.map((s) => valueAt(s, view.hover, metric)).filter((v) => v !== null);
+      const lo = Math.min(...vs), hi = Math.max(...vs);
+      const rng = vs.length > 1 && lo !== hi ? `<span class="rng" title="menor–maior entre as runs"> ${num(lo)}–${num(hi)}</span>` : "";
+      return `<div class="r"><span><span class="sw" style="background:${c.color}"></span>${CLASS_PT[c.cls] || c.cls}</span><span class="num">${num(p.med)}${isBoss() ? "%" : ""}${rng}</span></div>`;
     }).join("");
-    const rows = visible.map((s) => { const p = last(s); return `<tr><td><span class="sw" style="background:${color(s.class)}"></span>${s.class}</td><td>${esc(s.label || "")} · seed ${s.seed}</td><td>${p.h.toFixed(0)}h</td><td>${p.floor}</td><td>${p.level}</td><td>${p.deaths}</td><td>${p.dungeon}</td><td>${s.done ? "sim" : "não"}</td></tr>`; }).join("");
-    $("#dbody").innerHTML = `<div class="filters">${filters}</div>${panels}
-      <section class="panel"><h3>Final de cada run</h3><table><thead><tr><th>classe</th><th>run</th><th>horas</th><th>andar</th><th>nível</th><th>mortes</th><th>dungeons</th><th>terminou</th></tr></thead><tbody>${rows}</tbody></table></section>`;
-    $("#dbody").querySelectorAll(".chip").forEach((c) => c.addEventListener("click", () => {
-      const k = c.dataset.key; hidden.has(k) ? hidden.delete(k) : hidden.add(k); renderModal();
-    }));
-    $("#dbody").querySelectorAll(".plot").forEach((p) => hover(p, visible, xMax));
+    const tip = ch.tip;
+    if (!rows) { tip.classList.remove("on"); return; }
+    const lvl = isBoss() && ch.agg.classes[0]?.runs[0].points.find((p) => p.h === view.hover)?.level;
+    tip.innerHTML = `<div class="h num">${isBoss() ? `Chefe do andar ${view.hover}${lvl ? ` · herói nível ${lvl}` : ""}` : view.hover.toFixed(1).replace(".", ",") + "h simuladas"}</div>${rows}`;
+    tip.classList.add("on");
+    const left = px + ch.canvas.offsetLeft, box = tip.parentElement.clientWidth;
+    tip.style.left = (left + 16 + tip.offsetWidth > box ? left - 16 - tip.offsetWidth : left + 16) + "px";
+  }
+  function leave() { view.hover = null; view.dirty = true; view.charts.forEach((ch) => ch.tip.classList.remove("on")); }
+
+  // ---------- views ----------
+  function renderList() {
+    const all = [...batches.values()].map(merged).sort((a, b) => b.updated - a.updated);
+    const fill = (nav, items) => { nav.innerHTML = items.length ? items.map((m) => { const st = stateOf(m);
+      return `<button class="item" data-id="${esc(m.id)}" aria-current="${page === "sim" && m.id === selected}"><span class="t">${esc(m.title)}</span>
+        <span class="s"><span class="dot ${st}"></span>${STATE_TEXT[st]} · ${new Date(m.updated).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span></button>`; }).join("")
+        : `<p class="side-empty">Nenhum ainda</p>`;
+      nav.querySelectorAll(".item").forEach((b) => b.addEventListener("click", () => select(b.dataset.id))); };
+    fill($("#batches"), all.filter((m) => m.kind !== "boss"));
+    fill($("#bossBatches"), all.filter((m) => m.kind === "boss"));
+    $("#profilesBtn").setAttribute("aria-current", page === "profiles");
+    const conn = $("#conn");
+    conn.className = connErr ? "err" : "";
+    conn.textContent = connErr ? "Não consegui ler data/. Sirva tools/simview com: python3 -m http.server" : "Ao vivo · lê a simulação aberta a cada 1 s";
   }
 
-  function hover(plot, visible, xMax) {
-    const m = plot.dataset.metric, svg = plot.querySelector("svg");
-    let tip = null;
-    plot.addEventListener("mousemove", (e) => {
-      const r = svg.getBoundingClientRect(), sx = (e.clientX - r.left) * (1040 / r.width);
-      const h = Math.max(0, Math.min(xMax, ((sx - 40) / (1040 - 50)) * xMax));
-      const rows = visible.map((s) => { let v = null; for (const p of s.points) { if (p.h > h) break; v = p[m]; } return v === null ? "" :
-        `<div><span><span class="sw" style="background:${color(s.class)}"></span>${s.class} ${esc(s.label || "")} s${s.seed}</span><b>${v}</b></div>`; }).join("");
-      if (!tip) { tip = document.createElement("div"); tip.className = "tip"; plot.appendChild(tip); }
-      tip.innerHTML = `<div style="color:var(--muted)">${h.toFixed(0)}h</div>${rows}`;
-      const left = e.clientX - plot.getBoundingClientRect().left;
-      tip.style.left = Math.min(left + 14, plot.clientWidth - tip.offsetWidth - 4) + "px";
-      tip.style.top = "8px";
-    });
-    plot.addEventListener("mouseleave", () => { tip?.remove(); tip = null; });
+  function select(id) {
+    if (page === "sim" && selected === id && view.built) return;
+    page = "sim"; selected = id; hidden.clear(); view.built = false;
+    history.replaceState(null, "", "#" + encodeURIComponent(id));
+    renderList();
+    refreshSelected().then(() => renderView()).catch(() => renderView());
   }
 
-  function open(id) { openId = id; hidden = new Set(); renderModal(); $("#dlg").showModal(); }
-  $("#close").addEventListener("click", () => $("#dlg").close());
-  $("#dlg").addEventListener("close", () => { openId = null; });
-  $("#dlg").addEventListener("click", (e) => { if (e.target === $("#dlg")) $("#dlg").close(); });
+  const policyName = (l) => "Perfil " + (profileOf(l)?.name || l);
 
-  async function tick() {
-    const st = $("#status");
-    try {
-      batches = await load();
-      st.className = "";
-      st.innerHTML = `<span class="dot"></span>atualiza a cada 5s · ${new Date().toLocaleTimeString("pt-BR")}`;
-      render();
-      const want = decodeURIComponent(location.hash.slice(1));
-      if (want && !openId && !$("#dlg").open && batches.some((b) => b.id === want)) { open(want); history.replaceState(null, "", location.pathname); }
-    } catch (e) {
-      st.className = "err";
-      st.innerHTML = `<span class="dot"></span>não consegui ler data/ — sirva esta pasta com: python3 -m http.server`;
+  function showProfiles() {
+    page = "profiles"; view.built = false; view.charts = [];
+    history.replaceState(null, "", "#" + PROFILES_HASH);
+    renderList();
+    const cols = Object.values(PROFILES);
+    $("#view").innerHTML = `<section class="profiles">
+      <h2>Perfis de jogador</h2>
+      <p>Cada perfil imita um jeito de jogar entre uma expedição e outra. Na dungeon o herói é o mesmo: o perfil só muda onde ele começa, como o ouro é gasto e quantas poções ele leva.</p>
+      <div class="tablewrap"><table class="ptable"><thead><tr><th></th>${cols.map((p) => `<th>${esc(p.name)}<span>${esc(p.summary)}</span></th>`).join("")}</tr></thead>
+        <tbody>${TRAITS.map(([k, t]) => `<tr><th scope="row">${t}</th>${cols.map((p) => `<td>${esc(p.traits[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+      <p><b>Em comum:</b> o herói usa as táticas padrão da classe. Cada perfil roda 3 seeds por classe, até concluir a dungeon 1 ou chegar a 240h simuladas.</p>
+      <p>Simulações antigas chamavam o Afobado de <code>old</code> e o Cuidadoso de <code>smart</code>.</p>
+    </section>`;
+  }
+  $("#profilesBtn").addEventListener("click", showProfiles);
+
+  function renderView() {
+    if (page === "profiles") { showProfiles(); return; }
+    const main = $("#view");
+    const b = selected && batches.get(selected);
+    view.charts = [];
+    if (!b) {
+      view.built = false;
+      main.innerHTML = `<div class="empty"><h2>Nenhuma simulação ainda</h2>
+        <p>Rode uma simulação com <code>SIMVIEW_BATCH</code> e ela aparece aqui sozinha, desenhando ao vivo:</p>
+        <pre>SIMVIEW_BATCH=minha-sim SIMVIEW_TITLE="Minha simulação" SIMVIEW_FILE=guerreiro-cuidadoso \\
+  SIM_CLASS=0 SIM_PROFILE=cuidadoso go test ./internal/game -run TestSimDungeon -timeout 4h</pre>
+        <p>Um processo por classe (<code>SIM_CLASS</code> 0 a 3) e perfil (<code>SIM_PROFILE</code>) roda tudo em paralelo; cada um precisa de um <code>SIMVIEW_FILE</code> próprio.</p></div>`;
+      return;
     }
+    current = merged(b);
+    if (!metricsNow().some(([k]) => k === metric)) metric = metricsNow()[0][0];
+    if (isBoss()) eachRun = false;
+    const labels = isBoss() ? [] : labelsOf(current);
+    const split = labels.length > 1 ? labels : [null];
+    const head = isBoss()
+      ? `<th>Classe</th><th>Andares</th>${Array.from({ length: 10 }, (_, i) => `<th>${(i + 1) * BOSS_EVERY}</th>`).join("")}`
+      : `<th>Classe</th><th>Runs</th><th>Horas</th><th>Andar</th><th>Nível</th><th>Mortes</th><th>Saldo</th><th>Gasto</th><th>Treino</th>`;
+    main.innerHTML = `
+      <header class="vhead"><h2></h2><div class="status" id="status"></div></header>
+      <div class="controls">
+        <div><span class="seg-label">Mostrar</span><div class="seg" role="group" aria-label="Mostrar">${metricsNow().map(([k, t]) =>
+          `<button data-metric="${k}" aria-pressed="${k === metric}">${t}</button>`).join("")}</div></div>
+        ${isBoss() ? "" : `<label class="check"><input type="checkbox" id="each" ${eachRun ? "checked" : ""}> Cada run</label>`}
+      </div>
+      <p class="hint" id="hint"></p>
+      <div class="charts ${split.length > 1 ? "split" : ""}">${split.map((l, i) => `
+        <section class="pane" data-i="${i}">
+          ${l !== null ? `<h3>${esc(policyName(l))}</h3>${profileOf(l) ? `<p class="sum">${esc(profileOf(l).summary)} <a href="#${PROFILES_HASH}" data-profiles>Ver perfis</a></p>` : ""}` : ""}
+          <div class="chartbox"><canvas aria-label="Gráfico por classe${l !== null ? " · " + esc(policyName(l)) : ""}"></canvas><div class="tip"></div></div>
+          <div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody></tbody></table></div>
+        </section>`).join("")}</div>`;
+    $(".vhead h2").textContent = current.title;
+    main.querySelectorAll("[data-profiles]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); showProfiles(); }));
+    main.querySelectorAll("[data-metric]").forEach((el) => el.addEventListener("click", () => {
+      metric = el.dataset.metric; main.querySelectorAll("[data-metric]").forEach((x) => x.setAttribute("aria-pressed", x.dataset.metric === metric)); refreshChart(true);
+    }));
+    $("#each")?.addEventListener("change", (e) => { eachRun = e.target.checked; refreshChart(false); });
+    view.charts = split.map((label, i) => {
+      const pane = main.querySelector(`.pane[data-i="${i}"]`), canvas = $("canvas", pane);
+      const ch = { label, canvas, ctx: canvas.getContext("2d"), tip: $(".tip", pane), rows: $("tbody", pane), w: 0, h: 0, agg: null };
+      canvas.addEventListener("mousemove", (e) => onHover(ch, e));
+      canvas.addEventListener("mouseleave", leave);
+      new ResizeObserver(() => size(ch)).observe(canvas);
+      size(ch);
+      return ch;
+    });
+    view.built = true;
+    refreshChart(true);
   }
-  tick();
-  setInterval(tick, 5000);
+
+  function refreshChart(fresh) {
+    updateAgg(fresh);
+    renderStatus();
+    view.charts.forEach(renderRows);
+    if (isBoss()) {
+      $("#hint").textContent = BOSS_HELP[metric] + " " + (current.note || "Cada chefe: 20 lutas. Herói sem treino, no nível típico de quem chega ao andar, com itens comuns do andar do chefe +10 no ferreiro, 5 poções e táticas padrão.") + " Na tabela, verde passa e laranja não. Clique num número para copiar o código de uma luta daquele chefe (a primeira derrota) e abrir no playground.";
+      return;
+    }
+    $("#hint").textContent = METRIC_HELP[metric] + " " + (eachRun ? "Linha forte: mediana da classe. Linhas finas: cada run." :
+      "Cada linha é a mediana das runs da classe. Marque Cada run para ver a variação.") +
+      (view.charts.length > 1 ? " Os gráficos usam a mesma escala." : "") +
+      " Nas tabelas, o número branco é a mediana das runs e o cinza é a faixa da menor à maior. Clique numa classe para esconder a linha.";
+  }
+
+  function onData() {
+    renderList();
+    if (page !== "sim") return;
+    if (!view.built) { renderView(); return; }
+    current = merged(batches.get(selected));
+    const want = !isBoss() && labelsOf(current).length > 1 ? labelsOf(current).length : 1;
+    if (want !== view.charts.length) { renderView(); return; }
+    refreshChart(false);
+  }
+
+  function renderStatus() {
+    const el = $("#status"); if (!el || !current) return;
+    const st = stateOf(current), runs = seriesOf(current, null), done = runs.filter((s) => s.done).length;
+    const end = st === "run" ? Date.now() : current.updated;
+    const what = isBoss() ? `<span><b class="num">${done}</b> de <b class="num">${runs.length}</b> classes concluídas</span>`
+      : `<span><b class="num">${done}</b> de <b class="num">${runs.length}</b> runs concluídas</span>`;
+    el.innerHTML = `<span class="dot ${st}"></span><span class="state ${st}">${STATE_TEXT[st][0].toUpperCase() + STATE_TEXT[st].slice(1)}</span>
+      ${what}
+      ${isFinite(current.started) ? `<span>${st === "run" ? "rodando há" : "rodou por"} <b class="num">${dur(end - current.started)}</b></span>` : ""}
+      <span>atualizada <b>${ago(Date.now() - current.updated)}</b></span>`;
+  }
+  setInterval(() => { renderStatus(); if (connErr === false && lastOk && Date.now() - lastOk > 5000) { connErr = true; renderList(); } }, 1000);
+
+  let toastTimer = 0;
+  async function copyCode(code, what) {
+    let copied = false;
+    try { await navigator.clipboard.writeText(code); copied = true; } catch {}
+    const t = $("#toast");
+    t.innerHTML = `<b>${copied ? "Código da luta copiado" : "Código da luta (selecione e copie)"}</b> · ${esc(what)}<br><code>${esc(code)}</code><br>
+      No playground: aba <b>6 Config</b> → <b>Código da run</b> → enter → cole → enter.`;
+    t.classList.add("on");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("on"), 12000);
+  }
+
+  function renderRows(ch) {
+    if (!ch.agg) return;
+    if (isBoss()) {
+      ch.rows.innerHTML = ch.agg.classes.map((c) => {
+        const pts = c.runs[0].points;
+        const cells = Array.from({ length: 10 }, (_, i) => { const p = pts.find((q) => q.h === (i + 1) * BOSS_EVERY);
+          if (!p) return `<td class="num">${c.live && pts.length === i ? `<span class="dot run" style="display:inline-block"></span>` : ""}</td>`;
+          const v = p[metric], ok = p.pct >= BOSS_PASS;
+          const tip = `${p.wins} de ${p.fights} lutas · herói nível ${p.level} · chefe ficou com ${p.bossLeft}% do HP`;
+          const inner = p.code ? `<button class="codebtn" data-code="${esc(p.code)}" data-what="${esc(`${CLASS_PT[c.cls] || c.cls}, chefe do andar ${p.floor}, seed ${p.seed}, ${p.won ? "venceu" : "perdeu"}`)}"
+            title="${tip} · clique para copiar o código da luta">${v}%</button>` : `${v}%`;
+          return `<td class="num ${ok ? "pass" : "fail"}" title="${tip}">${inner}</td>`; }).join("");
+        return `<tr class="${hidden.has(c.cls) ? "off" : ""}"><td><button class="cls" data-cls="${c.cls}" aria-pressed="${!hidden.has(c.cls)}" title="Mostrar ou esconder no gráfico">
+          <span class="sw" style="background:${c.color}"></span>${CLASS_PT[c.cls] || c.cls}</button></td><td class="num">${pts.length}/10</td>${cells}</tr>`;
+      }).join("");
+      ch.rows.querySelectorAll(".cls").forEach((el) => el.addEventListener("click", () => {
+        const k = el.dataset.cls; hidden.has(k) ? hidden.delete(k) : hidden.add(k); refreshChart(false);
+      }));
+      ch.rows.querySelectorAll(".codebtn").forEach((el) => el.addEventListener("click", () => copyCode(el.dataset.code, el.dataset.what)));
+      return;
+    }
+    const at = (s, m) => s.points[s.points.length - 1][m];
+    const cell = (runs, m) => { const vs = runs.map((s) => at(s, m)).filter((v) => v != null); if (!vs.length) return `<td class="num" title="esta simulação não gravou este dado">—</td>`;
+      const lo = Math.min(...vs), hi = Math.max(...vs);
+      return `<td class="num">${num(median(vs))}${runs.length > 1 && lo !== hi ? `<span class="rng" title="menor–maior entre as runs">${num(lo)}–${num(hi)}</span>` : ""}</td>`; };
+    ch.rows.innerHTML = ch.agg.classes.map((c) => {
+      const done = c.runs.filter((s) => s.done).length;
+      return `<tr class="${hidden.has(c.cls) ? "off" : ""}"><td><button class="cls" data-cls="${c.cls}" aria-pressed="${!hidden.has(c.cls)}" title="Mostrar ou esconder nos gráficos">
+        <span class="sw" style="background:${c.color}"></span>${CLASS_PT[c.cls] || c.cls}</button></td>
+        <td class="num">${done}/${c.runs.length}${c.live ? ` <span class="dot run" style="display:inline-block;vertical-align:1px"></span>` : ""}</td>
+        <td class="num">${num(Math.max(...c.runs.map(endH)))}h</td>${cell(c.runs, "floor")}${cell(c.runs, "level")}${cell(c.runs, "deaths")}${cell(c.runs, "gold")}${cell(c.runs, "spent")}${cell(c.runs, "train")}</tr>`;
+    }).join("");
+    ch.rows.querySelectorAll(".cls").forEach((el) => el.addEventListener("click", () => {
+      const k = el.dataset.cls; hidden.has(k) ? hidden.delete(k) : hidden.add(k); refreshChart(false);
+    }));
+  }
+
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshSelected(); });
+  renderView();
+  listLoop();
+  liveLoop();
 })();
 </script>
 </body>
