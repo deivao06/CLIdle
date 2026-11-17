@@ -51,6 +51,9 @@ func migrate(f *saveFile, old *legacy) {
 	if f.Version < 10 {
 		migrateV10Dungeons(f.Game)
 	}
+	if f.Version < 11 {
+		migrateV11Bless(f.Game)
+	}
 	f.Version = saveVersion
 }
 
@@ -154,4 +157,15 @@ func migrateV10Dungeons(g *Game) {
 		kept = append([]int{g.Offset() + 1}, kept...)
 	}
 	g.Shortcuts = kept
+}
+
+// migrateV11Bless drops the rules of the old Bless, whose action is now Holy Light, and gives back the default
+// Holy Light rule to a hero that already has it.
+func migrateV11Bless(g *Game) {
+	if g.Hero.Class != Cleric {
+		return
+	}
+	g.Config.Gambits = slices.DeleteFunc(g.Config.Gambits, func(gb Gambit) bool { return gb.Do == ActHolyLight })
+	g.TacticsChanged()
+	g.unlockGambits(AbilityInfo[HolyLight].Level-1, &round{})
 }

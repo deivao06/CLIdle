@@ -168,7 +168,11 @@ func (h *Hero) Atk() int {
 	return HeroBaseAtk + h.bonus(Weapon) + h.Attr(h.Class.DamageAttr())
 }
 func (h *Hero) Def() int {
-	return HeroBaseDef + (h.Level-1)/2 + h.bonus(Armor) + h.bonus(Helmet) + h.bonus(Shield)
+	def := HeroBaseDef + (h.Level-1)/2 + h.bonus(Armor) + h.bonus(Helmet) + h.bonus(Shield)
+	if h.Has(Aura) {
+		def += h.Attr(Int) * AuraDefPerInt
+	}
+	return def
 }
 func (h *Hero) Spd() int {
 	return HeroBaseSpd + h.bonus(Boots) + h.Level/SpdLevelDiv + h.Attr(Dex)/SpdDexDiv

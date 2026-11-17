@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 )
@@ -136,6 +137,22 @@ func TestV8NegativeGoldBecomesMaxGold(t *testing.T) {
 	got, _, err := Load(path)
 	if err != nil || got.Gold != MaxGold {
 		t.Fatalf("gold %d err %v", got.Gold, err)
+	}
+}
+
+func TestV10BlessRuleBecomesHolyLight(t *testing.T) {
+	for _, level := range []int{AbilityInfo[Aura].Level, AbilityInfo[HolyLight].Level} {
+		path := filepath.Join(t.TempDir(), "save.json")
+		g := New(1, Cleric)
+		g.Hero.Level = level
+		bless := Gambit{If: [2]Cond{{CondAdjacent, OpAtLeast, 1}}, Do: ActHolyLight}
+		g.Config.Gambits = append([]Gambit{bless}, g.Config.Gambits...)
+		raw, _ := json.Marshal(saveFile{10, time.Now(), g})
+		os.WriteFile(path, raw, 0o644)
+		got, _, err := Load(path)
+		if err != nil || slices.Contains(got.Config.Gambits, bless) || !slices.Equal(got.Config.Gambits, heroGambits(got.Hero)) {
+			t.Fatalf("level %d: %+v err %v", level, got.Config.Gambits, err)
+		}
 	}
 }
 

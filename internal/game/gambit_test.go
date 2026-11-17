@@ -234,7 +234,7 @@ func TestDefaultTacticsOnlyHoldWhatTheClassUses(t *testing.T) {
 	has := func(c Class, a Action) bool {
 		return slices.ContainsFunc(DefaultGambits(c), func(gb Gambit) bool { return gb.Do == a })
 	}
-	if has(Warrior, ActSpells) || has(Mage, ActSecondWind) || has(Rogue, ActHeal) || !has(Mage, ActSpells) || !has(Cleric, ActBless) {
+	if has(Warrior, ActSpells) || has(Mage, ActSecondWind) || has(Rogue, ActHeal) || !has(Mage, ActSpells) || !has(Cleric, ActHolyLight) {
 		t.Fatal("class filter picked the wrong rules")
 	}
 	g := New(1, Warrior)
@@ -267,10 +267,10 @@ func TestEveryOperatorCompares(t *testing.T) {
 
 func TestUnlockingAnAbilityAddsItsRule(t *testing.T) {
 	g := New(1, Cleric)
-	if slices.ContainsFunc(g.Config.Gambits, func(gb Gambit) bool { return gb.Do == ActBless }) {
-		t.Fatal("bless rule before bless is unlocked")
+	if slices.ContainsFunc(g.Config.Gambits, func(gb Gambit) bool { return gb.Do == ActHolyLight }) {
+		t.Fatal("holy light rule before bless is unlocked")
 	}
-	g.Hero.Level = AbilityInfo[Bless].Level
+	g.Hero.Level = AbilityInfo[HolyLight].Level
 	r := &round{}
 	g.unlockGambits(g.Hero.Level-1, r)
 	g.unlockGambits(g.Hero.Level-1, r)
@@ -282,11 +282,11 @@ func TestUnlockingAnAbilityAddsItsRule(t *testing.T) {
 func TestSavingRulesKeepsARuleUnlockedWhileEditing(t *testing.T) {
 	g := New(1, Cleric)
 	draft, since := slices.Clone(g.Config.Gambits), g.Hero.Level
-	g.Hero.Level = AbilityInfo[Bless].Level
+	g.Hero.Level = AbilityInfo[HolyLight].Level
 	g.unlockGambits(since, &round{})
 	g.SetGambits(draft, since)
 	if !slices.Equal(g.Config.Gambits, DefaultGambits(Cleric)) {
-		t.Fatalf("bless rule lost: %+v", g.Config.Gambits)
+		t.Fatalf("holy light rule lost: %+v", g.Config.Gambits)
 	}
 }
 

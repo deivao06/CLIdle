@@ -165,7 +165,7 @@ func (m Model) nerdRows() []prepRow {
 	add("nose_item", nerdPct(game.NoseItemChance))
 	add("view_radius", fmt.Sprint(game.ViewRadius))
 	add("spell_range", fmt.Sprint(game.SpellRange))
-	for _, a := range []game.Ability{game.MagicMissile, game.Fireball, game.FrostRay} {
+	for _, a := range []game.Ability{game.MagicMissile, game.Fireball, game.FrostRay, game.HolyLight} {
 		rows = append(rows, nerdRow(sec, lang.T("nerd.spell_power", a.Name()), fmt.Sprint(game.SpellPower[a]), lang.T("nerd.spell_power.desc")))
 	}
 	add("sleep_min", fmt.Sprintf("%d%%", game.SleepMinHPPct))
@@ -174,9 +174,8 @@ func (m Model) nerdRows() []prepRow {
 	add("frost", fmt.Sprint(game.FrostSlowRounds))
 	add("blink", fmt.Sprintf("%d%%", game.BlinkHPPct))
 	add("heal", fmt.Sprintf("%d%%", game.HealPct))
-	add("bless", fmt.Sprint(game.BlessRounds))
-	add("bless_def", fmt.Sprintf("+%d", game.BlessDef))
-	add("turn_undead", fmt.Sprintf("×%d", game.TurnUndeadMult))
+	add("aura_def", fmt.Sprintf("+%d", game.AuraDefPerInt))
+	add("undead", fmt.Sprintf("×%d", game.UndeadMult))
 
 	sec = lang.T("nerd.section.luck")
 	h := m.g.Hero

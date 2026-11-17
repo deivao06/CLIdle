@@ -65,7 +65,7 @@ const (
 	ActPotion Action = iota
 	ActSecondWind
 	ActHeal
-	ActBless
+	ActHolyLight
 	ActAttack
 	ActSpells
 	ActMissile
@@ -143,7 +143,7 @@ func gambitsV5(c configV5) []Gambit {
 	}
 	return append(gs,
 		Gambit{If: when(CondInRange, 0, 0), Do: ActSpells},
-		Gambit{If: when(CondAdjacent, OpAtLeast, 1), Do: ActBless},
+		Gambit{If: when(CondInRange, 0, 0), Do: ActHolyLight},
 		Gambit{If: when(CondAdjacent, OpAtLeast, 1), Do: ActAttack},
 		Gambit{Do: ActExplore},
 	)
@@ -216,7 +216,7 @@ func classGambits(gs []Gambit, c Class) []Gambit {
 	return slices.DeleteFunc(slices.Clone(gs), func(gb Gambit) bool { return !gb.Fits(c) })
 }
 
-var actionAbility = map[Action]Ability{ActSecondWind: SecondWind, ActHeal: Heal, ActBless: Bless, ActSpells: MagicMissile,
+var actionAbility = map[Action]Ability{ActSecondWind: SecondWind, ActHeal: Heal, ActHolyLight: HolyLight, ActSpells: MagicMissile,
 	ActMissile: MagicMissile, ActFireball: Fireball, ActFrost: FrostRay, ActSleep: Sleep, ActBlink: Blink}
 
 // Fits reports whether class c can ever use the action.
@@ -240,7 +240,7 @@ func (k CondKind) Fits(c Class) bool {
 	case CondMana:
 		return usesMana(c)
 	case CondInRange:
-		return AbilityInfo[MagicMissile].Class == c
+		return AbilityInfo[MagicMissile].Class == c || AbilityInfo[HolyLight].Class == c
 	}
 	return true
 }
@@ -431,7 +431,7 @@ func (g *Game) retreatWhy(gb Gambit) string {
 
 // offensive actions never run while the hero retreats without a retreat rule to rank them.
 func (a Action) offensive() bool {
-	return a == ActBless || a == ActAttack || a >= ActSpells && a <= ActSleep
+	return a == ActHolyLight || a == ActAttack || a >= ActSpells && a <= ActSleep
 }
 
 // instant runs the first single-step rule above the driving behavior that can act now.
@@ -466,8 +466,6 @@ func (g *Game) act(gb Gambit, r *round) bool {
 		return g.secondWind(r)
 	case ActHeal:
 		return g.healSpell(r)
-	case ActBless:
-		return g.bless(r)
 	case ActAttack:
 		if m := g.attackTarget(gb.Target); m != nil {
 			g.heroAttack(m, r)
@@ -479,7 +477,7 @@ func (g *Game) act(gb Gambit, r *round) bool {
 	case ActBlink:
 		return g.ready(Blink) && len(g.adjacentMonsters()) > 0 && g.blinkAway(r)
 	}
-	spell := map[Action]Ability{ActMissile: MagicMissile, ActFireball: Fireball, ActFrost: FrostRay, ActSleep: Sleep}[gb.Do]
+	spell := map[Action]Ability{ActMissile: MagicMissile, ActFireball: Fireball, ActFrost: FrostRay, ActSleep: Sleep, ActHolyLight: HolyLight}[gb.Do]
 	t := g.spellTarget(gb.Target)
 	if !g.ready(spell) || t == nil || spell == Sleep && t.Asleep > 0 {
 		return false
@@ -752,7 +750,7 @@ func (a Action) HasTarget() bool {
 func (a Action) HasExit() bool { return a.Behavior() && a != ActRetreat }
 
 var (
-	actionKeys = [NumActions]string{"potion", "second_wind", "heal", "bless", "attack", "spells", "missile", "fireball",
+	actionKeys = [NumActions]string{"potion", "second_wind", "heal", "holy_light", "attack", "spells", "missile", "fireball",
 		"frost", "sleep", "blink", "idle", "flee", "hunt", "explore", "descend", "retreat"}
 	targetKeys = [NumTargets]string{"weakest", "nearest", "strongest", "boss"}
 	exitKeys   = [NumExits]string{"entry", "cond", "time", "done"}

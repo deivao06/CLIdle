@@ -105,18 +105,29 @@ func kindNamed(name string) int {
 	panic(name)
 }
 
-func TestTurnUndeadOnlyHitsUndead(t *testing.T) {
-	a, b := heroAt(Cleric, AbilityInfo[TurnUndead].Level, 1), heroAt(Cleric, AbilityInfo[TurnUndead].Level, 1)
+func TestHolyLightTriplesOnUndead(t *testing.T) {
+	a, b := heroAt(Cleric, AbilityInfo[HolyLight].Level, 1), heroAt(Cleric, AbilityInfo[HolyLight].Level, 1)
 	zombie, rat := dummy(), dummy()
 	zombie.Kind, rat.Kind = kindNamed("monster.zombie"), kindNamed("monster.rat")
 	a.besideHero(zombie)
 	b.besideHero(rat)
-	for zombie.HP == zombie.MaxHP {
-		a.heroAttack(zombie, &round{})
-		b.heroAttack(rat, &round{})
-	}
-	if lost, normal := zombie.MaxHP-zombie.HP, rat.MaxHP-rat.HP; lost != TurnUndeadMult*normal || b.Hero.MP != b.Hero.MaxMP() {
+	a.castSpell(HolyLight, zombie, &round{})
+	b.castSpell(HolyLight, rat, &round{})
+	lost, normal := zombie.MaxHP-zombie.HP, rat.MaxHP-rat.HP
+	if normal == 0 || lost != UndeadMult*normal || b.Hero.MP != b.Hero.MaxMP()-AbilityInfo[HolyLight].Mana {
 		t.Fatalf("undead %d, living %d, mp %d", lost, normal, b.Hero.MP)
+	}
+}
+
+func TestAuraAddsIntToDefense(t *testing.T) {
+	g := heroAt(Cleric, AbilityInfo[Aura].Level, 1)
+	h := g.Hero
+	with := h.Def()
+	h.Level--
+	without := h.Def()
+	h.Level++
+	if diff := with - without - ((h.Level-1)/2 - (h.Level-2)/2); diff != h.Attr(Int)*AuraDefPerInt || diff == 0 {
+		t.Fatalf("aura adds %d, int %d", diff, h.Attr(Int))
 	}
 }
 

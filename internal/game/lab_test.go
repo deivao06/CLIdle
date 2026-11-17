@@ -136,9 +136,9 @@ func TestLabLevelUnlocksRules(t *testing.T) {
 	s := DefaultScenario()
 	s.SetClass(Cleric)
 	n := len(s.Gambits)
-	s.SetLevel(15)
-	if len(s.Gambits) != n+1 || !slices.ContainsFunc(s.Gambits, func(gb Gambit) bool { return gb.Do == ActBless }) {
-		t.Fatal("the bless rule should be added")
+	s.SetLevel(AbilityInfo[HolyLight].Level)
+	if len(s.Gambits) != n+1 || !slices.ContainsFunc(s.Gambits, func(gb Gambit) bool { return gb.Do == ActHolyLight }) {
+		t.Fatal("the holy light rule should be added")
 	}
 	s.SetClass(Rogue)
 	if s.Gear[Weapon].Kind != Dagger || s.Gear[Shield].On {

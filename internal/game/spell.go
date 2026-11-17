@@ -39,16 +39,6 @@ func (g *Game) healSpell(r *round) bool {
 	return true
 }
 
-func (g *Game) bless(r *round) bool {
-	if g.Exp.Blessed > 0 || !g.ready(Bless) {
-		return false
-	}
-	g.useMana(Bless)
-	g.Exp.Blessed = BlessRounds
-	r.hero = lang.T("spell.bless.log")
-	return true
-}
-
 // castTarget prefers the nearest monster in range that is not asleep.
 func (g *Game) castTarget() *Monster {
 	l := g.Exp.Level
@@ -115,6 +105,14 @@ func (g *Game) castSpell(a Ability, t *Monster, r *round) {
 		d := g.spellDamage(FrostRay, t)
 		t.Slowed = FrostSlowRounds
 		r.hero = lang.T("spell.frost_ray.log", name, d)
+		g.hurt(t, d, r)
+	case HolyLight:
+		g.useMana(HolyLight)
+		d := g.spellDamage(HolyLight, t)
+		if t.Info().Undead {
+			d *= UndeadMult
+		}
+		r.hero = lang.T("spell.holy_light.log", name, d)
 		g.hurt(t, d, r)
 	default:
 		g.useMana(MagicMissile)

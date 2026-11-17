@@ -22,8 +22,8 @@ const (
 	Blink
 	FrostRay
 	Heal
-	Bless
-	TurnUndead
+	Aura
+	HolyLight
 	NumAbilities
 )
 

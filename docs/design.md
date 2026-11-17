@@ -107,7 +107,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
   - **Guerreiro:** golpe forte (dano dobrado a cada N golpes), segundo fôlego (cura uma vez por andar com vida baixa), golpe giratório (o golpe forte acerta todos em volta).
   - **Ladino:** ataque furtivo (dano triplo em monstro dormindo ou intacto), esquiva (cresce com DES), faro para tesouro (mais ouro e itens).
   - **Mago:** ataca de longe quando tem mana: míssil mágico, sono, bola de fogo, piscar (foge quando cercado e ferido), raio gélido (desacelera). Sem mana, luta com o cajado.
-  - **Clérigo:** curar ferimentos (antes da poção), bênção (mais acerto e Defesa no começo da luta), expulsar mortos-vivos (dano triplo em zumbi, esqueleto e Lich).
+  - **Clérigo (rework 2026-11-17, "clérigo de batalha"):** a INT é o atributo principal (ganha +1 FOR e +2 INT a cada 2 níveis) e dá força às habilidades. Curar ferimentos (nível 1, antes da poção), Aura sagrada (nível 12, passiva, +1 Defesa por INT, aparece na Defesa do painel; substituiu a Bênção, que durava 8 rodadas e dava só +3 Defesa e metade do erro), Luz sagrada (nível 25, 3 de mana, dano à distância 4 + INT + arma como o míssil mágico, triplo em zumbi, esqueleto e Lich; substituiu Expulsar mortos-vivos). Save v11 apaga as regras antigas de Bênção.
 
 ## Cidade (v1)
 

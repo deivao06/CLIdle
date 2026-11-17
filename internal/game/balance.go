@@ -242,8 +242,8 @@ var AbilityInfo = [NumAbilities]abilityInfo{
 	Blink:        {Mage, 22, 4, "spell.blink"},
 	FrostRay:     {Mage, 30, 4, "spell.frost_ray"},
 	Heal:         {Cleric, 1, 4, "spell.heal"},
-	Bless:        {Cleric, 12, 3, "spell.bless"},
-	TurnUndead:   {Cleric, 25, 3, "spell.turn_undead"},
+	Aura:         {Cleric, 12, 0, "spell.aura"},
+	HolyLight:    {Cleric, 25, 3, "spell.holy_light"},
 }
 
 const (
@@ -269,13 +269,12 @@ const (
 	FrostSlowRounds  = 5
 	BlinkHPPct       = 35
 
-	HealPct        = 35
-	BlessRounds    = 8
-	BlessDef       = 3
-	TurnUndeadMult = 3
+	HealPct       = 35
+	AuraDefPerInt = 1
+	UndeadMult    = 3
 )
 
-var SpellPower = [NumAbilities]int{MagicMissile: 4, Fireball: 4, FrostRay: 6}
+var SpellPower = [NumAbilities]int{MagicMissile: 4, Fireball: 4, FrostRay: 6, HolyLight: 4}
 
 type itemName struct {
 	depth int
@@ -343,7 +342,7 @@ var ClassStats = [NumClasses]classStats{
 	Warrior: {Growth: [NumTraits]int{Str: 3}},
 	Mage:    {Start: [NumTraits]int{Int: 2}, Growth: [NumTraits]int{Int: 4}},
 	Rogue:   {Start: [NumTraits]int{Dex: 1}, Growth: [NumTraits]int{Dex: 1}},
-	Cleric:  {Growth: [NumTraits]int{Str: 2, Int: 1}},
+	Cleric:  {Growth: [NumTraits]int{Str: 1, Int: 2}},
 }
 
 func BagCost(level int) int {

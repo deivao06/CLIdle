@@ -24,7 +24,6 @@ type Expedition struct {
 	Attacks        int
 	SecondWindUsed bool
 	ManaAcc        int
-	Blessed        int
 	Fighting       bool
 
 	ActiveRule  int
@@ -117,7 +116,7 @@ func New(seed uint64, c Class) *Game {
 }
 
 func (g *Game) inCombat() bool {
-	return g.Exp != nil && (g.adjacentMonster() != nil || g.ready(MagicMissile) && g.castTarget() != nil)
+	return g.Exp != nil && (g.adjacentMonster() != nil || (g.ready(MagicMissile) || g.ready(HolyLight)) && g.castTarget() != nil)
 }
 
 // StepMs is the duration of the next step: combat rounds have a fixed pace after the first, exploration follows speed.
@@ -208,9 +207,6 @@ func (g *Game) step() {
 	r := &round{}
 	fighting := g.inCombat()
 	g.regenMana()
-	if g.Exp.Blessed > 0 {
-		g.Exp.Blessed--
-	}
 	g.monstersAct(r, true)
 	drive := ActExplore
 	if g.Exp != nil {
@@ -457,9 +453,6 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	sneak := h.Has(SneakAttack) && (!m.Awake || m.HP == m.MaxHP)
 	m.Awake = true
 	miss := h.MissChance(m.Dex)
-	if e.Blessed > 0 {
-		miss /= 2
-	}
 	if e.RNG.Chance(miss) {
 		g.emit(Event{Kind: EventMiss, Pos: m.Pos})
 		r.hero = lang.T("combat.hero_miss", name)
@@ -484,11 +477,6 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 		g.emit(Event{Kind: EventSkill, Pos: h.Pos, Value: int(SneakAttack)})
 		d *= SneakMult
 		key = "ability.sneak_attack.log"
-	}
-	if m.Info().Undead && g.ready(TurnUndead) {
-		g.useMana(TurnUndead)
-		d *= TurnUndeadMult
-		key = "spell.turn_undead.log"
 	}
 	g.strong = key != "combat.hero_hit"
 	died := g.hurt(m, d, r)
@@ -654,11 +642,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 		return
 	}
 	e.MonMisses, r.monLuck = Streak{}, false
-	def := h.Def()
-	if e.Blessed > 0 {
-		def += BlessDef
-	}
-	d := damage(e.RNG, m.Atk, def)
+	d := damage(e.RNG, m.Atk, h.Def())
 	if c := CritChance(m.Dex, h.Attr(Dex)); c > 0 && e.RNG.Chance(c) {
 		d *= 2
 	}
