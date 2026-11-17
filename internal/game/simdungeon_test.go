@@ -3,119 +3,40 @@ package game
 import (
 	"fmt"
 	"os"
-	"slices"
 	"strconv"
 	"testing"
 )
 
-// smartSpend buys shop upgrades first, then the cheapest of blacksmith, training (main attribute and CON) and bag,
-// keeping gold for five potions.
-func smartSpend(g *Game) {
-	for {
-		bought := false
-		for i, it := range g.Shop {
-			cur := g.Hero.Equip[it.Slot]
-			if g.Hero.Class.CanUse(it) && (cur == nil || it.Bonus() > cur.Bonus()) && g.Gold-ShopPrice(it) >= 5*PotionPrice {
-				g.BuyShop(i)
-				bought = true
-				break
-			}
-		}
-		if !bought {
-			break
-		}
-	}
-	reserve := 5 * PotionPrice
-	for {
-		best, cost := -1, 1<<62
-		try := func(id, c int) {
-			if c > 0 && c < cost {
-				best, cost = id, c
-			}
-		}
-		for s := range NumSlots {
-			if it := g.Hero.Equip[s]; it != nil && it.Upgrade < UpgradeMax {
-				try(int(s), g.UpgradeCost(s))
-			}
-		}
-		for _, t := range append(slices.Clone(auditTraits[g.Hero.Class]), Con) {
-			try(100+int(t), TrainCost(g.Hero.Training[t]))
-		}
-		if _, c, ok := g.NextBag(); ok {
-			try(200, c)
-		}
-		if best < 0 || g.Gold-cost < reserve {
-			return
-		}
-		switch {
-		case best < 100:
-			g.Upgrade(Slot(best))
-		case best < 200:
-			g.Train(Trait(best - 100))
-		default:
-			g.UpgradeBag()
-		}
-	}
-}
+// simSeeds are the fixed seeds of the dungeon simulation, so a run can be replayed in the playground.
+var simSeeds = []uint64{58212943, 71904426, 83351607}
 
-// clearRun plays one hero until it clears the first dungeon or 480 simulated hours pass. The careful profile (smart) also steps
-// back a shortcut after three deaths in a row and forward after each return.
+// clearRun plays one hero with a Runner until it clears the first dungeon or 480 simulated hours pass.
 func clearRun(rec *simRecorder, c Class, seed uint64, smart bool) string {
-	g := New(seed, c)
-	label := "afobado"
+	p := ProfileRash
 	if smart {
-		label = "cuidadoso"
+		p = ProfileCareful
 	}
-	ser := rec.series(c, label, seed)
-	nextH := int64(0)
+	r := NewRunner(c, p, seed)
+	g := r.Game
+	ser := rec.series(c, p.Key(), seed)
+	ser.Replay = ReplayCode(c, p, seed)
 	rec.add(ser, 0, g)
-	if smart {
-		g.Config.PotionsToBring = 5
-	}
-	var ms int64
-	fails, start := 0, 0
-	const capMs = 480 * 3600 * 1000
+	const capMs, sampleMs = 480 * 3600 * 1000, 15 * 60 * 1000
 	lv100 := 0
-	for ms < capMs && g.Dungeon == 0 {
-		deaths, before := g.Deaths, g.Gold
-		list := g.ShortcutList()
-		if smart {
-			smartSpend(g)
-			start = min(max(start, 0), len(list)-1)
-			g.Config.StartFloor = list[start]
-		} else {
-			auditSpend(g)
-			g.Config.StartFloor = slices.Max(list)
-		}
-		g.Depart()
-		ser.spent += before - g.Gold
-		for g.Exp != nil && ms < capMs {
-			g.Advance(60000)
-			ms += 60000
-			if ms >= nextH {
-				rec.add(ser, ms, g)
-				nextH = ms + 15*60*1000
-			}
-			if lv100 == 0 && g.Exp != nil && g.Floor(g.Exp.Level.Depth) == DungeonFloors {
-				lv100 = g.Hero.Level
-			}
-		}
-		ms += TownWaitMs
-		if g.Deaths > deaths {
-			if fails++; fails >= 3 {
-				start, fails = start-1, 0
-			}
-		} else {
-			fails, start = 0, start+1
+	for r.Ms < capMs && g.Dungeon == 0 {
+		r.Advance(min(sampleMs, capMs-r.Ms))
+		ser.spent = r.Spent
+		rec.add(ser, r.Ms, g)
+		if lv100 == 0 && g.Exp != nil && g.Floor(g.Exp.Level.Depth) == DungeonFloors {
+			lv100 = g.Hero.Level
 		}
 	}
-	rec.add(ser, ms, g)
 	rec.done(ser)
-	return fmt.Sprintf("%-8s smart=%-5v seed %d: cleared=%-5v hours=%3.0f level=%2d lv@100=%2d deepest=%3d deaths %d",
-		c.Name(), smart, seed, g.Dungeon > 0, float64(ms)/3.6e6, g.Hero.Level, lv100, g.MaxDepth, g.Deaths)
+	return fmt.Sprintf("%-8s %-9s seed %d: cleared=%-5v hours=%3.0f level=%2d lv@100=%2d deepest=%3d deaths %d",
+		c.Name(), p.Key(), seed, g.Dungeon > 0, float64(r.Ms)/3.6e6, g.Hero.Level, lv100, g.MaxDepth, g.Deaths)
 }
 
-// TestSimDungeon runs the player profiles for one class (SIM_CLASS); SIM_PROFILE (afobado or cuidadoso) runs just
+// TestSimDungeon runs the player profiles for one class (SIM_CLASS); SIM_PROFILE (rash or careful) runs just
 // one of them, so each class and profile can run in its own process.
 func TestSimDungeon(t *testing.T) {
 	cs := os.Getenv("SIM_CLASS")
@@ -123,13 +44,17 @@ func TestSimDungeon(t *testing.T) {
 		t.Skip()
 	}
 	ci, _ := strconv.Atoi(cs)
-	profiles := map[string][]bool{"": {false, true}, "afobado": {false}, "cuidadoso": {true}}[os.Getenv("SIM_PROFILE")]
-	if profiles == nil {
-		t.Fatal("SIM_PROFILE must be afobado or cuidadoso")
+	profiles := []bool{false, true}
+	if key := os.Getenv("SIM_PROFILE"); key != "" {
+		p, ok := ParseProfile(key)
+		if !ok {
+			t.Fatal("SIM_PROFILE must be rash or careful")
+		}
+		profiles = []bool{p == ProfileCareful}
 	}
 	rec := newSimRecorder()
 	for _, smart := range profiles {
-		for seed := uint64(1); seed <= 3; seed++ {
+		for _, seed := range simSeeds {
 			fmt.Println("RESULT " + clearRun(rec, Class(ci), seed, smart))
 		}
 	}

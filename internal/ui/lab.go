@@ -25,7 +25,16 @@ const (
 	labFloor
 	labTactics
 	labConfig
+	labReplay
 	labPages
+)
+
+// What the playground is typing into.
+const (
+	fieldSeed = iota
+	fieldCode
+	fieldReplay
+	fieldTime
 )
 
 const (
@@ -54,7 +63,7 @@ type labState struct {
 	room   int
 	inRoom bool
 	typing bool
-	code   bool
+	field  int
 	buf    string
 	warn   string
 	note   string
@@ -67,6 +76,7 @@ type Lab struct {
 	Model
 	sc      *game.Scenario
 	st      *labState
+	rp      *replayState
 	built   string
 	running bool
 	speed   int
@@ -76,7 +86,7 @@ type Lab struct {
 // NewLab opens the playground on the default scenario, in English; it never reads or writes the save.
 func NewLab() Lab {
 	sc := game.DefaultScenario()
-	l := Lab{sc: &sc, st: &labState{floor: 1, col: 1, room: game.LabRooms / 2}, speed: slices.Index(labSpeeds, 100)}
+	l := Lab{sc: &sc, st: &labState{floor: 1, col: 1, room: game.LabRooms / 2}, rp: &replayState{speed: 2}, speed: slices.Index(labSpeeds, 100)}
 	l.Model = New(game.NewLab(sc))
 	l.built = fmt.Sprint(sc)
 	return l
@@ -111,6 +121,8 @@ func (l Lab) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tickMsg:
 		l.advance(time.Time(msg))
 		return l, tick()
+	case replayDoneMsg:
+		l.rp.busy = false
 	case tea.KeyMsg:
 		k := msg.String()
 		if msg.Paste {
@@ -123,6 +135,10 @@ func (l Lab) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			l.st.copy = ""
 			return l, copyCmd(c)
 		}
+		if c := l.rp.cmd; c != nil {
+			l.rp.cmd = nil
+			return l, c
+		}
 	}
 	return l, nil
 }
@@ -130,6 +146,12 @@ func (l Lab) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (l *Lab) advance(now time.Time) {
 	gap := now.Sub(l.lastTick).Milliseconds()
 	l.lastTick = now
+	if l.rp.busy {
+		return
+	}
+	if l.tab == labReplay {
+		l.replayTick(gap, now)
+	}
 	if l.running {
 		l.acc += gap * int64(labSpeeds[l.speed]) / 100
 		for n := 0; !l.over(); n++ {
@@ -161,6 +183,12 @@ func (l *Lab) play() {
 
 // key handles a key press and reports whether to quit.
 func (l *Lab) key(k string) bool {
+	if l.rp.busy {
+		if k == "esc" {
+			l.rp.cancel.Store(true)
+		}
+		return k == "ctrl+c"
+	}
 	before := slices.Clone(l.g.Config.Gambits)
 	defer l.sync(before)
 	switch {
@@ -181,13 +209,16 @@ func (l *Lab) key(k string) bool {
 		return false
 	}
 	l.st.warn, l.st.note = "", ""
+	if l.tab == labReplay && l.replayKey(k) {
+		return false
+	}
 	switch k {
 	case "q":
 		return true
 	case "c":
 		code := l.sc.Code()
 		l.st.note, l.st.copy = lang.T("lab.code.copied", code), code
-	case "1", "2", "3", "4", "5", "6":
+	case "1", "2", "3", "4", "5", "6", "7":
 		page := int(k[0] - '1')
 		l.st.inRoom = false
 		l.leave(func(m *Model) { m.tab, m.cursor, m.listFree = page, 0, false })
@@ -223,10 +254,23 @@ func (l *Lab) typeText(k string) {
 	switch k {
 	case "enter":
 		st.typing = false
-		if st.code {
+		switch st.field {
+		case fieldCode:
 			l.loadCode(st.buf)
-		} else if n, err := strconv.ParseUint(st.buf, 10, 64); err == nil {
-			l.sc.Seed = n
+		case fieldReplay:
+			if !l.rp.load(st.buf) {
+				st.warn = lang.T("lab.replay.invalid")
+			}
+		case fieldTime:
+			if t, ok := parseReplayTime(st.buf); ok {
+				l.rp.cmd = l.rp.seek(t)
+			} else {
+				st.warn = lang.T("lab.replay.bad_time")
+			}
+		default:
+			if n, err := strconv.ParseUint(st.buf, 10, 64); err == nil {
+				l.sc.Seed = n
+			}
 		}
 		return
 	case "esc":
@@ -239,10 +283,15 @@ func (l *Lab) typeText(k string) {
 		return
 	}
 	for _, r := range k {
-		code := unicode.IsLetter(r) && r < unicode.MaxASCII || r == '-' || r == '_'
-		switch {
-		case st.code && (unicode.IsDigit(r) || code) && len(st.buf) < labCodeLen,
-			!st.code && unicode.IsDigit(r) && len(st.buf) < labSeedLen:
+		letter := unicode.IsLetter(r) && r < unicode.MaxASCII
+		digit := unicode.IsDigit(r)
+		ok := map[int]bool{
+			fieldSeed:   digit && len(st.buf) < labSeedLen,
+			fieldCode:   (digit || letter || r == '-' || r == '_') && len(st.buf) < labCodeLen,
+			fieldReplay: (digit || letter || r == '-') && len(st.buf) < labCodeLen,
+			fieldTime:   (digit || r == ':' || r == 'h' || r == 'H') && len(st.buf) < 8,
+		}[st.field]
+		if ok {
 			st.buf += string(r)
 		}
 	}
@@ -342,6 +391,8 @@ func (l Lab) rows() []prepRow {
 		return l.tacticsRows(0)
 	case labConfig:
 		return l.configRows()
+	case labReplay:
+		return l.replayRows()
 	}
 	return nil
 }
@@ -365,6 +416,9 @@ func (l Lab) view() string {
 	if l.w == 0 {
 		return ""
 	}
+	if l.rp.busy {
+		return l.replayBusy()
+	}
 	if l.w < labMinW || l.h < labMinH {
 		msg := sWarn.Render(lang.T("ui.too_small")) + "\n" +
 			sMuted.Render(lang.T("ui.too_small_size", labMinW, labMinH, l.w, l.h))
@@ -386,6 +440,9 @@ func (l Lab) view() string {
 
 // viewMap is the right column: the run, or on the floor page a preview of the floor being edited.
 func (l Lab) viewMap(h int) string {
+	if l.tab == labReplay {
+		return l.replayMap(h)
+	}
 	m := l.Model
 	m.w = game.MapW
 	if l.tab == labFloor {
@@ -409,6 +466,13 @@ func (l Lab) viewPage(w, h int) string {
 	if l.tab == labMap {
 		pw := min(heroColW, w-2)
 		return l.heroPanel(pw, h, true) + l.heroAbilityNames(pw)
+	}
+	if l.tab == labReplay {
+		head := l.replayHead(w)
+		if l.st.warn != "" {
+			head = append(head, sWarn.Render(l.st.warn))
+		}
+		return l.viewRows(head, l.rows(), w, h)
 	}
 	keys := []string{"↑↓", lang.T("lab.key.choose"), "←→", lang.T("lab.key.adjust"), "enter", lang.T("lab.key.enter")}
 	switch {
@@ -460,7 +524,10 @@ func (l Lab) header() string {
 		right += sMuted.Render(lang.T("lab.state.floor", e.Level.Depth))
 	}
 	right += "  " + l.runState() + " "
-	keys := []string{"lab.tab.map", "lab.tab.hero", "lab.tab.gear", "lab.tab.floor", "lab.tab.tactics", "lab.tab.config"}
+	if l.tab == labReplay {
+		right = l.replayStatus() + " "
+	}
+	keys := []string{"lab.tab.map", "lab.tab.hero", "lab.tab.gear", "lab.tab.floor", "lab.tab.tactics", "lab.tab.config", "lab.tab.replay"}
 	var parts []string
 	for i, k := range keys {
 		if i == l.tab {
@@ -479,17 +546,17 @@ func (l Lab) header() string {
 func (l Lab) footer() string {
 	switch {
 	case l.st.typing:
-		what := lang.T("lab.key.seed")
-		if l.st.code {
-			what = lang.T("lab.key.code")
-		}
+		what := lang.T([...]string{"lab.key.seed", "lab.key.code", "lab.key.replay", "lab.key.time"}[l.st.field])
 		return hints(l.w, lang.T("lab.key.type"), what, "enter", lang.T("lab.key.confirm"), "esc", lang.T("lab.key.cancel"))
 	case l.st.note != "":
 		return truncate(sTitle.Render(l.st.note), l.w)
+	case l.tab == labReplay:
+		return hints(l.w, lang.T("lab.key.space"), lang.T("lab.key.play"), "p", lang.T("lab.key.step"), "+/-", lang.T("lab.key.speed"),
+			"home", lang.T("lab.replay.key.start"), "1-7", lang.T("lab.key.screens"), "q", lang.T("lab.key.quit"))
 	case l.confirmDo != nil:
 		return hints(l.w, "y/enter", lang.T("lab.key.confirm"), "n/esc", lang.T("lab.key.cancel"))
 	}
 	return hints(l.w, lang.T("lab.key.space"), lang.T("lab.key.play"), "p", lang.T("lab.key.step"), "+/-", lang.T("lab.key.speed"),
 		"r", lang.T("lab.key.restart"), "n", lang.T("lab.key.new_seed"), "v", lang.T("lab.key.see_all", onOff(l.seeAll)),
-		"c", lang.T("lab.key.copy_code"), "1-6", lang.T("lab.key.screens"), "q", lang.T("lab.key.quit"))
+		"c", lang.T("lab.key.copy_code"), "1-7", lang.T("lab.key.screens"), "q", lang.T("lab.key.quit"))
 }

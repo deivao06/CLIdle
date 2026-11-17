@@ -23,6 +23,7 @@ type simSeries struct {
 	Class  string      `json:"class"`
 	Label  string      `json:"label"`
 	Seed   uint64      `json:"seed"`
+	Replay string      `json:"replay,omitempty"`
 	Done   bool        `json:"done"`
 	Points []simPoint  `json:"points"`
 	Fights []bossPoint `json:"fights,omitempty"`
@@ -71,6 +72,7 @@ func newSimRecorder() *simRecorder {
 	}
 	dir := filepath.Join("..", "..", "tools", "simview", "data", batch)
 	os.MkdirAll(dir, 0o755)
+	writeSimFormulas(batch)
 	return &simRecorder{path: filepath.Join(dir, name+".json"), file: simFile{Batch: batch, Title: os.Getenv("SIMVIEW_TITLE"), Note: os.Getenv("SIMVIEW_NOTE"), Started: time.Now()}}
 }
 

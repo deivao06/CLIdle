@@ -168,7 +168,7 @@ func (l Lab) floorRows() []prepRow {
 	seed := fmt.Sprint(sc.Seed)
 	if st.typing {
 		seed = st.buf + "▏"
-		if st.code {
+		if st.field != fieldSeed {
 			seed = fmt.Sprint(sc.Seed)
 		}
 	}
@@ -180,9 +180,9 @@ func (l Lab) floorRows() []prepRow {
 			sc.Mode = 1 - sc.Mode
 		}),
 		{section: sec, text: fmt.Sprintf("%-24s %s", lang.T("lab.seed"), seed), style: sPlain, desc: lang.T("lab.seed.desc"),
-			act: func(*Model) { st.typing, st.code, st.buf = true, false, fmt.Sprint(sc.Seed) }},
+			act: func(*Model) { st.typing, st.field, st.buf = true, fieldSeed, fmt.Sprint(sc.Seed) }},
 	}
-	if st.typing && !st.code {
+	if st.typing && st.field == fieldSeed {
 		rows[2].style = sTitle
 	}
 	if st.inRoom {
@@ -322,12 +322,12 @@ func (l Lab) configRows() []prepRow {
 	g, st := l.g, l.st
 	sec := lang.T("lab.section.config")
 	code, style := l.sc.Code(), sPlain
-	if st.typing && st.code {
+	if st.typing && st.field == fieldCode {
 		code, style = st.buf+"▏", sTitle
 	}
 	return []prepRow{
 		{section: sec, text: fmt.Sprintf("%-24s %s", lang.T("lab.code"), code), style: style, desc: lang.T("lab.code.desc"),
-			act: func(*Model) { st.typing, st.code, st.buf = true, true, "" }},
+			act: func(*Model) { st.typing, st.field, st.buf = true, fieldCode, "" }},
 		cfgRow(sec, "prep.language", lang.T("lang.name"), func(int) { lang.Set(lang.Next(lang.Current())) }),
 		cfgRow(sec, "prep.effects", lang.T([...]string{"prep.effects_full", "prep.effects_subtle", "prep.effects_off"}[g.Effects]), func(d int) {
 			g.Effects = (g.Effects + game.Effects(sign(d)) + game.NumEffectLevels) % game.NumEffectLevels

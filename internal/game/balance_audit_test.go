@@ -25,54 +25,6 @@ import (
 	"testing"
 )
 
-var auditTraits = [NumClasses][]Trait{
-	Warrior: {Str, Con},
-	Mage:    {Int, Con},
-	Rogue:   {Dex},
-	Cleric:  {Int, Con},
-}
-
-// auditSpend is the same policy as spendClass (sim50_test.go): buy the cheapest of smith/train/bag while
-// keeping gold for the potions.
-func auditSpend(g *Game) {
-	reserve := g.Config.PotionsToBring * PotionPrice
-	for {
-		best, cost := auditCheapest(g)
-		if best < 0 || g.Gold-cost < reserve {
-			return
-		}
-		switch {
-		case best < 100:
-			g.Upgrade(Slot(best))
-		case best < 200:
-			g.Train(Trait(best - 100))
-		default:
-			g.UpgradeBag()
-		}
-	}
-}
-
-func auditCheapest(g *Game) (int, int) {
-	best, cost := -1, 1<<62
-	try := func(id, c int) {
-		if c > 0 && c < cost {
-			best, cost = id, c
-		}
-	}
-	for s := range NumSlots {
-		if it := g.Hero.Equip[s]; it != nil && it.Upgrade < UpgradeMax {
-			try(int(s), g.UpgradeCost(s))
-		}
-	}
-	for _, t := range auditTraits[g.Hero.Class] {
-		try(100+int(t), TrainCost(g.Hero.Training[t]))
-	}
-	if _, c, ok := g.NextBag(); ok {
-		try(200, c)
-	}
-	return best, cost
-}
-
 func auditEnvInt(k string, def int) int {
 	if v, err := strconv.Atoi(os.Getenv(k)); err == nil {
 		return v
