@@ -29,6 +29,9 @@ func bossTraining(c Class, total int) [NumTraits]int {
 	return t
 }
 
+// bossSeed is the first fight's seed; the others step from it.
+const bossSeed = 31415926
+
 const (
 	bossCheckFights = 20
 	bossCheckSteps  = 20000
@@ -91,7 +94,8 @@ func TestBossCheck(t *testing.T) {
 	for floor := BossEvery; floor <= DungeonFloors; floor += BossEvery {
 		p := bossPoint{Floor: floor, Level: bossCheckLevels[floor], Fights: bossCheckFights}
 		left := 0
-		for seed := uint64(1); seed <= bossCheckFights; seed++ {
+		for i := range uint64(bossCheckFights) {
+			seed := bossSeed + i*7919
 			won, l := bossFight(bossScenario(c, floor, seed, rarity, trained))
 			if won {
 				p.Wins++

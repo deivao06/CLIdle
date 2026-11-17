@@ -103,6 +103,8 @@
   .codebtn { all: unset; cursor: pointer; padding: 2px 6px; margin: -2px -6px; border-radius: 4px; }
   .codebtn:hover { background: var(--raise); text-decoration: underline; text-underline-offset: 3px; }
   .codebtn:focus-visible { outline: 2px solid var(--accent); }
+  td.runs .codebtn { margin: 0 0 0 2px; padding: 1px 7px; border: 1px solid var(--line); }
+  td.runs .codebtn.live { color: var(--run); border-color: #3a5a3a; }
   #toast { position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, 8px); max-width: min(720px, calc(100vw - 32px));
     background: #0b0c0c; border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--muted);
     box-shadow: 0 12px 32px rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity 160ms ease-out, transform 160ms ease-out; z-index: 5; }
@@ -121,6 +123,17 @@
   .ptable tbody th { color: var(--faint); font-size: 12px; font-weight: 500; width: 130px; }
   .ptable td { color: var(--text); line-height: 1.5; }
   .ptable code, .profiles code { font: 12px var(--mono); color: var(--muted); }
+  #formulas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 12px; }
+  #formulas:empty { display: none; }
+  .formula { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+  .formula h3 { margin: 0 0 4px; font-size: 12px; font-weight: 500; color: var(--faint); }
+  .formula .expr { margin: 0 0 10px; font: 600 15px var(--mono); color: var(--accent); }
+  .formula dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0 0 10px; font-size: 13px; }
+  .formula dt { font: 600 13px var(--mono); color: var(--text); text-align: right; }
+  .formula dd { margin: 0; color: var(--muted); }
+  .formula .ex { margin: 0; font-size: 12px; color: var(--muted); }
+  .formula .ex span { color: var(--faint); }
+  .formula .ex b { color: var(--text); font: 600 12px var(--mono); }
   .empty { max-width: 68ch; color: var(--muted); }
   .empty h2 { color: var(--text); font-size: 18px; margin: 8px 0; }
   .empty pre { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; color: var(--text); overflow-x: auto; font: 12px/1.5 var(--mono); }
@@ -162,6 +175,8 @@
     bossLeft: "HP do chefe que sobrou: a média de vida que o chefe ainda tinha no fim das lutas (0% quando morre). Mostra o quão longe o herói ficou.",
   };
   const isBoss = () => current?.kind === "boss";
+  const CLASS_KEY = { Warrior: "warrior", Mage: "mage", Rogue: "rogue", Cleric: "cleric" };
+  const replayCode = (s) => s.replay || `${CLASS_KEY[s.class] || s.class}-${PROFILE_ALIAS[s.label] || s.label}-${s.seed}`;
   const metricsNow = () => isBoss() ? BOSS_METRICS : METRICS;
   const METRIC_HELP = {
     floor: "Andar: o andar mais fundo que o herói já alcançou.",
@@ -207,30 +222,32 @@
     const updated = Math.max(...parts.map((p) => +new Date(p.updated)));
     const kind = parts.find((p) => p.kind)?.kind || "run";
     if (kind === "boss") for (const s of series) s.points = (s.fights || []).map((f) => ({ h: f.floor, ...f }));
-    return { id: b.id, kind, title: parts.find((p) => p.title)?.title || b.id, note: parts.find((p) => p.note)?.note || "", series, started, updated };
+    return { id: b.id, kind, title: parts.find((p) => p.title)?.title || b.id, note: parts.find((p) => p.note)?.note || "", formulas: b.formulas || null, series, started, updated };
   };
   const stateOf = (m) => m.series.length && m.series.every((s) => s.done) ? "done" : Date.now() - m.updated < STALE_MS ? "run" : "stale";
   const STATE_TEXT = { run: "rodando", stale: "parada", done: "terminada" };
 
   const PROFILES = {
-    afobado: { name: "Afobado", summary: "Quer chegar fundo rápido e não liga de morrer.", traits: {
+    rash: { name: "Afobado (rash)", summary: "Quer chegar fundo rápido e não liga de morrer.", traits: {
       start: "Sempre no atalho mais fundo já liberado, mesmo depois de morrer várias vezes seguidas.",
       gold: "Compra sempre a melhoria mais barata: ferreiro, treino ou mochila. Nunca compra na loja.",
       train: "O atributo principal da classe e CON. O ladino só treina DES.",
       potions: "Leva 3 (o padrão do jogo) e guarda ouro para elas." } },
-    cuidadoso: { name: "Cuidadoso", summary: "Só avança quando aguenta e não sai sem poções.", traits: {
+    careful: { name: "Cuidadoso (careful)", summary: "Só avança quando aguenta e não sai sem poções.", traits: {
       start: "Começa no atalho mais raso. Avança um atalho a cada volta viva e recua um depois de 3 mortes seguidas.",
       gold: "Primeiro troca equipamento na loja quando o item é melhor que o atual. Depois compra a melhoria mais barata: ferreiro, treino ou mochila.",
       train: "O atributo principal da classe e CON. O ladino também treina CON.",
       potions: "Leva 5 e sempre guarda ouro para elas." } },
   };
   const TRAITS = [["start", "Onde começa"], ["gold", "Como gasta o ouro"], ["train", "Treino"], ["potions", "Poções"]];
-  const PROFILE_ALIAS = { old: "afobado", smart: "cuidadoso" };
+  const PROFILE_ALIAS = { old: "rash", smart: "careful", afobado: "rash", cuidadoso: "careful" };
   const profileOf = (l) => PROFILES[PROFILE_ALIAS[l] || l];
 
   async function loadBatch(id) {
     const b = batches.get(id) || { id, files: new Map() };
-    const names = (await links(`data/${encodeURIComponent(id)}/`)).filter((f) => f.endsWith(".json"));
+    const all = (await links(`data/${encodeURIComponent(id)}/`)).filter((f) => f.endsWith(".json"));
+    const names = all.filter((f) => !f.startsWith("_"));
+    if (all.includes("_formulas.json") && !b.formulas) b.formulas = await getJSON(`data/${encodeURIComponent(id)}/_formulas.json`);
     const parts = await Promise.all(names.map((f) => getJSON(`data/${encodeURIComponent(id)}/${encodeURIComponent(f)}`)));
     let changed = false;
     names.forEach((f, i) => {
@@ -297,7 +314,9 @@
         if (vs.length) pts.push({ h: t, med: median(vs) });
         if (t >= until) break;
       }
-      out.push({ cls: c, color: colorOf(c), pts, runs: ss, live: ss.some((s) => !s.done) });
+      const ends = ss.filter((s) => s.done).map(endH).sort((a, b) => a - b);
+      const partialAt = ss.length > 1 && ends.length && ends[0] < until - 1e-9 ? ends[0] : null;
+      out.push({ cls: c, color: colorOf(c), pts, runs: ss, live: ss.some((s) => !s.done), partialAt });
     }
     return { classes: out, maxH };
   }
@@ -390,7 +409,14 @@
         ctx.globalAlpha = 1;
       }
       ctx.strokeStyle = c.color; ctx.lineWidth = 2.2; ctx.lineJoin = "round"; ctx.lineCap = "round";
-      ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(X(p.h), Y(p.med)) : ctx.moveTo(X(p.h), Y(p.med))); ctx.stroke();
+      const cut = c.partialAt ?? Infinity;
+      ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(X(p.h), Y(p.med)) : ctx.moveTo(X(p.h), Y(p.med)));
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, Math.min(X(cut), w), h); ctx.clip();
+      ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(X(p.h), Y(p.med)) : ctx.moveTo(X(p.h), Y(p.med))); ctx.stroke(); ctx.restore();
+      if (cut < Infinity) {
+        ctx.save(); ctx.beginPath(); ctx.rect(X(cut), 0, w, h); ctx.clip(); ctx.setLineDash([6, 5]);
+        ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(X(p.h), Y(p.med)) : ctx.moveTo(X(p.h), Y(p.med))); ctx.stroke(); ctx.restore();
+      }
       if (isBoss()) { ctx.fillStyle = c.color; for (const p of pts) if (p.h % BOSS_EVERY === 0) { ctx.beginPath(); ctx.arc(X(p.h), Y(p.med), 3, 0, Math.PI * 2); ctx.fill(); } }
       const e = pts[pts.length - 1];
       ends.push({ c, x: X(e.h), y: Y(e.med), v: e.med });
@@ -447,7 +473,9 @@
       const vs = c.runs.map((s) => valueAt(s, view.hover, metric)).filter((v) => v !== null);
       const lo = Math.min(...vs), hi = Math.max(...vs);
       const rng = vs.length > 1 && lo !== hi ? `<span class="rng" title="menor–maior entre as runs"> ${num(lo)}–${num(hi)}</span>` : "";
-      return `<div class="r"><span><span class="sw" style="background:${c.color}"></span>${CLASS_PT[c.cls] || c.cls}</span><span class="num">${num(p.med)}${isBoss() ? "%" : ""}${rng}</span></div>`;
+      const ended = !isBoss() && c.runs.filter((s) => s.done && endH(s) <= view.hover + 1e-9).length;
+      const note = ended && ended < c.runs.length ? `<div class="r rng"><span>${ended} de ${c.runs.length} runs já terminaram</span></div>` : "";
+      return `<div class="r"><span><span class="sw" style="background:${c.color}"></span>${CLASS_PT[c.cls] || c.cls}</span><span class="num">${num(p.med)}${isBoss() ? "%" : ""}${rng}</span></div>${note}`;
     }).join("");
     const tip = ch.tip;
     if (!rows) { tip.classList.remove("on"); return; }
@@ -496,7 +524,7 @@
       <div class="tablewrap"><table class="ptable"><thead><tr><th></th>${cols.map((p) => `<th>${esc(p.name)}<span>${esc(p.summary)}</span></th>`).join("")}</tr></thead>
         <tbody>${TRAITS.map(([k, t]) => `<tr><th scope="row">${t}</th>${cols.map((p) => `<td>${esc(p.traits[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
       <p><b>Em comum:</b> o herói usa as táticas padrão da classe. Cada perfil roda 3 seeds por classe, até concluir a dungeon 1 ou chegar a 240h simuladas.</p>
-      <p>Simulações antigas chamavam o Afobado de <code>old</code> e o Cuidadoso de <code>smart</code>.</p>
+      <p>Nos códigos e arquivos os perfis têm nome em inglês: <code>rash</code> (Afobado) e <code>careful</code> (Cuidadoso). Simulações antigas usavam <code>old</code>/<code>afobado</code> e <code>smart</code>/<code>cuidadoso</code>.</p>
     </section>`;
   }
   $("#profilesBtn").addEventListener("click", showProfiles);
@@ -510,8 +538,8 @@
       view.built = false;
       main.innerHTML = `<div class="empty"><h2>Nenhuma simulação ainda</h2>
         <p>Rode uma simulação com <code>SIMVIEW_BATCH</code> e ela aparece aqui sozinha, desenhando ao vivo:</p>
-        <pre>SIMVIEW_BATCH=minha-sim SIMVIEW_TITLE="Minha simulação" SIMVIEW_FILE=guerreiro-cuidadoso \\
-  SIM_CLASS=0 SIM_PROFILE=cuidadoso go test ./internal/game -run TestSimDungeon -timeout 4h</pre>
+        <pre>SIMVIEW_BATCH=minha-sim SIMVIEW_TITLE="Minha simulação" SIMVIEW_FILE=warrior-careful \\
+  SIM_CLASS=0 SIM_PROFILE=careful go test ./internal/game -run TestSimDungeon -timeout 4h</pre>
         <p>Um processo por classe (<code>SIM_CLASS</code> 0 a 3) e perfil (<code>SIM_PROFILE</code>) roda tudo em paralelo; cada um precisa de um <code>SIMVIEW_FILE</code> próprio.</p></div>`;
       return;
     }
@@ -531,6 +559,7 @@
         ${isBoss() ? "" : `<label class="check"><input type="checkbox" id="each" ${eachRun ? "checked" : ""}> Cada run</label>`}
       </div>
       <p class="hint" id="hint"></p>
+      <div id="formulas"></div>
       <div class="charts ${split.length > 1 ? "split" : ""}">${split.map((l, i) => `
         <section class="pane" data-i="${i}">
           ${l !== null ? `<h3>${esc(policyName(l))}</h3>${profileOf(l) ? `<p class="sum">${esc(profileOf(l).summary)} <a href="#${PROFILES_HASH}" data-profiles>Ver perfis</a></p>` : ""}` : ""}
@@ -556,18 +585,29 @@
     refreshChart(true);
   }
 
+  function renderFormulas() {
+    const el = $("#formulas"); if (!el) return;
+    const fs = !isBoss() && current?.formulas?.[metric];
+    el.innerHTML = fs ? fs.map((f) => `<section class="formula">
+      <h3>${esc(f.name)}</h3><p class="expr">${esc(f.expr)}</p>
+      <dl>${f.terms.map(([v, m]) => `<dt>${esc(v)}</dt><dd>${esc(m)}</dd>`).join("")}</dl>
+      <p class="ex"><span>Exemplos:</span> ${f.examples.map(([k, v]) => `${esc(k)} <b>${esc(v)}</b>`).join(" · ")}</p>
+    </section>`).join("") : "";
+  }
+
   function refreshChart(fresh) {
     updateAgg(fresh);
     renderStatus();
+    renderFormulas();
     view.charts.forEach(renderRows);
     if (isBoss()) {
       $("#hint").textContent = BOSS_HELP[metric] + " " + (current.note || "Cada chefe: 20 lutas. Herói sem treino, no nível típico de quem chega ao andar, com itens comuns do andar do chefe +10 no ferreiro, 5 poções e táticas padrão.") + " Na tabela, verde passa e laranja não. Clique num número para copiar o código de uma luta daquele chefe (a primeira derrota) e abrir no playground.";
       return;
     }
     $("#hint").textContent = METRIC_HELP[metric] + " " + (eachRun ? "Linha forte: mediana da classe. Linhas finas: cada run." :
-      "Cada linha é a mediana das runs da classe. Marque Cada run para ver a variação.") +
+      "Cada linha é a mediana das runs da classe; fica tracejada quando parte das runs já terminou (elas param no valor final). Marque Cada run para ver a variação.") +
       (view.charts.length > 1 ? " Os gráficos usam a mesma escala." : "") +
-      " Nas tabelas, o número branco é a mediana das runs e o cinza é a faixa da menor à maior. Clique numa classe para esconder a linha.";
+      " Nas tabelas, o número branco é a mediana das runs e o cinza é a faixa da menor à maior. Clique numa classe para esconder a linha. Em Runs, cada número é uma run (verde = rodando): clique para copiar o código do replay e assistir no playground (aba 7).";
   }
 
   function onData() {
@@ -594,12 +634,14 @@
   setInterval(() => { renderStatus(); if (connErr === false && lastOk && Date.now() - lastOk > 5000) { connErr = true; renderList(); } }, 1000);
 
   let toastTimer = 0;
-  async function copyCode(code, what) {
+  async function copyCode(code, what, replay) {
     let copied = false;
-    try { await navigator.clipboard.writeText(code); copied = true; } catch {}
+    try { await Promise.race([navigator.clipboard.writeText(code), new Promise((_, no) => setTimeout(no, 500))]); copied = true; } catch {}
     const t = $("#toast");
-    t.innerHTML = `<b>${copied ? "Código da luta copiado" : "Código da luta (selecione e copie)"}</b> · ${esc(what)}<br><code>${esc(code)}</code><br>
-      No playground: aba <b>6 Config</b> → <b>Código da run</b> → enter → cole → enter.`;
+    const name = replay ? "Código do replay" : "Código da luta";
+    const where = replay ? "aba <b>7 Replay</b> → <b>Código do replay</b>" : "aba <b>6 Config</b> → <b>Código da run</b>";
+    t.innerHTML = `<b>${copied ? name + " copiado" : name + " (selecione e copie)"}</b> · ${esc(what)}<br><code>${esc(code)}</code><br>
+      No playground: ${where} → enter → cole → enter.`;
     t.classList.add("on");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove("on"), 12000);
@@ -634,12 +676,15 @@
       const done = c.runs.filter((s) => s.done).length;
       return `<tr class="${hidden.has(c.cls) ? "off" : ""}"><td><button class="cls" data-cls="${c.cls}" aria-pressed="${!hidden.has(c.cls)}" title="Mostrar ou esconder nos gráficos">
         <span class="sw" style="background:${c.color}"></span>${CLASS_PT[c.cls] || c.cls}</button></td>
-        <td class="num">${done}/${c.runs.length}${c.live ? ` <span class="dot run" style="display:inline-block;vertical-align:1px"></span>` : ""}</td>
+        <td class="num runs">${c.runs.map((s, i) => `<button class="codebtn${s.done ? "" : " live"}" data-code="${esc(replayCode(s))}"
+          data-what="${esc(`${CLASS_PT[c.cls] || c.cls}, ${profileOf(s.label)?.name || s.label}, seed ${s.seed}`)}"
+          title="Run ${i + 1} (seed ${s.seed}, ${s.done ? "terminou" : "rodando"}): copiar o código do replay para assistir no playground">${i + 1}</button>`).join("")}</td>
         <td class="num">${num(Math.max(...c.runs.map(endH)))}h</td>${cell(c.runs, "floor")}${cell(c.runs, "level")}${cell(c.runs, "deaths")}${cell(c.runs, "gold")}${cell(c.runs, "spent")}${cell(c.runs, "train")}</tr>`;
     }).join("");
     ch.rows.querySelectorAll(".cls").forEach((el) => el.addEventListener("click", () => {
       const k = el.dataset.cls; hidden.has(k) ? hidden.delete(k) : hidden.add(k); refreshChart(false);
     }));
+    ch.rows.querySelectorAll(".codebtn").forEach((el) => el.addEventListener("click", () => copyCode(el.dataset.code, el.dataset.what, true)));
   }
 
   document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshSelected(); });
