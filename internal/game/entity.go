@@ -15,20 +15,21 @@ type MonsterKind struct {
 }
 
 type Monster struct {
-	Kind   int
-	Pos    Pos
-	HP     int
-	MaxHP  int
-	Atk    int
-	Def    int
-	Spd    int
-	Dex    int
-	XP     int
-	Awake  bool
-	Energy float64
-	Boss   bool
-	Asleep int
-	Slowed int
+	Kind       int
+	Pos        Pos
+	HP         int
+	MaxHP      int
+	Atk        int
+	Def        int
+	Spd        int
+	Dex        int
+	XP         int
+	Awake      bool
+	Energy     float64
+	Boss       bool
+	Asleep     int
+	Slowed     int
+	SleepProof int
 }
 
 func (m *Monster) Info() MonsterKind {

@@ -263,17 +263,18 @@ const (
 	NoseGoldMult   = 1.5
 	NoseItemChance = 0.5
 
-	ViewRadius       = 7
-	CaveRockPct      = 0.48
-	CavePasses       = 5
-	CaveMinFloorPct  = 20
-	CaveZoneMinFloor = 12
-	SpellRange       = 5
-	SleepMinHPPct    = 50
-	SleepRounds      = 6
-	SleepBossRounds  = 2
-	FrostSlowRounds  = 5
-	BlinkHPPct       = 35
+	ViewRadius        = 7
+	CaveRockPct       = 0.48
+	CavePasses        = 5
+	CaveMinFloorPct   = 20
+	CaveZoneMinFloor  = 12
+	SpellRange        = 5
+	SleepMinHPPct     = 50
+	SleepRounds       = 6
+	SleepBossRounds   = 2
+	SleepResistRounds = 10
+	FrostSlowRounds   = 5
+	BlinkHPPct        = 35
 
 	HealPct       = 35
 	AuraDefPerInt = 1

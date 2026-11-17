@@ -171,6 +171,7 @@ func (m Model) nerdRows() []prepRow {
 	add("sleep_min", fmt.Sprintf("%d%%", game.SleepMinHPPct))
 	add("sleep", fmt.Sprint(game.SleepRounds))
 	add("sleep_boss", fmt.Sprint(game.SleepBossRounds))
+	add("sleep_resist", fmt.Sprint(game.SleepResistRounds))
 	add("frost", fmt.Sprint(game.FrostSlowRounds))
 	add("blink", fmt.Sprintf("%d%%", game.BlinkHPPct))
 	add("heal", fmt.Sprintf("%d%%", game.HealPct))

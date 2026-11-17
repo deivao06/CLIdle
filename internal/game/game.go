@@ -576,6 +576,9 @@ func (g *Game) monstersAct(r *round, fast bool) {
 		if (m.Spd > h.Spd()) != fast {
 			continue
 		}
+		if m.SleepProof > 0 {
+			m.SleepProof--
+		}
 		if m.Asleep > 0 {
 			m.Asleep--
 			continue

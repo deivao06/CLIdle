@@ -68,7 +68,7 @@ func (g *Game) cast(r *round) bool {
 	h := g.Hero
 	switch {
 	case g.blink(r):
-	case g.ready(Sleep) && t.Awake && t.Asleep == 0 && t.HP*100 > t.MaxHP*SleepMinHPPct && g.awakeInRange() >= 2:
+	case g.ready(Sleep) && t.Awake && t.Asleep == 0 && t.SleepProof == 0 && t.HP*100 > t.MaxHP*SleepMinHPPct && g.awakeInRange() >= 2:
 		g.castSpell(Sleep, t, r)
 	case g.ready(Fireball) && len(g.around(t)) >= 2:
 		g.castSpell(Fireball, t, r)
@@ -90,6 +90,7 @@ func (g *Game) castSpell(a Ability, t *Monster, r *round) {
 		if t.Boss {
 			t.Asleep = SleepBossRounds
 		}
+		t.SleepProof = t.Asleep + SleepResistRounds
 		r.hero = lang.T("spell.sleep.log", name)
 	case Fireball:
 		g.useMana(Fireball)

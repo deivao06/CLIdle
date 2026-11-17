@@ -141,3 +141,29 @@ func TestSleepNotWastedOnLoneTarget(t *testing.T) {
 		t.Fatalf("lone target asleep %d hp %d", m.Asleep, m.HP)
 	}
 }
+
+func TestSleptMonsterResistsSleepAfterWaking(t *testing.T) {
+	g := heroAt(Mage, AbilityInfo[Sleep].Level, 1)
+	a, b := dummy(), dummy()
+	a.Pos, b.Pos = g.spotAt(3, nil), g.spotAt(4, nil)
+	a.Awake, b.Awake = true, true
+	a.HP, b.HP = 1000, 1000
+	a.MaxHP, b.MaxHP = 1000, 1000
+	g.Exp.Level.Mons = []*Monster{a, b}
+	g.castSpell(Sleep, a, &round{})
+	a.Asleep = 0
+	for range SleepRounds + SleepResistRounds - 1 {
+		g.monstersAct(&round{}, true)
+		g.monstersAct(&round{}, false)
+	}
+	g.Hero.MP = g.Hero.MaxMP()
+	g.Exp.Level.Mons = []*Monster{a}
+	if g.act(Gambit{Do: ActSleep, Target: TargetWeakest}, &round{}) || a.Asleep > 0 || a.SleepProof == 0 {
+		t.Fatalf("slept again too soon, proof %d", a.SleepProof)
+	}
+	g.monstersAct(&round{}, true)
+	g.monstersAct(&round{}, false)
+	if a.SleepProof != 0 || !g.act(Gambit{Do: ActSleep, Target: TargetWeakest}, &round{}) || a.Asleep == 0 {
+		t.Fatalf("sleep should take again after %d rounds: proof %d", SleepRounds+SleepResistRounds, a.SleepProof)
+	}
+}

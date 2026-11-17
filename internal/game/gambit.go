@@ -479,7 +479,7 @@ func (g *Game) act(gb Gambit, r *round) bool {
 	}
 	spell := map[Action]Ability{ActMissile: MagicMissile, ActFireball: Fireball, ActFrost: FrostRay, ActSleep: Sleep, ActHolyLight: HolyLight}[gb.Do]
 	t := g.spellTarget(gb.Target)
-	if !g.ready(spell) || t == nil || spell == Sleep && t.Asleep > 0 {
+	if !g.ready(spell) || t == nil || spell == Sleep && (t.Asleep > 0 || t.SleepProof > 0) {
 		return false
 	}
 	g.castSpell(spell, t, r)
