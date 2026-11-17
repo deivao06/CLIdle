@@ -26,7 +26,13 @@ const (
 // StepsPerSec converts the speed attribute into exploration pace.
 func StepsPerSec(spd int) float64 { return 1 + float64(spd)*0.5 }
 
-func XPToNext(level int) int { return int(20 * math.Pow(1.5, float64(level-1))) }
+const (
+	XPBase = 20
+	XPQuad = 225
+)
+
+// XPToNext grows with the square of the level, so levels keep coming as monsters give more XP deeper down.
+func XPToNext(level int) int { return XPBase + XPQuad*(level-1)*(level-1) }
 
 const MonsterGrowthLin = 0.45
 
