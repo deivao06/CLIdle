@@ -758,7 +758,9 @@ func (g *Game) plan(mode ExploreMode) (Pos, int) {
 	if boss != nil {
 		last = to(boss.Pos)
 	}
-	return l.search(h.Pos, g.passable, seenMonster, g.wantedItem, rush, g.frontier, last)
+	// The hero only steers around the monsters it sees.
+	pass := func(p Pos) bool { return g.known(p) && (l.MonsterAt(p) == nil || !l.Visible(h.Pos, p)) }
+	return l.search(h.Pos, pass, seenMonster, g.wantedItem, rush, g.frontier, last)
 }
 
 // Doing describes what the hero is up to, for the status line.
