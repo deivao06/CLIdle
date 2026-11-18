@@ -8,16 +8,15 @@ import (
 )
 
 // bossCheckLevels is the median level heroes had on first reaching each boss floor in the 480h dungeon simulation
-// (2026-11-17); past floor 60 it follows the same +5 levels per 10 floors.
-var bossCheckLevels = map[int]int{10: 11, 20: 16, 30: 21, 40: 25, 50: 31, 60: 36, 70: 41, 80: 46, 90: 51, 100: 56}
+// (Balanço 2, 2026-11-18).
+var bossCheckLevels = map[int]int{10: 4, 20: 9, 30: 16, 40: 25, 50: 39, 60: 55, 70: 69, 80: 81, 90: 95, 100: 118}
 
-// bossCheckTrain is the median total training of each class on first reaching each boss floor in the same simulation;
-// where few runs got there, it is the training the runs ended with, since its price nearly stops it.
+// bossCheckTrain is the median total training of each class on first reaching each boss floor in the same simulation.
 var bossCheckTrain = [NumClasses]map[int]int{
-	Warrior: {10: 4, 20: 12, 30: 19, 40: 29, 50: 41, 60: 52, 70: 57, 80: 57, 90: 57, 100: 57},
-	Mage:    {10: 4, 20: 6, 30: 11, 40: 21, 50: 35, 60: 54, 70: 55, 80: 55, 90: 55, 100: 55},
-	Rogue:   {10: 2, 20: 6, 30: 13, 40: 22, 50: 26, 60: 41, 70: 45, 80: 45, 90: 45, 100: 45},
-	Cleric:  {10: 1, 20: 7, 30: 17, 40: 22, 50: 32, 60: 46, 70: 56, 80: 56, 90: 56, 100: 56},
+	Warrior: {10: 4, 20: 10, 30: 19, 40: 36, 50: 59, 60: 85, 70: 99, 80: 116, 90: 136, 100: 169},
+	Mage:    {10: 0, 20: 6, 30: 12, 40: 23, 50: 42, 60: 75, 70: 94, 80: 121, 90: 145, 100: 178},
+	Rogue:   {10: 3, 20: 8, 30: 16, 40: 33, 50: 44, 60: 66, 70: 82, 80: 112, 90: 131, 100: 159},
+	Cleric:  {10: 4, 20: 8, 30: 17, 40: 25, 50: 42, 60: 69, 70: 93, 80: 97, 90: 131, 100: 164},
 }
 
 // bossTraining splits the total training between the class's main trained attribute and CON, the extra point
