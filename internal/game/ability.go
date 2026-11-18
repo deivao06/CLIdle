@@ -97,7 +97,7 @@ func (g *Game) powerStrike(m *Monster, r *round) {
 
 func (g *Game) secondWind(r *round) bool {
 	h, e := g.Hero, g.Exp
-	if !h.Has(SecondWind) || e.SecondWindUsed || h.HP*100 >= h.MaxHP()*SecondWindPct {
+	if !h.Has(SecondWind) || e.SecondWindUsed || h.HP >= h.MaxHP() {
 		return false
 	}
 	heal := min(h.MaxHP()*SecondWindHealPct/100, h.MaxHP()-h.HP)
