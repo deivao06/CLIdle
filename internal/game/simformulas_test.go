@@ -16,6 +16,7 @@ type simFormula struct {
 	Expr     string      `json:"expr"`
 	Terms    [][2]string `json:"terms"`
 	Examples [][2]string `json:"examples"`
+	Fx       [][2]string `json:"fx"`
 }
 
 // ptNum writes a number the Brazilian way, as tools/simview reads.
@@ -59,6 +60,7 @@ func simFormulas() map[string][]simFormula {
 		Expr:     fmt.Sprintf("multiplicador = 1 + %s × andares abaixo do primeiro andar do monstro", ptNum(MonsterGrowthLin)),
 		Terms:    [][2]string{{"1", "o monstro no primeiro andar em que aparece"}, {ptNum(MonsterGrowthLin), "quanto HP, ataque, defesa e XP crescem a cada andar (linear)"}},
 		Examples: monEx,
+		Fx:       [][2]string{{fmt.Sprintf("f(x) = 1 + %g*x", MonsterGrowthLin), "x = andares abaixo do primeiro andar do monstro"}},
 	}
 	boss := simFormula{
 		Name: "Chefes",
@@ -72,12 +74,15 @@ func simFormulas() map[string][]simFormula {
 			{ptNum(BossDefMult), "defesa do chefe em relação ao monstro (fixa)"},
 		},
 		Examples: bossEx,
+		Fx: [][2]string{{fmt.Sprintf("f(x) = %g + %g*x", float64(BossHPMult), float64(BossHPPerBoss)), "HP · x = chefes antes"},
+			{fmt.Sprintf("g(x) = %g + %g*x", float64(BossAtkMult), float64(BossAtkPerBoss)), "Ataque · x = chefes antes"}},
 	}
 	gold := simFormula{
 		Name:     "Ouro por pilha",
-		Expr:     fmt.Sprintf("ouro = %s × %s^(andar − 1)", ptNum(GoldPerPile(1)), ptNum(GoldPerPile(2)/GoldPerPile(1))),
-		Terms:    [][2]string{{ptNum(GoldPerPile(1)), "ouro de uma pilha no andar 1"}, {ptNum(GoldPerPile(2) / GoldPerPile(1)), "cada andar dá 8% a mais que o anterior (exponencial)"}},
+		Expr:     fmt.Sprintf("ouro = %s × (1 + %s × (andar − 1))²", ptNum(GoldPileBase), ptNum(GoldPileGrowth)),
+		Terms:    [][2]string{{ptNum(GoldPileBase), "ouro de uma pilha no andar 1"}, {ptNum(GoldPileGrowth), "quanto o ouro cresce com o quadrado do andar (quadrático)"}},
 		Examples: goldEx,
+		Fx:       [][2]string{{fmt.Sprintf("f(x) = %g*(1 + %g*(x - 1))^2", float64(GoldPileBase), GoldPileGrowth), "x = andar"}},
 	}
 	return map[string][]simFormula{
 		"level": {{
@@ -86,13 +91,16 @@ func simFormulas() map[string][]simFormula {
 			Terms: [][2]string{{fmt.Sprint(XPBase), "XP para subir do nível 1 para o 2 (a base)"},
 				{fmt.Sprint(XPQuad), "quanto o custo cresce com o quadrado do nível (quadrático)"}},
 			Examples: xpEx,
+			Fx:       [][2]string{{fmt.Sprintf("f(x) = %d + %d*(x - 1)^2", XPBase, XPQuad), "x = nível"}},
 		}},
 		"train": {{
 			Name: "Preço do treino",
-			Expr: fmt.Sprintf("preço = %d × %s^(pontos já treinados no atributo)", TrainBase, ptNum(float64(TrainCost(1))/float64(TrainCost(0)))),
+			Expr: fmt.Sprintf("preço = %d + %d × pontos²", TrainBase, TrainQuad),
 			Terms: [][2]string{{fmt.Sprint(TrainBase), "preço do primeiro ponto de um atributo"},
-				{ptNum(float64(TrainCost(1)) / float64(TrainCost(0))), "cada ponto custa 50% a mais que o anterior (exponencial)"}},
+				{fmt.Sprint(TrainQuad), "quanto o preço cresce com o quadrado dos pontos já treinados (quadrático)"},
+				{fmt.Sprint(TrainStr), "pontos de FOR que cada treino de FOR dá (os outros dão 1)"}},
 			Examples: trainEx,
+			Fx:       [][2]string{{fmt.Sprintf("f(x) = %d + %d*x^2", TrainBase, TrainQuad), "x = pontos já treinados"}},
 		}},
 		"gold":   {gold},
 		"spent":  {gold},

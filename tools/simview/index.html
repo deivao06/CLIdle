@@ -134,6 +134,9 @@
   .formula .ex { margin: 0; font-size: 12px; color: var(--muted); }
   .formula .ex span { color: var(--faint); }
   .formula .ex b { color: var(--text); font: 600 12px var(--mono); }
+  .formula .fx { margin: 8px 0 0; font-size: 12px; color: var(--faint); }
+  .formula .fx code { font: 600 12px var(--mono); color: var(--text); user-select: all; }
+  .formula .fx .codebtn { margin: 0 -6px 0 0; }
   .empty { max-width: 68ch; color: var(--muted); }
   .empty h2 { color: var(--text); font-size: 18px; margin: 8px 0; }
   .empty pre { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; color: var(--text); overflow-x: auto; font: 12px/1.5 var(--mono); }
@@ -592,7 +595,11 @@
       <h3>${esc(f.name)}</h3><p class="expr">${esc(f.expr)}</p>
       <dl>${f.terms.map(([v, m]) => `<dt>${esc(v)}</dt><dd>${esc(m)}</dd>`).join("")}</dl>
       <p class="ex"><span>Exemplos:</span> ${f.examples.map(([k, v]) => `${esc(k)} <b>${esc(v)}</b>`).join(" · ")}</p>
+      ${(f.fx || []).map(([e, x]) => `<p class="fx">Para plotar: <button class="codebtn" title="clique para copiar"><code>${esc(e)}</code></button> · ${esc(x)}</p>`).join("")}
     </section>`).join("") : "";
+    el.querySelectorAll(".fx .codebtn").forEach((b) => b.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(b.textContent); b.title = "copiado"; } catch {}
+    }));
   }
 
   function refreshChart(fresh) {
