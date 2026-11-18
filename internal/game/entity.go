@@ -82,10 +82,10 @@ func newMonster(kind, depth int) *Monster {
 }
 
 // spawnBoss builds a boss from the strongest monster of the depth.
-func spawnBoss(rng *RNG, depth int) *Monster {
+func spawnBoss(depth int) *Monster {
 	var base *Monster
-	for range 20 {
-		if m := spawnMonster(rng, depth); base == nil || m.MaxHP > base.MaxHP {
+	for _, k := range eligibleKinds(depth) {
+		if m := newMonster(k, depth); base == nil || m.MaxHP > base.MaxHP {
 			base = m
 		}
 	}

@@ -290,7 +290,7 @@ func auditDuels(h *Hero, depth, n int, boss, raw bool, pack int) *auditDuel {
 		var ms []*Monster
 		for range pack {
 			if boss {
-				ms = append(ms, spawnBoss(rng, depth))
+				ms = append(ms, spawnBoss(depth))
 			} else {
 				ms = append(ms, spawnMonster(rng, depth))
 			}

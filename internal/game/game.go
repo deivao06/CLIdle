@@ -187,7 +187,7 @@ func (g *Game) enterLevel(depth int) {
 	}
 	l.placeLoot(e.RNG, startRoom, g.Hero.Has(TreasureNose))
 	if g.Floor(depth)%BossEvery == 0 {
-		b := spawnBoss(e.RNG, depth)
+		b := spawnBoss(depth)
 		b.Pos = l.RandomFloor(e.RNG, l.RoomAt(l.Down))
 		l.Mons = append(l.Mons, b)
 	}

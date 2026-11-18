@@ -65,10 +65,10 @@ func MonstersPerLevel(depth int) int { return min(max(5, 3+depth/2), 12) }
 
 const (
 	BossEvery      = 10
-	BossHPMult     = 5
-	BossHPPerBoss  = 1
-	BossAtkMult    = 1.4
-	BossAtkPerBoss = 0.1
+	BossHPMult     = 4.2
+	BossHPPerBoss  = 0.2
+	BossAtkMult    = 1
+	BossAtkPerBoss = 0.05
 	BossDefMult    = 1.3
 	BossXPMult     = 8
 	BossMinSpd     = 5

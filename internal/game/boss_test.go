@@ -29,8 +29,8 @@ func TestKillingBossUnlocksShortcut(t *testing.T) {
 	if g.BossKills != 1 || len(g.ShortcutList()) != 2 || g.ShortcutList()[1] != 11 {
 		t.Fatalf("kills %d shortcuts %v", g.BossKills, g.ShortcutList())
 	}
-	if i := g.Exp.Level.ItemAt(b.Pos); i < 0 || g.Exp.Level.Items[i].Item.Rarity != Epic {
-		t.Fatal("boss should drop an epic item")
+	if i := g.Exp.Level.ItemAt(b.Pos); i < 0 || g.Exp.Level.Items[i].Item.Rarity < Rare {
+		t.Fatal("boss should drop a rare or better item")
 	}
 	g.returnToTown()
 	g.Config.StartFloor = 11

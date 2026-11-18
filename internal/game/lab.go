@@ -301,7 +301,7 @@ func (g *Game) enterLab(f *LabFloor) {
 			for range mg.Count {
 				var m *Monster
 				if mg.Boss {
-					m = spawnBoss(rng, depth/BossEvery*BossEvery)
+					m = spawnBoss(depth / BossEvery * BossEvery)
 					m.Kind = mg.Kind
 				} else {
 					m = newMonster(mg.Kind, depth)
