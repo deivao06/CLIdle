@@ -44,7 +44,7 @@
   .item:hover { background: var(--raise); color: var(--text); }
   .item[aria-current="true"] { background: var(--raise); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
   .item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-  .item .t { font-weight: 550; overflow-wrap: anywhere; }
+  .item .t { font-weight: 550; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .item .s { font-size: 12px; color: var(--faint); display: flex; align-items: center; gap: 6px; }
   #conn { margin: auto 8px 0; font-size: 12px; color: var(--faint); }
   #conn.err { color: var(--stale); }
@@ -137,14 +137,40 @@
   .formula .fx { margin: 8px 0 0; font-size: 12px; color: var(--faint); }
   .formula .fx code { font: 600 12px var(--mono); color: var(--text); user-select: all; }
   .formula .fx .codebtn { margin: 0 -6px 0 0; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .tabs button { all: unset; cursor: pointer; padding: 10px 14px; margin-bottom: -1px; color: var(--muted); font-weight: 550; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 150ms ease-out, border-color 150ms ease-out; }
+  .tabs button:hover { color: var(--text); }
+  .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+  .tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .tabs button small { margin-left: 6px; color: var(--faint); font-weight: 400; font-size: 12px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; justify-content: space-between; }
+  .seg button small { margin-left: 5px; color: var(--faint); font-size: 11px; }
+  .blurb { margin: 0; color: var(--muted); font-size: 13px; max-width: 90ch; }
+  .blurb a { color: var(--accent); text-underline-offset: 3px; }
+  h3.sec { margin: 8px 0 0; font-size: 14px; font-weight: 650; }
+  h3.sec + .blurb { margin-top: -10px; }
+  td .sub { display: block; color: var(--faint); font-size: 11px; line-height: 1.2; }
+  td.dim { color: var(--faint); }
+  td.hot { color: var(--stale); font-weight: 600; }
+  td.ok { color: var(--run); }
+  .rbtn { all: unset; cursor: pointer; font-size: 12px; color: var(--muted); padding: 2px 8px; border: 1px solid var(--line); border-radius: 5px; }
+  .rbtn:hover { color: var(--text); background: var(--raise); }
+  .rbtn:focus-visible { outline: 2px solid var(--accent); }
+  details.more { border-top: 1px solid var(--grid); padding-top: 12px; }
+  details.more summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  details.more summary:hover { color: var(--text); }
+  details.more[open] summary { margin-bottom: 12px; }
+  details.more p { margin: 0 0 8px; color: var(--muted); font-size: 13px; max-width: 90ch; }
   .empty { max-width: 68ch; color: var(--muted); }
   .empty h2 { color: var(--text); font-size: 18px; margin: 8px 0; }
   .empty pre { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; color: var(--text); overflow-x: auto; font: 12px/1.5 var(--mono); }
 
   @media (max-width: 760px) {
-    .app { grid-template-columns: 1fr; }
-    aside { border-right: 0; border-bottom: 1px solid var(--line); padding: 14px 8px; }
-    #batches { flex-direction: row; overflow-x: auto; }
+    .app { grid-template-columns: minmax(0, 1fr); }
+    aside { border-right: 0; border-bottom: 1px solid var(--line); padding: 14px 8px; min-width: 0; }
+    #batches, #bossBatches { flex-direction: row; overflow-x: auto; }
+    .seg { max-width: 100%; overflow-x: auto; }
+    .seg button { flex: none; }
     .item { min-width: 180px; }
     #conn { margin: 0 8px; }
     main { padding: 18px 16px 40px; }
@@ -213,8 +239,10 @@
   const batches = new Map(); // id -> {id, files: Map(name -> part)}
   const PROFILES_HASH = "perfis";
   let page = location.hash.slice(1) === PROFILES_HASH ? "profiles" : "sim";
-  let selected = page === "sim" ? decodeURIComponent(location.hash.slice(1)) || null : null;
-  let metric = "floor", eachRun = false;
+  const [hBatch, hProf, hRun] = decodeURIComponent(location.hash.slice(1)).split("/");
+  let selected = page === "sim" ? hBatch || null : null;
+  let metric = "floor", eachRun = false, prof = hProf || null, runTab = hRun ? +hRun : "med";
+  const setHash = () => history.replaceState(null, "", "#" + [selected, prof, runTab === "med" ? "" : runTab].filter((v) => v != null && v !== "").map(encodeURIComponent).join("/"));
   const hidden = new Set();
   let connErr = false, lastOk = 0;
 
@@ -335,16 +363,16 @@
   const settle = (tw) => { tw.from = tw.to; tw.t0 = 0; };
   const animating = (now) => !reduced && [view.x, view.y, view.reveal].some((tw) => now - tw.t0 < TWEEN);
 
-  function niceMax(v) { if (v <= 5) return 5; const p = 10 ** Math.floor(Math.log10(v)); const n = v / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
+  function niceMax(v) { if (v <= 5) return 5; const p = 10 ** Math.floor(Math.log10(v)); const n = v / p; return ([1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find((k) => n <= k)) * p; }
   function niceStep(span, target) { const raw = span / target, p = 10 ** Math.floor(Math.log10(raw)); const n = raw / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p; }
 
   function updateAgg(fresh) {
     if (!current) return;
     const now = performance.now();
-    for (const ch of view.charts) ch.agg = aggregate(seriesOf(current, ch.label));
-    const shown = view.charts.flatMap((ch) => ch.agg.classes.filter((c) => !hidden.has(c.cls)));
-    const yTop = Math.max(1, ...shown.flatMap((c) => eachRun ? c.runs.flatMap((s) => s.points.map((p) => p[metric] ?? 0)) : c.pts.map((p) => p.med)));
-    const maxH = Math.max(0, ...view.charts.map((ch) => ch.agg.maxH));
+    for (const ch of view.charts) ch.agg = aggregate(isBoss() ? seriesOf(current, null) : shownSeries());
+    const all = isBoss() ? view.charts.flatMap((ch) => ch.agg.classes.flatMap((c) => c.runs)) : seriesOf(current, prof);
+    const yTop = Math.max(1, ...all.filter((s) => !hidden.has(s.class)).flatMap((s) => s.points.map((p) => p[metric] ?? 0)));
+    const maxH = Math.max(0, ...all.map(endH));
     retarget(view.y, isBoss() ? 100 : niceMax(yTop * 1.05), now);
     retarget(view.x, isBoss() ? 100 : Math.max(1, niceMax(maxH)), now);
     retarget(view.reveal, maxH, now);
@@ -508,6 +536,7 @@
 
   function select(id) {
     if (page === "sim" && selected === id && view.built) return;
+    if (selected !== id) { prof = null; runTab = "med"; }
     page = "sim"; selected = id; hidden.clear(); view.built = false;
     history.replaceState(null, "", "#" + encodeURIComponent(id));
     renderList();
@@ -548,49 +577,95 @@
     }
     current = merged(b);
     if (!metricsNow().some(([k]) => k === metric)) metric = metricsNow()[0][0];
-    if (isBoss()) eachRun = false;
-    const labels = isBoss() ? [] : labelsOf(current);
-    const split = labels.length > 1 ? labels : [null];
-    const head = isBoss()
-      ? `<th>Classe</th><th>Andares</th>${Array.from({ length: 10 }, (_, i) => `<th>${(i + 1) * BOSS_EVERY}</th>`).join("")}`
-      : `<th>Classe</th><th>Runs</th><th>Horas</th><th>Andar</th><th>Nível</th><th>Mortes</th><th>Saldo</th><th>Gasto</th><th>Treino</th>`;
+    if (isBoss()) { renderBossView(main); return; }
+    const labels = labelsOf(current).sort((x, y) => profOrder(x) - profOrder(y));
+    if (!labels.includes(prof)) prof = labels[0];
+    const seeds = runSeeds();
+    if (runTab !== "med" && !seeds.includes(runTab)) runTab = "med";
+    setHash();
+    const pr = profileOf(prof);
     main.innerHTML = `
       <header class="vhead"><h2></h2><div class="status" id="status"></div></header>
-      <div class="controls">
-        <div><span class="seg-label">Mostrar</span><div class="seg" role="group" aria-label="Mostrar">${metricsNow().map(([k, t]) =>
-          `<button data-metric="${k}" aria-pressed="${k === metric}">${t}</button>`).join("")}</div></div>
-        ${isBoss() ? "" : `<label class="check"><input type="checkbox" id="each" ${eachRun ? "checked" : ""}> Cada run</label>`}
+      ${labels.length > 1 || pr ? `<nav class="tabs" role="tablist" aria-label="Perfil">${labels.map((l) =>
+        `<button role="tab" data-prof="${esc(l)}" aria-selected="${l === prof}">${esc(profileOf(l)?.name.replace(/ \(.*\)/, "") || l || "Runs")}</button>`).join("")}</nav>` : ""}
+      ${pr ? `<p class="blurb">${esc(pr.summary)} <a href="#${PROFILES_HASH}" data-profiles>Como cada perfil joga</a></p>` : ""}
+      <div class="bar">
+        <div class="seg" role="group" aria-label="Run"><button data-run="med" aria-pressed="${runTab === "med"}">Mediana</button>${seeds.map((sd, i) =>
+          `<button data-run="${sd}" aria-pressed="${runTab === sd}" title="seed ${sd}">Run ${i + 1}<small class="num">${sd}</small></button>`).join("")}</div>
+        <div class="seg" role="group" aria-label="Métrica">${METRICS.map(([k, t]) => `<button data-metric="${k}" aria-pressed="${k === metric}">${t}</button>`).join("")}</div>
       </div>
-      <p class="hint" id="hint"></p>
-      <div id="formulas"></div>
-      <div class="charts ${split.length > 1 ? "split" : ""}">${split.map((l, i) => `
-        <section class="pane" data-i="${i}">
-          ${l !== null ? `<h3>${esc(policyName(l))}</h3>${profileOf(l) ? `<p class="sum">${esc(profileOf(l).summary)} <a href="#${PROFILES_HASH}" data-profiles>Ver perfis</a></p>` : ""}` : ""}
-          <div class="chartbox"><canvas aria-label="Gráfico por classe${l !== null ? " · " + esc(policyName(l)) : ""}"></canvas><div class="tip"></div></div>
-          <div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody></tbody></table></div>
-        </section>`).join("")}</div>`;
+      <p class="blurb" id="hint"></p>
+      <section class="pane">
+        <div class="chartbox"><canvas aria-label="Gráfico por classe"></canvas><div class="tip"></div></div>
+      </section>
+      <h3 class="sec">Resumo</h3>
+      <div class="tablewrap"><table id="sumT"><thead></thead><tbody></tbody></table></div>
+      <h3 class="sec">Horas paradas em cada chefe</h3>
+      <p class="blurb">Do momento em que a classe chega ao andar do chefe até passar dele. Laranja: 24h ou mais. "preso" é quem terminou sem passar.</p>
+      <div class="tablewrap"><table id="wallT"><thead></thead><tbody></tbody></table></div>
+      <details class="more"><summary>Como ler</summary>
+        <p>Mediana: cada linha é a mediana das runs da classe naquele momento; fica tracejada quando parte das runs já terminou (elas param no valor final). Nas tabelas, o cinza embaixo é a faixa da menor à maior run.</p>
+        <p>Run 1, 2, 3: uma seed cada, com as 4 classes. O botão Replay copia o código para assistir a run no playground (aba 7 Replay).</p>
+        <p>Mediana e runs do mesmo perfil usam a mesma escala. Clique numa classe na tabela para esconder a linha.</p>
+      </details>
+      <details class="more" id="fwrap"><summary>Fórmulas em vigor nesta simulação</summary><div id="formulas"></div></details>`;
     $(".vhead h2").textContent = current.title;
-    main.querySelectorAll("[data-profiles]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); showProfiles(); }));
+    main.querySelectorAll("[data-profiles]").forEach((el) => el.addEventListener("click", (e) => { e.preventDefault(); showProfiles(); }));
+    main.querySelectorAll("[data-prof]").forEach((el) => el.addEventListener("click", () => { prof = el.dataset.prof; runTab = "med"; renderView(); }));
+    main.querySelectorAll("[data-run]").forEach((el) => el.addEventListener("click", () => {
+      runTab = el.dataset.run === "med" ? "med" : +el.dataset.run;
+      main.querySelectorAll("[data-run]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.run) === String(runTab))); setHash(); refreshChart(false);
+    }));
     main.querySelectorAll("[data-metric]").forEach((el) => el.addEventListener("click", () => {
       metric = el.dataset.metric; main.querySelectorAll("[data-metric]").forEach((x) => x.setAttribute("aria-pressed", x.dataset.metric === metric)); refreshChart(true);
     }));
-    $("#each")?.addEventListener("change", (e) => { eachRun = e.target.checked; refreshChart(false); });
-    view.charts = split.map((label, i) => {
-      const pane = main.querySelector(`.pane[data-i="${i}"]`), canvas = $("canvas", pane);
-      const ch = { label, canvas, ctx: canvas.getContext("2d"), tip: $(".tip", pane), rows: $("tbody", pane), w: 0, h: 0, agg: null };
-      canvas.addEventListener("mousemove", (e) => onHover(ch, e));
-      canvas.addEventListener("mouseleave", leave);
-      new ResizeObserver(() => size(ch)).observe(canvas);
-      size(ch);
-      return ch;
-    });
+    const canvas = $("canvas", main);
+    const ch = { label: prof, canvas, ctx: canvas.getContext("2d"), tip: $(".tip", main), rows: null, w: 0, h: 0, agg: null };
+    canvas.addEventListener("mousemove", (e) => onHover(ch, e));
+    canvas.addEventListener("mouseleave", leave);
+    new ResizeObserver(() => size(ch)).observe(canvas);
+    size(ch);
+    view.charts = [ch];
+    view.built = true;
+    refreshChart(true);
+  }
+
+  const profOrder = (l) => { const k = PROFILE_ALIAS[l] || l; return k === "careful" ? 0 : k === "rash" ? 1 : 2; };
+  const runSeeds = () => [...new Set(seriesOf(current, prof).map((s) => s.seed))].sort((x, y) => x - y);
+  const shownSeries = () => seriesOf(current, prof).filter((s) => runTab === "med" || s.seed === runTab);
+
+  function renderBossView(main) {
+    main.innerHTML = `
+      <header class="vhead"><h2></h2><div class="status" id="status"></div></header>
+      <div class="bar"><div class="seg" role="group" aria-label="Métrica">${BOSS_METRICS.map(([k, t]) =>
+        `<button data-metric="${k}" aria-pressed="${k === metric}">${t}</button>`).join("")}</div></div>
+      <p class="blurb" id="hint"></p>
+      <section class="pane">
+        <div class="chartbox"><canvas aria-label="Gráfico por classe"></canvas><div class="tip"></div></div>
+        <div class="tablewrap"><table><thead><tr><th>Classe</th><th>Andares</th>${Array.from({ length: 10 }, (_, i) => `<th>${(i + 1) * BOSS_EVERY}</th>`).join("")}</tr></thead><tbody></tbody></table></div>
+      </section>
+      <details class="more"><summary>Como ler</summary><p id="bossNote"></p>
+        <p>Na tabela, verde passa e laranja não. Clique num número para copiar o código de uma luta daquele chefe (a primeira derrota) e abrir no playground.</p></details>`;
+    $(".vhead h2").textContent = current.title;
+    main.querySelectorAll("[data-metric]").forEach((el) => el.addEventListener("click", () => {
+      metric = el.dataset.metric; main.querySelectorAll("[data-metric]").forEach((x) => x.setAttribute("aria-pressed", x.dataset.metric === metric)); refreshChart(true);
+    }));
+    const canvas = $("canvas", main);
+    const ch = { label: null, canvas, ctx: canvas.getContext("2d"), tip: $(".tip", main), rows: $("tbody", main), w: 0, h: 0, agg: null };
+    canvas.addEventListener("mousemove", (e) => onHover(ch, e));
+    canvas.addEventListener("mouseleave", leave);
+    new ResizeObserver(() => size(ch)).observe(canvas);
+    size(ch);
+    view.charts = [ch];
     view.built = true;
     refreshChart(true);
   }
 
   function renderFormulas() {
     const el = $("#formulas"); if (!el) return;
-    const fs = !isBoss() && current?.formulas?.[metric];
+    const seen = new Set();
+    const fs = !isBoss() && current?.formulas && Object.values(current.formulas).flat().filter((f) => !seen.has(f.name) && seen.add(f.name));
+    $("#fwrap")?.toggleAttribute("hidden", !fs?.length);
     el.innerHTML = fs ? fs.map((f) => `<section class="formula">
       <h3>${esc(f.name)}</h3><p class="expr">${esc(f.expr)}</p>
       <dl>${f.terms.map(([v, m]) => `<dt>${esc(v)}</dt><dd>${esc(m)}</dd>`).join("")}</dl>
@@ -606,15 +681,15 @@
     updateAgg(fresh);
     renderStatus();
     renderFormulas();
-    view.charts.forEach(renderRows);
     if (isBoss()) {
-      $("#hint").textContent = BOSS_HELP[metric] + " " + (current.note || "Cada chefe: 20 lutas. Herói sem treino, no nível típico de quem chega ao andar, com itens comuns do andar do chefe +10 no ferreiro, 5 poções e táticas padrão.") + " Na tabela, verde passa e laranja não. Clique num número para copiar o código de uma luta daquele chefe (a primeira derrota) e abrir no playground.";
+      view.charts.forEach(renderRows);
+      $("#hint").textContent = BOSS_HELP[metric];
+      $("#bossNote").textContent = current.note || "Cada chefe: 20 lutas. Herói no nível típico de quem chega ao andar, com itens do andar do chefe +10 no ferreiro, 5 poções e táticas padrão.";
       return;
     }
-    $("#hint").textContent = METRIC_HELP[metric] + " " + (eachRun ? "Linha forte: mediana da classe. Linhas finas: cada run." :
-      "Cada linha é a mediana das runs da classe; fica tracejada quando parte das runs já terminou (elas param no valor final). Marque Cada run para ver a variação.") +
-      (view.charts.length > 1 ? " Os gráficos usam a mesma escala." : "") +
-      " Nas tabelas, o número branco é a mediana das runs e o cinza é a faixa da menor à maior. Clique numa classe para esconder a linha. Em Runs, cada número é uma run (verde = rodando): clique para copiar o código do replay e assistir no playground (aba 7).";
+    $("#hint").textContent = METRIC_HELP[metric];
+    renderSummary();
+    renderWalls();
   }
 
   function onData() {
@@ -622,8 +697,7 @@
     if (page !== "sim") return;
     if (!view.built) { renderView(); return; }
     current = merged(batches.get(selected));
-    const want = !isBoss() && labelsOf(current).length > 1 ? labelsOf(current).length : 1;
-    if (want !== view.charts.length) { renderView(); return; }
+    if (!isBoss() && (!labelsOf(current).includes(prof) || $("[data-run]:last-child")?.dataset.run != String(runSeeds().at(-1) ?? "med"))) { renderView(); return; }
     refreshChart(false);
   }
 
@@ -654,6 +728,61 @@
     toastTimer = setTimeout(() => t.classList.remove("on"), 12000);
   }
 
+  const BOSS_FLOORS = Array.from({ length: 10 }, (_, i) => (i + 1) * BOSS_EVERY);
+  const clearedAt = (s) => s.points.find((p) => p.dungeon > 0)?.h ?? null;
+  const wallOf = (s, F) => {
+    const a = s.points.find((p) => p.floor >= F);
+    if (!a) return null;
+    const z = F === 100 ? s.points.find((p) => p.dungeon > 0) : s.points.find((p) => p.floor > F);
+    return z ? { h: z.h - a.h } : { h: endH(s) - a.h, stuck: s.done };
+  };
+  const hrs = (h) => h < 10 ? h.toFixed(1).replace(".", ",") + "h" : Math.round(h) + "h";
+  const classCell = (c) => `<td><button class="cls" data-cls="${c}" aria-pressed="${!hidden.has(c)}" title="Mostrar ou esconder no gráfico">
+    <span class="sw" style="background:${colorOf(c)}"></span>${CLASS_PT[c] || c}</button></td>`;
+  const byClass = () => CLASSES.map((c) => [c, shownSeries().filter((s) => s.class === c)]).filter(([, ss]) => ss.length);
+  const bindRows = (tb) => {
+    tb.querySelectorAll(".cls").forEach((el) => el.addEventListener("click", () => { const k = el.dataset.cls; hidden.has(k) ? hidden.delete(k) : hidden.add(k); refreshChart(false); }));
+    tb.querySelectorAll("[data-code]").forEach((el) => el.addEventListener("click", () => copyCode(el.dataset.code, el.dataset.what, true)));
+  };
+
+  function renderSummary() {
+    const t = $("#sumT"); if (!t) return;
+    const med = runTab === "med";
+    const cols = [["floor", "Andar"], ["level", "Nível"], ["deaths", "Mortes"], ["train", "Treino"], ["spent", "Gasto"]];
+    t.tHead.innerHTML = `<tr><th>Classe</th><th>Concluiu a dungeon</th>${cols.map(([, n]) => `<th>${n}</th>`).join("")}${med ? "" : "<th></th>"}</tr>`;
+    const last = (s, m) => s.points[s.points.length - 1][m];
+    const cell = (ss, m) => { const vs = ss.map((s) => last(s, m)).filter((v) => v != null);
+      if (!vs.length) return `<td class="num dim">—</td>`;
+      const lo = Math.min(...vs), hi = Math.max(...vs);
+      return `<td class="num">${num(median(vs))}${ss.length > 1 && lo !== hi ? `<span class="sub">${num(lo)}–${num(hi)}</span>` : ""}</td>`; };
+    t.tBodies[0].innerHTML = byClass().map(([c, ss]) => {
+      const cl = ss.map(clearedAt).filter((v) => v != null);
+      const live = ss.some((s) => !s.done);
+      const done = med
+        ? (cl.length ? `${hrs(median(cl))}<span class="sub">${cl.length} de ${ss.length} runs${cl.length > 1 ? ` · ${hrs(Math.min(...cl))}–${hrs(Math.max(...cl))}` : ""}</span>` : (live ? "rodando" : "não concluiu"))
+        : (cl.length ? hrs(cl[0]) : live ? `rodando · ${hrs(endH(ss[0]))}` : `não · parou em ${hrs(endH(ss[0]))}`);
+      const s0 = ss[0];
+      const replay = med ? "" : `<td><button class="rbtn" data-code="${esc(replayCode(s0))}" data-what="${esc(`${CLASS_PT[c] || c}, ${profileOf(s0.label)?.name || s0.label}, seed ${s0.seed}`)}" title="Copiar o código para assistir no playground">Replay</button></td>`;
+      return `<tr class="${hidden.has(c) ? "off" : ""}">${classCell(c)}<td class="num ${cl.length ? "" : "dim"}">${done}</td>${cols.map(([m]) => cell(ss, m)).join("")}${replay}</tr>`;
+    }).join("");
+    bindRows(t.tBodies[0]);
+  }
+
+  function renderWalls() {
+    const t = $("#wallT"); if (!t) return;
+    t.tHead.innerHTML = `<tr><th>Classe</th>${BOSS_FLOORS.map((F) => `<th>${F}</th>`).join("")}</tr>`;
+    t.tBodies[0].innerHTML = byClass().map(([c, ss]) => `<tr class="${hidden.has(c) ? "off" : ""}">${classCell(c)}${BOSS_FLOORS.map((F) => {
+      const ws = ss.map((s) => wallOf(s, F)).filter(Boolean);
+      if (!ws.length) return `<td class="num dim">·</td>`;
+      const passed = ws.filter((w) => !w.stuck && w.h != null), stuck = ws.filter((w) => w.stuck);
+      const tip = ss.map((s, i) => { const w = wallOf(s, F); return `run ${i + 1}: ${!w ? "não chegou" : w.stuck ? "preso " + hrs(w.h) : hrs(w.h)}`; }).join(" · ");
+      if (!passed.length) return `<td class="num hot" title="${tip}">${stuck.length ? "preso" : "…"}<span class="sub">${stuck.length ? hrs(Math.max(...stuck.map((w) => w.h))) : ""}</span></td>`;
+      const v = median(passed.map((w) => w.h));
+      return `<td class="num ${v >= 24 ? "hot" : v < 1 ? "dim" : ""}" title="${tip}">${hrs(v)}${stuck.length ? `<span class="sub">${stuck.length} preso</span>` : ""}</td>`;
+    }).join("")}</tr>`).join("");
+    bindRows(t.tBodies[0]);
+  }
+
   function renderRows(ch) {
     if (!ch.agg) return;
     if (isBoss()) {
@@ -673,25 +802,7 @@
         const k = el.dataset.cls; hidden.has(k) ? hidden.delete(k) : hidden.add(k); refreshChart(false);
       }));
       ch.rows.querySelectorAll(".codebtn").forEach((el) => el.addEventListener("click", () => copyCode(el.dataset.code, el.dataset.what)));
-      return;
     }
-    const at = (s, m) => s.points[s.points.length - 1][m];
-    const cell = (runs, m) => { const vs = runs.map((s) => at(s, m)).filter((v) => v != null); if (!vs.length) return `<td class="num" title="esta simulação não gravou este dado">—</td>`;
-      const lo = Math.min(...vs), hi = Math.max(...vs);
-      return `<td class="num">${num(median(vs))}${runs.length > 1 && lo !== hi ? `<span class="rng" title="menor–maior entre as runs">${num(lo)}–${num(hi)}</span>` : ""}</td>`; };
-    ch.rows.innerHTML = ch.agg.classes.map((c) => {
-      const done = c.runs.filter((s) => s.done).length;
-      return `<tr class="${hidden.has(c.cls) ? "off" : ""}"><td><button class="cls" data-cls="${c.cls}" aria-pressed="${!hidden.has(c.cls)}" title="Mostrar ou esconder nos gráficos">
-        <span class="sw" style="background:${c.color}"></span>${CLASS_PT[c.cls] || c.cls}</button></td>
-        <td class="num runs">${c.runs.map((s, i) => `<button class="codebtn${s.done ? "" : " live"}" data-code="${esc(replayCode(s))}"
-          data-what="${esc(`${CLASS_PT[c.cls] || c.cls}, ${profileOf(s.label)?.name || s.label}, seed ${s.seed}`)}"
-          title="Run ${i + 1} (seed ${s.seed}, ${s.done ? "terminou" : "rodando"}): copiar o código do replay para assistir no playground">${i + 1}</button>`).join("")}</td>
-        <td class="num">${num(Math.max(...c.runs.map(endH)))}h</td>${cell(c.runs, "floor")}${cell(c.runs, "level")}${cell(c.runs, "deaths")}${cell(c.runs, "gold")}${cell(c.runs, "spent")}${cell(c.runs, "train")}</tr>`;
-    }).join("");
-    ch.rows.querySelectorAll(".cls").forEach((el) => el.addEventListener("click", () => {
-      const k = el.dataset.cls; hidden.has(k) ? hidden.delete(k) : hidden.add(k); refreshChart(false);
-    }));
-    ch.rows.querySelectorAll(".codebtn").forEach((el) => el.addEventListener("click", () => copyCode(el.dataset.code, el.dataset.what, true)));
   }
 
   document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshSelected(); });
