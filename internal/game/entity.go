@@ -12,6 +12,7 @@ type MonsterKind struct {
 	MinDepth int
 	Undead   bool
 	Dex      int
+	Beast    bool
 }
 
 type Monster struct {
@@ -32,6 +33,9 @@ type Monster struct {
 	SleepProof int
 	Spotted    bool `json:",omitempty"`
 }
+
+// OpensDoors is false for beasts, which a closed door stops.
+func (m *Monster) OpensDoors() bool { return m.Boss || !m.Info().Beast }
 
 func (m *Monster) Info() MonsterKind {
 	if m.Boss {

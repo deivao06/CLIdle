@@ -619,12 +619,16 @@ func (m *Monster) moveToward(l *Level, dist []int, hero Pos) {
 	}
 	for _, d := range Dirs8 {
 		n := m.Pos.Add(d)
-		if !l.In(n) || n == hero || !l.CanStep(m.Pos, n) || l.MonsterAt(n) != nil {
+		if !l.In(n) || n == hero || !l.CanStep(m.Pos, n) || l.MonsterAt(n) != nil || l.At(n) == Door && !m.OpensDoors() {
 			continue
 		}
 		if nd := dist[n.Y*MapW+n.X]; nd >= 0 && nd < bestD {
 			best, bestD = n, nd
 		}
+	}
+	if l.At(best) == Door {
+		l.Set(best, OpenDoor)
+		return
 	}
 	m.Pos = best
 }

@@ -94,7 +94,7 @@ func tileStyle(t game.Tile) *lipgloss.Style {
 	switch t {
 	case game.HWall, game.VWall, game.CaveWall:
 		return &sWall
-	case game.Door:
+	case game.Door, game.OpenDoor:
 		return &sDoor
 	case game.StairsDown, game.StairsUp:
 		return &sStairs

@@ -17,15 +17,21 @@ const (
 	StairsDown
 	StairsUp
 	CaveWall
+	OpenDoor
 )
 
 func (t Tile) Walkable() bool {
 	switch t {
-	case Floor, Door, Corridor, StairsDown, StairsUp:
+	case Floor, Door, OpenDoor, Corridor, StairsDown, StairsUp:
 		return true
 	}
 	return false
 }
+
+// Transparent tiles let light through; a closed door blocks it.
+func (t Tile) Transparent() bool { return t.Walkable() && t != Door }
+
+func (t Tile) IsDoor() bool { return t == Door || t == OpenDoor }
 
 func (t Tile) Glyph() rune {
 	switch t {
@@ -37,6 +43,8 @@ func (t Tile) Glyph() rune {
 		return '|'
 	case Door:
 		return '+'
+	case OpenDoor:
+		return '\''
 	case Corridor:
 		return '#'
 	case StairsDown:
@@ -114,7 +122,7 @@ func (l *Level) CanStep(from, to Pos) bool {
 		return false
 	}
 	if from.X != to.X && from.Y != to.Y {
-		if l.At(from) == Door || l.At(to) == Door {
+		if l.At(from).IsDoor() || l.At(to).IsDoor() {
 			return false
 		}
 	}
@@ -175,7 +183,7 @@ func (l *Level) clearLine(a, b Pos) bool {
 		if a == b {
 			return true
 		}
-		if !l.At(a).Walkable() {
+		if !l.At(a).Transparent() {
 			return false
 		}
 	}

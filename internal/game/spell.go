@@ -181,7 +181,7 @@ func (g *Game) blinkAway(r *round) bool {
 	for y := h.Pos.Y - SpellRange; y <= h.Pos.Y+SpellRange; y++ {
 		for x := h.Pos.X - SpellRange; x <= h.Pos.X+SpellRange; x++ {
 			p := Pos{x, y}
-			if !l.At(p).Walkable() || !l.Visible(h.Pos, p) || l.MonsterAt(p) != nil {
+			if !l.At(p).Transparent() || !l.Visible(h.Pos, p) || l.MonsterAt(p) != nil {
 				continue
 			}
 			near := MapW

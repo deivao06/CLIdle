@@ -92,16 +92,16 @@ var BossKinds = []MonsterKind{
 }
 
 var MonsterKinds = []MonsterKind{
-	{'r', "monster.rat", "180", 6, 3, 0, 4, 3, 1, false, 3},
-	{'b', "monster.bat", "137", 5, 3, 0, 7, 4, 1, false, 8},
-	{'k', "monster.kobold", "166", 10, 4, 1, 4, 6, 1, false, 2},
-	{'g', "monster.goblin", "70", 14, 6, 2, 4, 9, 4, false, 4},
-	{'w', "monster.wolf", "247", 16, 7, 1, 6, 12, 6, false, 6},
-	{'z', "monster.zombie", "107", 28, 8, 3, 2, 15, 8, true, 0},
-	{'o', "monster.orc", "28", 30, 11, 5, 4, 22, 11, false, 2},
-	{'e', "monster.skeleton", "189", 26, 13, 6, 4, 28, 14, true, 4},
-	{'l', "monster.werewolf", "130", 45, 17, 7, 6, 40, 18, false, 8},
-	{'d', "monster.young_dragon", "160", 70, 22, 10, 5, 60, 24, false, 6},
+	{'r', "monster.rat", "180", 6, 3, 0, 4, 3, 1, false, 3, true},
+	{'b', "monster.bat", "137", 5, 3, 0, 7, 4, 1, false, 8, true},
+	{'k', "monster.kobold", "166", 10, 4, 1, 4, 6, 1, false, 2, false},
+	{'g', "monster.goblin", "70", 14, 6, 2, 4, 9, 4, false, 4, false},
+	{'w', "monster.wolf", "247", 16, 7, 1, 6, 12, 6, false, 6, true},
+	{'z', "monster.zombie", "107", 28, 8, 3, 2, 15, 8, true, 0, false},
+	{'o', "monster.orc", "28", 30, 11, 5, 4, 22, 11, false, 2, false},
+	{'e', "monster.skeleton", "189", 26, 13, 6, 4, 28, 14, true, 4, false},
+	{'l', "monster.werewolf", "130", 45, 17, 7, 6, 40, 18, false, 8, true},
+	{'d', "monster.young_dragon", "160", 70, 22, 10, 5, 60, 24, false, 6, true},
 }
 
 const (

@@ -940,6 +940,7 @@ func (m Model) viewSymbols(h int) string {
 		{sFloor.Render("."), lang.T("help.floor")},
 		{sFloor.Render("#"), lang.T("help.corridor")},
 		{sDoor.Render("+"), lang.T("help.door")},
+		{sDoor.Render("'"), lang.T("help.door_open")},
 		{sWall.Render("- |"), lang.T("help.wall")},
 		{sStairs.Render(">"), lang.T("help.stairs_down")},
 		{sStairs.Render("<"), lang.T("help.stairs_up")},

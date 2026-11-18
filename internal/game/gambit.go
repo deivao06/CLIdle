@@ -558,7 +558,16 @@ func (g *Game) perform(i int, r *round) {
 		gb = g.Config.Gambits[i]
 	}
 	move := func(p Pos) {
+		if l.At(p) == Door {
+			l.Set(p, OpenDoor)
+			l.Reveal(h.Pos)
+			return
+		}
+		from := h.Pos
 		h.Pos = p
+		if (gb.Do == ActFlee || g.Exp.Retreating) && l.At(from) == OpenDoor && !l.At(p).IsDoor() && l.MonsterAt(from) == nil {
+			l.Set(from, Door)
+		}
 		l.Reveal(h.Pos)
 		g.pickup(r)
 	}
