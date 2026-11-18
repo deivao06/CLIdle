@@ -69,7 +69,7 @@ func TestWhirlwindHitsAllAdjacent(t *testing.T) {
 
 func TestSneakAttackOnSleeper(t *testing.T) {
 	rogue, warrior := heroAt(Rogue, 1, 1), heroAt(Warrior, 1, 1)
-	warrior.Hero.Training[Str] = rogue.Hero.Atk() - warrior.Hero.Atk()
+	warrior.Hero.Bonus = rogue.Hero.Atk() - warrior.Hero.Atk()
 	mr, mw := rogue.besideHero(dummy()), warrior.besideHero(dummy())
 	mr.Awake, mw.Awake = false, false
 	for mr.HP == mr.MaxHP {

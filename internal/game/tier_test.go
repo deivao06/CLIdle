@@ -12,20 +12,11 @@ import (
 	"clidle/internal/lang"
 )
 
-func TestGoldTurnsLinearAfterTheFirstDungeon(t *testing.T) {
-	top := GoldPerPile(DungeonFloors)
+func TestGoldPerPileIsQuadratic(t *testing.T) {
 	near := func(a, b float64) bool { return math.Abs(a-b) < 1e-6*b }
-	if !near(top, 5*pow108(DungeonFloors-1)) || !near(GoldPerPile(DungeonFloors+1), top*1.08) || !near(GoldPerPile(DungeonFloors+100), top*9) {
-		t.Fatalf("pile at 100 %.0f, 101 %.0f, 200 %.0f", top, GoldPerPile(DungeonFloors+1), GoldPerPile(DungeonFloors+100))
+	if !near(GoldPerPile(1), 5) || !near(GoldPerPile(11), 20) || !near(GoldPerPile(101), 605) {
+		t.Fatalf("pile at 1 %.0f, 11 %.0f, 101 %.0f", GoldPerPile(1), GoldPerPile(11), GoldPerPile(101))
 	}
-}
-
-func pow108(n int) float64 {
-	v := 1.0
-	for range n {
-		v *= 1.08
-	}
-	return v
 }
 
 func TestBossesFollowTheDungeonFloors(t *testing.T) {

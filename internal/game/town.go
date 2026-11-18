@@ -26,7 +26,7 @@ func (t Trait) Effect() string {
 	if t == Con {
 		return fmt.Sprintf("+%d HP", TrainHP)
 	}
-	return "+1 " + lang.T([...]string{"stat.str", "stat.dex", "stat.int"}[t])
+	return fmt.Sprintf("+%d ", TrainGain(t)) + lang.T([...]string{"stat.str", "stat.dex", "stat.int"}[t])
 }
 
 func (g *Game) InTown() bool { return g.Exp == nil }

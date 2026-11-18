@@ -121,10 +121,14 @@ const (
 	UpgradeRefundPct  = 20
 )
 
-// GoldPerPile grows 8% a floor up to the first dungeon's last floor, then by the same amount each floor.
+const (
+	GoldPileBase   = 5
+	GoldPileGrowth = 0.1
+)
+
 func GoldPerPile(depth int) float64 {
-	top := 5 * math.Pow(1.08, float64(min(depth, DungeonFloors)-1))
-	return top * (1 + 0.08*float64(max(0, depth-DungeonFloors)))
+	f := 1 + GoldPileGrowth*float64(depth-1)
+	return GoldPileBase * f * f
 }
 
 const (
@@ -323,7 +327,11 @@ func UpgradeCost(it *Item, level int) int {
 	return int(float64(value+10) * math.Pow(1.6, float64(level)))
 }
 
-const TrainBase = 40
+const (
+	TrainBase = 40
+	TrainQuad = 20
+	TrainStr  = 3
+)
 
 type classHP struct{ Base, PerLevel int }
 
@@ -356,8 +364,14 @@ func BagCost(level int) int {
 	return int(100 * math.Pow(1.8, float64(level)))
 }
 
-func TrainCost(level int) int {
-	return int(TrainBase * math.Pow(1.5, float64(level)))
+func TrainCost(level int) int { return TrainBase + TrainQuad*level*level }
+
+// TrainGain is how many points of the attribute one training gives.
+func TrainGain(t Trait) int {
+	if t == Str {
+		return TrainStr
+	}
+	return 1
 }
 
 const OfflineCap = 12 * time.Hour

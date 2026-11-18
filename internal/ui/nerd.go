@@ -89,7 +89,7 @@ func (m Model) nerdRows() []prepRow {
 
 	sec = lang.T("nerd.section.loot")
 	add("gold_piles", fmt.Sprintf("%d–%d", game.GoldPilesMin, game.GoldPilesMax))
-	add("gold_pile", lang.T("nerd.growth.value", num(game.GoldPerPile(1)), ratio(game.GoldPerPile(11), game.GoldPerPile(10))))
+	add("gold_pile", lang.T("nerd.gold_pile.value", num(game.GoldPileBase), num(game.GoldPileGrowth)))
 	add("gold_kill", lang.T("nerd.gold_kill.value", game.GoldKillDiv))
 	add("items", fmt.Sprintf("%d–%d", game.ItemsMin, game.ItemsMax))
 	add("potion_chance", nerdPct(game.PotionChance))
@@ -131,7 +131,8 @@ func (m Model) nerdRows() []prepRow {
 	big := &game.Item{Base: 1000}
 	add("upgrade_cost", lang.T("nerd.upgrade_cost.value", ratio(float64(game.UpgradeCost(big, 1)), float64(game.UpgradeCost(big, 0)))))
 	add("max_gold", fmt.Sprint(game.MaxGold))
-	add("train", lang.T("nerd.growth.value", fmt.Sprint(game.TrainCost(0)), ratio(float64(game.TrainCost(10)), float64(game.TrainCost(9)))))
+	add("train", lang.T("nerd.train.value", fmt.Sprint(game.TrainBase), fmt.Sprint(game.TrainQuad)))
+	add("train_str", fmt.Sprintf("+%d", game.TrainStr))
 
 	sec = lang.T("nerd.section.classes")
 	for c := range game.NumClasses {

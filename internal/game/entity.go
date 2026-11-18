@@ -162,7 +162,7 @@ func (h *Hero) MaxMP() int {
 
 func (h *Hero) Attr(t Trait) int {
 	s := ClassStats[h.Class]
-	return s.Start[t] + s.Growth[t]*(h.Level-1)/2 + h.Training[t] + h.Bonus + h.Legacy
+	return s.Start[t] + s.Growth[t]*(h.Level-1)/2 + h.Training[t]*TrainGain(t) + h.Bonus + h.Legacy
 }
 
 func (h *Hero) Atk() int {
