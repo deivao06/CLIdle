@@ -189,6 +189,11 @@ func (l *Level) Reveal(from Pos) {
 			}
 		}
 	}
+	for _, m := range l.Mons {
+		if !m.Spotted && l.Visible(from, m.Pos) {
+			m.Spotted = true
+		}
+	}
 }
 
 const floorTries = 100

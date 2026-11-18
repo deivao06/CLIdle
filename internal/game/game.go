@@ -750,7 +750,10 @@ func (g *Game) plan(mode ExploreMode) (Pos, int) {
 	h := g.Hero
 	to := func(target Pos) func(Pos) bool { return func(p Pos) bool { return p == target } }
 	boss := l.boss()
-	seenMonster := func(p Pos) bool { return l.MonsterAt(p) != nil && l.Visible(h.Pos, p) }
+	seenMonster := func(p Pos) bool {
+		m := l.MonsterAt(p)
+		return m != nil && (m.Spotted || l.Visible(h.Pos, p))
+	}
 	rush := func(p Pos) bool {
 		return mode == DescendFast && boss == nil && l.IsSeen(l.Down) && p == l.Down
 	}

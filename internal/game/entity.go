@@ -30,6 +30,7 @@ type Monster struct {
 	Asleep     int
 	Slowed     int
 	SleepProof int
+	Spotted    bool `json:",omitempty"`
 }
 
 func (m *Monster) Info() MonsterKind {
