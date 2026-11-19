@@ -427,6 +427,7 @@
   "bar.depart": "Partir",
   "bar.retreat": "Recuar",
   "bar.auto": "Auto: %s",
+  "bar.equip": "Equipar",
   "bar.sell": "Vender",
   "bar.update": "Atualizar",
   "bar.help": "Ajuda",

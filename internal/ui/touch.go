@@ -58,7 +58,7 @@ func (m Model) barActions() []barAction {
 	a = append(a, barAction{"a", lang.T("bar.auto", auto)})
 	if m.tab == tabDungeon && g.InTown() {
 		if rows := m.townRows(); m.cursor < len(rows) && rows[m.cursor].sell != nil {
-			a = append(a, barAction{"x", lang.T("bar.sell")})
+			a = append(a, barAction{"enter", lang.T("bar.equip")}, barAction{"x", lang.T("bar.sell")})
 		}
 	}
 	if m.release != nil {
@@ -106,7 +106,7 @@ func (m Model) viewActions() string {
 		return texts
 	}
 	texts, withKeys := keyed(true), true
-	if lipgloss.Width(strings.Join(texts, "")) > m.w {
+	if lipgloss.Width(strings.Join(texts, " ")) > m.w {
 		texts, withKeys = keyed(false), false
 	}
 	widths := spread(texts, m.w)
@@ -269,7 +269,7 @@ func (m Model) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 			return m.Update(keyMsg(fmt.Sprint(i + 1)))
 		}
 	}
-	for _, a := range []string{"esc", "e", "r", "a", "x", "u", "?"} {
+	for _, a := range []string{"esc", "enter", "e", "r", "a", "x", "u", "?"} {
 		if hit("key:"+a, msg) {
 			return m.Update(keyMsg(a))
 		}
@@ -292,10 +292,11 @@ func (m Model) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 	if !m.listShown() {
 		return m, nil
 	}
-	for i := range m.rows() {
+	rows := m.rows()
+	for i := range rows {
 		for j := range maxRowLines {
 			if hit(fmt.Sprintf("row:%d.%d", i, j), msg) {
-				if i == m.cursor {
+				if i == m.cursor && rows[i].sell == nil {
 					return m.Update(keyMsg("enter"))
 				}
 				m.cursor = i

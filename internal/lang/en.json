@@ -427,6 +427,7 @@
   "bar.depart": "Depart",
   "bar.retreat": "Retreat",
   "bar.auto": "Auto: %s",
+  "bar.equip": "Equip",
   "bar.sell": "Sell",
   "bar.update": "Update",
   "bar.help": "Help",
