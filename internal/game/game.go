@@ -30,6 +30,8 @@ type Expedition struct {
 	ActiveMs    int64
 	RetreatRule int
 	Disarmed    int
+	// Acted is the rule (index+1) that acted this step; zero means none did.
+	Acted int `json:",omitempty"`
 
 	HeroMisses Streak `json:",omitempty"`
 	MonMisses  Streak `json:",omitempty"`
@@ -210,10 +212,12 @@ func (g *Game) step() {
 	g.monstersAct(r, true)
 	drive := ActExplore
 	if g.Exp != nil {
+		g.Exp.Acted = 0
 		b := g.behavior()
 		drive = g.driving(b)
 		if !g.instant(b, r) {
 			g.perform(b, r)
+			g.markActed(b)
 		}
 		g.monstersAct(r, false)
 	}

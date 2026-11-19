@@ -304,3 +304,45 @@ func TestRetreatsWhenTheBagHoldsARareItem(t *testing.T) {
 		t.Fatal("kept going with a rare item in the bag")
 	}
 }
+
+func TestActedNamesTheRuleThatActed(t *testing.T) {
+	g := heroAt(Warrior, 1, 12345678)
+	g.Config.Gambits = []Gambit{
+		{If: [2]Cond{{CondHP, OpLess, 50}}, Do: ActPotion},
+		{If: [2]Cond{{CondBagFull, 0, 0}}, Do: ActRetreat},
+		{Do: ActIdle},
+	}
+	g.step()
+	if g.Exp.Acted != 3 {
+		t.Fatalf("full HP: acted %d, want idle (3)", g.Exp.Acted)
+	}
+	g.Hero.HP = 1
+	g.step()
+	if g.Exp.Acted != 1 {
+		t.Fatalf("low HP: acted %d, want potion (1)", g.Exp.Acted)
+	}
+	g.Hero.HP = g.Hero.MaxHP()
+	g.Hero.Pos = farFloor(g.Exp.Level, g.Exp.Level.Up)
+	g.Retreat()
+	g.step()
+	if g.Exp.Acted != 0 {
+		t.Fatalf("ordered retreat: acted %d, want none", g.Exp.Acted)
+	}
+	g.Config.Gambits = nil
+	g.TacticsChanged()
+	g.step()
+	if g.Exp != nil && g.Exp.Acted != 0 {
+		t.Fatalf("no rules: acted %d, want none", g.Exp.Acted)
+	}
+}
+
+func farFloor(l *Level, from Pos) Pos {
+	for y := range MapH {
+		for x := range MapW {
+			if p := (Pos{x, y}); l.At(p) == Floor && p.Dist(from) >= 5 {
+				return p
+			}
+		}
+	}
+	panic("no floor far enough")
+}

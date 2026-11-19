@@ -202,7 +202,7 @@ func (g *Game) unlockGambits(old int, r *round) {
 		}
 		g.Config.Gambits = slices.Insert(gs, at, gb)
 		if e := g.Exp; e != nil {
-			for _, idx := range []*int{&e.ActiveRule, &e.RetreatRule, &e.Disarmed} {
+			for _, idx := range []*int{&e.ActiveRule, &e.RetreatRule, &e.Disarmed, &e.Acted} {
 				if *idx > at {
 					*idx++
 				}
@@ -409,6 +409,7 @@ func (g *Game) atStairsRule() bool {
 		} else {
 			e.ActiveRule, e.ActiveMs = i+1, 0
 		}
+		e.Acted = i + 1
 		return true
 	}
 	return false
@@ -429,6 +430,16 @@ func (g *Game) retreatWhy(gb Gambit) string {
 	return lang.T("retreat.rule", gb.CondLabel())
 }
 
+// markActed records the behavior rule i as the one that acted, unless the hero only follows an order to retreat.
+func (g *Game) markActed(i int) {
+	e := g.Exp
+	gs := g.Config.Gambits
+	if e == nil || i >= len(gs) || gs[i].Do == ActRetreat && e.RetreatRule != i+1 {
+		return
+	}
+	e.Acted = i + 1
+}
+
 // offensive actions never run while the hero retreats without a retreat rule to rank them.
 func (a Action) offensive() bool {
 	return a == ActHolyLight || a == ActAttack || a >= ActSpells && a <= ActSleep
@@ -438,11 +449,12 @@ func (a Action) offensive() bool {
 func (g *Game) instant(limit int, r *round) bool {
 	gs := g.Config.Gambits
 	manual := g.Exp.Retreating && limit == len(gs)
-	for _, gb := range gs[:limit] {
+	for i, gb := range gs[:limit] {
 		if gb.Do.Behavior() || manual && gb.Do.offensive() || !g.entry(gb) {
 			continue
 		}
 		if g.act(gb, r) {
+			g.Exp.Acted = i + 1
 			return true
 		}
 	}
@@ -732,7 +744,7 @@ const MaxGambits = 16
 // TacticsChanged forgets which rule was active, since the indices may point elsewhere now.
 func (g *Game) TacticsChanged() {
 	if e := g.Exp; e != nil {
-		e.ActiveRule, e.Disarmed, e.RetreatRule = 0, 0, 0
+		e.ActiveRule, e.Disarmed, e.RetreatRule, e.Acted = 0, 0, 0, 0
 	}
 }
 
