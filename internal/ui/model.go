@@ -23,6 +23,7 @@ const (
 const (
 	tickEvery = 50 * time.Millisecond
 	saveEvery = 30 * time.Second
+	ruleHold  = 2 * time.Second
 )
 
 type tickMsg time.Time
@@ -48,6 +49,8 @@ type Model struct {
 	listFree   bool
 	shown      *scrolled
 	lastTick   time.Time
+	rule       int
+	ruleAt     time.Time
 	savePath   string
 	lastSave   time.Time
 	saveErr    error
@@ -127,6 +130,14 @@ func (m Model) catchUp(away time.Duration) tea.Cmd {
 	return func() tea.Msg {
 		return catchUpDoneMsg(g.CatchUp(away, func(f float64) { progress.Store(int64(f * 1000)); yieldToBrowser() }))
 	}
+}
+
+// actingRule is the tactic (index+1) that acted last, kept on screen for ruleHold; zero when none.
+func (m Model) actingRule() int {
+	if m.g.Exp == nil || m.lastTick.Sub(m.ruleAt) >= ruleHold {
+		return 0
+	}
+	return m.rule
 }
 
 func (m *Model) save(now time.Time) {
@@ -209,6 +220,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.g.Advance(ms)
 		m.lastTick = m.lastTick.Add(time.Duration(ms) * time.Millisecond)
 		m.collectFx(now)
+		if g := m.g; g.Exp != nil && g.Exp.Acted > 0 {
+			m.rule, m.ruleAt = g.Exp.Acted, now
+		}
 		if m.confirmDo != nil && !m.confirmKeep && m.g.InTown() != m.confirmTown {
 			m.confirmDo = nil
 		}

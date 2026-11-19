@@ -233,7 +233,11 @@ func (m Model) viewDungeon(h int) string {
 	if g.Exp.Retreating {
 		doingStyle = sWarn
 	}
-	doing := doingStyle.Render(truncate("▸ "+g.Doing(), mapW))
+	rule := ""
+	if n := m.actingRule(); n > 0 {
+		rule = lang.T("doing.rule", n)
+	}
+	doing := doingStyle.Render(truncate("▸ "+rule+g.Doing(), mapW))
 	if logH >= 3 {
 		doing += "\n"
 		logH--

@@ -339,6 +339,7 @@
   "spell.heal.log": "you cure your wounds (+%d HP)",
   "spell.holy_light.log": "holy light hits the %s (%d)",
   "doing.retreat": "Returning to town (%s) → <",
+  "doing.rule": "#%d · ",
   "doing.fight": "Fighting the %s",
   "doing.hunt": "Going after a monster",
   "doing.loot": "Going to pick up an item",

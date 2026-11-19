@@ -54,7 +54,11 @@ func (m Model) tacticsRows(first int) []prepRow {
 	var rows []prepRow
 	for i, gb := range g.Config.Gambits {
 		back := first + i
-		rows = append(rows, prepRow{section: sec, text: fmt.Sprintf("%2d. %s", i+1, gb.Label()), style: sPlain,
+		mark, style := " ", sPlain
+		if i+1 == m.actingRule() {
+			mark, style = "▸", sDoing
+		}
+		rows = append(rows, prepRow{section: sec, text: fmt.Sprintf("%s%2d. %s", mark, i+1, gb.Label()), style: style,
 			act: func(m *Model) { m.openRule(i, back) }, desc: gb.Do.Desc() + " " + lang.T("tactics.rule.desc")})
 	}
 	if len(g.Config.Gambits) < game.MaxGambits {
