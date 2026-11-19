@@ -116,7 +116,7 @@ The **mouse** works too: click tabs, rows and buttons (1st click selects, 2nd us
 | `r` `b` `k` `g`... | monsters (lowercase letter) |
 | `G` `O` `L` `D` | bosses (uppercase letter) |
 
-Item color = rarity: white common, blue magic, green rare, purple epic, orange legendary.
+Item color = rarity: white common, green magic, blue rare, purple epic, orange legendary.
 
 ## Save
 

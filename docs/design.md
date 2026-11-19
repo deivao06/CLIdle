@@ -43,7 +43,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Ajuda (`?`)** é um manual com páginas (←→ troca, ↑↓ rola): **Símbolos** (legenda de cada caractere), **Como funciona** (expedição, ordem das ações do herói, retirada, cidade, morte, chefes, auto, offline) e **Atributos** (FOR/DES/INT/CON, números do herói, raridade, classes).
 - Monstros por letra (`r`, `g`, `o`...); chefes em letra maiúscula com cor própria. ~8–10 tipos na v1.
 - **Tema único (clássico corrigido):** cada tipo de informação tem cor própria. Laranja só em abas, títulos e cursor; seções em branco negrito; linha de atributos em bege; herói `@` em amarelo forte e linha `▸` em amarelo claro (ouro é outro amarelo); XP em ciano; paredes mais escuras que o texto do log; lendário vermelho-alaranjado para não parecer título.
-- Raridade de itens por cor: Comum (branco), Mágico (azul), Raro (verde), Épico (roxo), Lendário (laranja).
+- Raridade de itens por cor: Comum (branco), Mágico (verde), Raro (azul) (trocados em 2026-11-19 a pedido do dono), Épico (roxo), Lendário (laranja).
   - No mesmo andar, raridade maior nunca sai mais fraca que a menor (variação de ±10%; botas sem variação).
 - **Efeitos:** raro tem 1 efeito, épico 2, lendário 3 (diferentes; a faixa de valor não depende da raridade, estilo Path of Exile simplificado): roubo de vida, crítico (dano dobrado), HP extra, ouro extra, cura de poção extra, XP extra. Valores em `EffectRange`; o mesmo efeito em itens diferentes soma até o teto `EffectCap` (sem teto, 5 peças davam 75% de roubo de vida). Itens antigos guardam os efeitos que já tinham.
 

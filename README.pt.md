@@ -116,7 +116,7 @@ O **mouse** também funciona: clique nas abas, linhas e botões (1º clique esco
 | `r` `b` `k` `g`... | monstros (letra minúscula) |
 | `G` `O` `L` `D` | chefes (letra maiúscula) |
 
-Cor do item = raridade: branco comum, azul mágico, verde raro, roxo épico, laranja lendário.
+Cor do item = raridade: branco comum, verde mágico, azul raro, roxo épico, laranja lendário.
 
 ## Save
 
