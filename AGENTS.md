@@ -95,7 +95,7 @@ web/                    versão de navegador (WASM + xterm.js): main.go (ponte J
 - **Item level:** `Item.Floor` é o andar onde o item nasceu (`newItemOf`); `Item.Title()` mostra `(iLvl N)`. Zero (saves antigos, arma inicial) não mostra nada.
 - **Dungeons:** `Level.Depth` é a dificuldade efetiva; tudo que o jogador vê (status, log, atalhos, táticas "andar") usa `Game.Floor(depth)`. Chefe do andar 100 conclui a dungeon (`completeDungeon`); a próxima abre em `endExpedition`. Ver docs/design.md → Dungeon.
 - **Mochila:** tamanho é `Game.BagCap()` (`BagSize` + `BagLevel`×2), nunca a constante `BagSize` direto. `Config.MinRarity` filtra o que vai para a mochila em `wants`.
-- **Morte:** restaura `StartEquip`, perde ouro e mochila da expedição; mantém poções e XP.
+- **Morte:** perde a mochila e 75% do ouro da expedição; mantém o equipado (mesmo achado na expedição), poções e XP. `StartEquip` só sobra por causa do save.
 - **Chefe:** a cada `BossEvery` andares, na sala da `>`; bloqueia a descida; ao morrer dropa item raro, épico ou lendário (`BossEpicChance`, `BossLegendaryChance`) e libera atalho para `andar+1`. Dorme até o herói encostar (`BossWakeDist`). O herói não estima a luta com o chefe (o dono quis que ele não soubesse): não há recuo por chefe forte. Recuando (por qualquer motivo), só rodam as regras acima do recuo (por padrão, a cura) e ele anda para `<`; ataca apenas se um monstro bloqueia o único caminho.
 - **Poção:** regras de tática. O herói nunca sabe se um golpe vai matá-lo (não há condição de golpe letal).
 - **Morte:** `LastDeath` guarda as últimas linhas do log (aba Herói); 25% do ouro da expedição fica (`DeathKeepGoldPct`).

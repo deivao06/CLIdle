@@ -18,19 +18,20 @@ func TestReturnDepositsGoldAndSellsBag(t *testing.T) {
 	}
 }
 
-func TestDeathLosesFoundLootButKeepsStartEquip(t *testing.T) {
+func TestDeathLosesTheBagButKeepsWhatIsEquipped(t *testing.T) {
 	g := departed(1)
-	start := &Item{Slot: Weapon, Base: 3}
-	g.Hero.Equip[Weapon] = start
+	g.Hero.Equip[Weapon] = &Item{Slot: Weapon, Base: 3}
 	g.Exp.StartEquip = g.Hero.Equip
-	g.Hero.Equip[Weapon] = &Item{Slot: Weapon, Base: 9}
+	found := &Item{Slot: Weapon, Base: 9}
+	g.Hero.Equip[Weapon] = found
+	g.Exp.Bag = []*Item{{Slot: Armor, Base: 5}}
 	g.Exp.Gold = 50
 	g.Hero.HP = 1
 	m := &Monster{HP: 9, Atk: 100, Spd: 4}
 	for i := 0; i < 50 && g.Exp != nil; i++ {
 		g.monsterAttack(m, &round{})
 	}
-	if g.Exp != nil || g.Gold != 50*DeathKeepGoldPct/100 || g.Hero.Equip[Weapon] != start {
+	if g.Exp != nil || g.Gold != 50*DeathKeepGoldPct/100 || g.Hero.Equip[Weapon] != found || len(g.Stash) != 0 {
 		t.Fatalf("gold %d, weapon %+v", g.Gold, g.Hero.Equip[Weapon])
 	}
 }
