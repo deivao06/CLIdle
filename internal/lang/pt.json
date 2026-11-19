@@ -92,6 +92,8 @@
   "hero.dodge": "Esquiva %d%%\n",
   "hero.mana_regen": "Mana +%.2f por passo\n",
   "hero.potions_heal": "Poções %d (cada uma cura %d HP)\n",
+  "hero.gold_find": "Ouro +%d%% (pilhas e monstros)\n",
+  "hero.gold_nose": "Pilhas de ouro ×%.1f (%s)\n",
   "hero.equipment": "Equipamento",
   "hero.no_slot": "%c sem %s",
   "hero.expedition": "Expedição",

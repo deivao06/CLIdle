@@ -92,6 +92,8 @@
   "hero.dodge": "Dodge %d%%\n",
   "hero.mana_regen": "Mana +%.2f per step\n",
   "hero.potions_heal": "Potions %d (each heals %d HP)\n",
+  "hero.gold_find": "Gold +%d%% (piles and kills)\n",
+  "hero.gold_nose": "Gold piles ×%.1f (%s)\n",
   "hero.equipment": "Equipment",
   "hero.no_slot": "%c no %s",
   "hero.expedition": "Expedition",
