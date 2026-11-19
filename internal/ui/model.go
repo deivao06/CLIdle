@@ -23,7 +23,6 @@ const (
 const (
 	tickEvery = 50 * time.Millisecond
 	saveEvery = 30 * time.Second
-	wakeGap   = 5 * time.Second
 )
 
 type tickMsg time.Time
