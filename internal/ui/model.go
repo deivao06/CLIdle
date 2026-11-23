@@ -82,6 +82,9 @@ type Model struct {
 
 	confirmKeep bool
 	cmd         tea.Cmd
+	// notice is a short message for the footer, shown for noticeShow after noticeAt.
+	notice      string
+	noticeAt    time.Time
 	wasInTown   bool
 	checking    bool
 	lastCheck   time.Time
@@ -132,7 +135,7 @@ func (m Model) catchUp(away time.Duration) tea.Cmd {
 	m.progress.Store(0)
 	g, progress := m.g, m.progress
 	return func() tea.Msg {
-		return catchUpDoneMsg(g.CatchUp(away, func(f float64) { progress.Store(int64(f * 1000)); yieldToBrowser() }))
+		return catchUpDoneMsg(g.Guild.CatchUp(away, func(f float64) { progress.Store(int64(f * 1000)); yieldToBrowser() }))
 	}
 }
 
@@ -194,7 +197,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case catchUpDoneMsg:
 		m.catching = false
-		m.g.Events = nil
+		for _, h := range m.g.Guild.Heroes {
+			h.Events = nil
+		}
 		m.lastTick = time.Now()
 		m.lastDeaths, m.lastBosses = m.g.Deaths, m.g.BossKills
 		if s := game.Summary(msg); s.Eventful() {
@@ -301,13 +306,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 			if !m.g.Auto && m.g.InTown() {
-				m.ask(lang.T("confirm.auto"), func(m *Model) { m.g.ToggleAuto(); m.g.Depart() })
+				m.ask(lang.T("confirm.auto"), func(m *Model) { m.g.ToggleAuto(); m.depart() })
 			} else {
 				m.g.ToggleAuto()
 			}
 		case "e":
 			if m.g.InTown() && !m.guild {
-				m.ask(lang.T("confirm.depart"), func(m *Model) { m.g.Depart() })
+				m.ask(lang.T("confirm.depart"), (*Model).depart)
 			}
 		case "u":
 			m.askUpdate()
@@ -348,6 +353,15 @@ func (m *Model) helpKey(key string) {
 		m.helpTop = max(0, m.helpTop-1)
 	case "down", "j":
 		m.helpTop++
+	}
+}
+
+const noticeShow = 5 * time.Second
+
+// depart sends the open hero out, or says why the mission table cannot take it.
+func (m *Model) depart() {
+	if gd := m.g.Guild; m.g.InTown() && !m.g.Depart() {
+		m.notice, m.noticeAt = lang.T("depart.full", gd.Running(), gd.Slots()), time.Now()
 	}
 }
 

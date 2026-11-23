@@ -213,6 +213,9 @@ func (m Model) viewFooter() string {
 	if m.updateErr != "" && time.Since(m.updateErrAt) < updateErrShow {
 		return truncate(sWarn.Render(m.updateErr), m.w)
 	}
+	if m.notice != "" && time.Since(m.noticeAt) < noticeShow {
+		return truncate(sWarn.Render(m.notice), m.w)
+	}
 	for lipgloss.Width(keys) > m.w && strings.Contains(keys, " · ") {
 		_, keys, _ = strings.Cut(keys, " · ")
 	}
@@ -289,18 +292,17 @@ func (m Model) viewSummary() string {
 	title := lang.T("summary.title", fmtDuration(s.Away))
 	var b strings.Builder
 	b.WriteString(sTitle.Render(title) + "\n\n")
-	b.WriteString(hangLine(strings.TrimSuffix(lang.T("summary.expeditions", s.Expeditions, s.Returns, s.Deaths), "\n"), m.w) + "\n")
-	b.WriteString(lang.T("summary.kills", s.Kills))
-	if s.BossKills > 0 {
-		b.WriteString(logStyles[game.LogEpic].Render(lang.T("summary.bosses", s.BossKills)) + "\n")
+	for _, h := range s.Heroes {
+		line := lang.T("summary.hero", h.Name, h.LevelFrom, h.LevelTo, h.DepthFrom, h.DepthTo, h.Returns, h.Deaths, h.Kills)
+		if h.BossKills > 0 {
+			line += lang.T("summary.hero_bosses", h.BossKills)
+		}
+		if h.Dungeons > 0 {
+			line += lang.T("summary.hero_dungeons", h.Dungeons)
+		}
+		b.WriteString(lipgloss.NewStyle().Width(min(m.w-4, 90)).Render(sTitle.Render(h.Name)+strings.TrimPrefix(line, h.Name)) + "\n")
 	}
-	b.WriteString(sGold.Render(lang.T("summary.gold", s.Gold)) + "\n")
-	b.WriteString(lang.T("summary.level", s.LevelFrom, s.LevelTo))
-	if s.Dungeons > 0 {
-		b.WriteString(logStyles[game.LogEpic].Render(lang.T("summary.dungeons", s.Dungeons, m.g.DungeonName(), s.DepthTo)) + "\n")
-	} else {
-		b.WriteString(lang.T("summary.depth", s.DepthFrom, s.DepthTo))
-	}
+	b.WriteString("\n" + sGold.Render(lang.T("summary.gold", s.Gold)) + "\n")
 	if s.Capped {
 		b.WriteString("\n" + sMuted.Render(lang.T("summary.capped", fmtDuration(game.OfflineCap))) + "\n")
 	}

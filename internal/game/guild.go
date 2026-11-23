@@ -1,5 +1,7 @@
 package game
 
+import "slices"
+
 // Guild is what the heroes share: the gold, the chest and the game options.
 type Guild struct {
 	Gold     int
@@ -16,7 +18,14 @@ type Guild struct {
 	Recruits []Recruit `json:",omitempty"`
 	// RecruitMs counts the time since the recruits were last replaced.
 	RecruitMs int64 `json:",omitempty"`
+	// AccMs is the time not yet given to the heroes; Ticket numbers the heroes waiting for the mission table.
+	AccMs  int64 `json:",omitempty"`
+	Ticket int64 `json:",omitempty"`
 }
+
+// GuildTickMs is the slice of time every hero runs before the next one, so heroes that share the gold and the
+// mission table come out the same however the time is cut.
+const GuildTickMs = 100
 
 // GuildLogSize is how many entries the guild log keeps.
 const GuildLogSize = 50
@@ -39,14 +48,47 @@ func (gd *Guild) link() {
 
 // Advance runs every hero for ms milliseconds of game time.
 func (gd *Guild) Advance(ms int64) {
-	for _, h := range gd.Heroes {
-		h.Advance(ms)
+	gd.AccMs += ms
+	for gd.AccMs >= GuildTickMs {
+		gd.AccMs -= GuildTickMs
+		for _, h := range gd.Heroes {
+			h.Advance(GuildTickMs)
+		}
 	}
 	gd.RecruitMs += ms
 	for gd.RecruitMs >= RecruitRefreshMs {
 		gd.RecruitMs -= RecruitRefreshMs
 		gd.rollRecruits()
 	}
+}
+
+func (gd *Guild) Slots() int { return MissionSlots }
+
+// Running counts the heroes out on an expedition.
+func (gd *Guild) Running() int {
+	n := 0
+	for _, h := range gd.Heroes {
+		if h.Exp != nil {
+			n++
+		}
+	}
+	return n
+}
+
+// mayStart lets g leave when the mission table has room and no hero has waited longer; otherwise g takes a
+// turn in the queue.
+func (gd *Guild) mayStart(g *Game) bool {
+	ahead := slices.ContainsFunc(gd.Heroes, func(o *Game) bool {
+		return o != g && o.Exp == nil && o.Queue != 0 && (g.Queue == 0 || o.Queue < g.Queue)
+	})
+	if gd.Running() < gd.Slots() && !ahead {
+		return true
+	}
+	if g.Queue == 0 {
+		gd.Ticket++
+		g.Queue = gd.Ticket
+	}
+	return false
 }
 
 // note adds an important event of a hero to the guild log.

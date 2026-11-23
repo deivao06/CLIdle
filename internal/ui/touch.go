@@ -102,6 +102,8 @@ func (m Model) viewActions() string {
 		return truncate(sWarn.Render(lang.T("footer.save_error", m.saveErr.Error())), m.w)
 	case m.updateErr != "" && time.Since(m.updateErrAt) < updateErrShow:
 		return truncate(sWarn.Render(m.updateErr), m.w)
+	case m.notice != "" && time.Since(m.noticeAt) < noticeShow:
+		return truncate(sWarn.Render(m.notice), m.w)
 	}
 	acts := m.barActions()
 	keyed := func(withKeys bool) []string {

@@ -90,6 +90,9 @@ type Game struct {
 	BestHeroMisses Streak `json:",omitempty"`
 	BestMonMisses  Streak `json:",omitempty"`
 
+	// Queue is the hero's turn for the mission table while all its expeditions are taken; zero when not waiting.
+	Queue int64 `json:",omitempty"`
+
 	Events   []Event `json:"-"`
 	Guild    *Guild  `json:"-"`
 	lab      *LabRun
@@ -130,10 +133,14 @@ func (g *Game) Advance(ms int64) {
 	for {
 		if g.Exp == nil {
 			if !g.Auto {
-				g.AccMs = 0
+				g.AccMs, g.Queue = 0, 0
 				return
 			}
 			if g.AccMs < TownWaitMs {
+				return
+			}
+			if !g.Guild.mayStart(g) {
+				g.AccMs = TownWaitMs
 				return
 			}
 			g.AccMs -= TownWaitMs
@@ -153,6 +160,7 @@ func (g *Game) Advance(ms int64) {
 }
 
 func (g *Game) StartExpedition() {
+	g.Queue = 0
 	g.ExpNum++
 	seed := g.RNG.Uint64()
 	g.Exp = &Expedition{Num: g.ExpNum, Seed: seed, RNG: NewRNG(seed), StartEquip: g.Hero.Equip}

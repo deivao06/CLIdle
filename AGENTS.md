@@ -28,7 +28,7 @@ cmd/playground/         playground (ver docs/design.md → Playground)
 main.go                 carrega o save, calcula o tempo fora, abre a UI
 internal/game/          lógica pura, sem I/O de terminal
   game.go               Game, Expedition, Config, loop (Advance/step), IA do herói, combate, retirada
-  guild.go              Guild: ouro, baú, opções do jogo, log da guilda e a lista de heróis (`Game.Guild` aponta de volta, fora do JSON)
+  guild.go              Guild: ouro, baú, opções do jogo, log da guilda e a lista de heróis (`Game.Guild` aponta de volta, fora do JSON); `Guild.Advance` roda os heróis juntos em fatias de `GuildTickMs`; Mesa de missões (`Slots`, fila por `Game.Queue`)
   recruit.go            recrutas (renovam a cada hora pelo `Guild.RNG`), contratar (`Guild.Hire`, vagas e preço), pontos de criação (`Hero.Points`, `FreePoints`, `Spend`)
   class.go              Class, atributos de dano, o que cada classe pode usar, escolha da classe
   ability.go            habilidades (Has), mana, golpe forte, segundo fôlego
@@ -45,7 +45,7 @@ internal/game/          lógica pura, sem I/O de terminal
   death.go              DeathScene: recorte do mapa guardado na morte (aba Herói)
   tier.go               dungeons de 100 andares: Offset/Floor (andar local), nome, completeDungeon/nextDungeon; prestígio (Prestige, PrestigeGain, Hero.Legacy)
   town.go               loja, ferreiro, treino, mochila, baú, poções, chegada na cidade (tudo só na cidade)
-  offline.go            CatchUp (simulação do tempo fora) e Summary
+  offline.go            `Guild.CatchUp` (simulação do tempo fora de todos os heróis) e Summary (uma linha por herói)
   save.go               save/load JSON (store_file.go: arquivo atômico; store_js.go: localStorage no navegador)
   balance.go            TODOS os números de balanceamento e tabelas (monstros, chefes, nomes de itens)
   log.go                log do jogo (com contador ×N)
@@ -82,7 +82,7 @@ web/                    versão de navegador (WASM + xterm.js): main.go (ponte J
 4. **Save/load preserva a simulação.** `TestSaveLoadRoundTripKeepsSimulationIdentical` garante que carregar e continuar dá o mesmo resultado. Ponteiros não sobrevivem ao JSON: identidade de item é por `Item.ID`, não por ponteiro.
 5. **Compatibilidade do save.** `saveVersion = 12` (o save guarda a `Guild`; v11 e anteriores guardavam um `Game` e migram para uma guilda com esse herói). Campos novos devem funcionar com valor zero (ex.: `Shortcuts` vazio vira `ShortcutList() == [1]`). O que valor zero não resolve ganha um passo em `migrate.go`; nunca edite um passo já publicado. Não renomeie campos exportados de structs salvas sem migração.
 6. **Concorrência.** `path.go` usa um buffer global (`scratch`) e o jogo não é thread-safe. Enquanto `Model.catching` for verdadeiro, a UI não pode tocar em `m.g` (a goroutine do `CatchUp` está rodando). `View` retorna cedo nesse estado.
-7. **Desempenho.** 12h offline devem simular em poucos segundos (`TestTwelveHoursIsFastEnough`, limite de 15s). O custo está no `search` por passo. Evite BFS extras por passo.
+7. **Desempenho.** 12h offline devem simular em poucos segundos (`TestTwelveHoursIsFastEnough`, limite de 15s). O custo está no `search` por passo. Evite BFS extras por passo. O custo cresce com cada herói em expedição ao mesmo tempo (~8s por herói em 12h; `TestTwelveHoursForAGuild` mede).
 8. **Bubble Tea:** `Init` tem receiver por valor; mudanças no model feitas ali se perdem. Configure o estado no construtor (`NewWithSave`).
 
 ## Mecânicas importantes (resumo)

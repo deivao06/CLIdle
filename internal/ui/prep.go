@@ -144,7 +144,7 @@ func (m Model) prepRows() []prepRow {
 
 func (m Model) townRows() []prepRow {
 	g := m.g
-	rows := []prepRow{{text: lang.T("prep.depart_now"), style: sTitle, enter: g.Depart, confirm: lang.T("confirm.depart"), desc: lang.T("town.depart.desc")}}
+	rows := []prepRow{{text: lang.T("prep.depart_now"), style: sTitle, do: (*Model).depart, confirm: lang.T("confirm.depart"), desc: lang.T("town.depart.desc")}}
 
 	for s := range game.NumSlots {
 		it := g.Hero.Equip[s]

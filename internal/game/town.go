@@ -31,11 +31,14 @@ func (t Trait) Effect() string {
 
 func (g *Game) InTown() bool { return g.Exp == nil }
 
-// Depart starts an expedition right away when the hero is resting in town.
-func (g *Game) Depart() {
-	if g.InTown() {
-		g.StartExpedition()
+// Depart starts an expedition right away when the hero is resting in town and the mission table has room;
+// the player's call skips the heroes waiting their turn.
+func (g *Game) Depart() bool {
+	if !g.InTown() || g.Guild.Running() >= g.Guild.Slots() {
+		return false
 	}
+	g.StartExpedition()
+	return true
 }
 
 func (g *Game) ToggleAuto() {

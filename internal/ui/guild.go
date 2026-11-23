@@ -32,6 +32,7 @@ func (m *Model) openGuild() {
 
 func (m *Model) openHero(h *game.Game) {
 	m.g, m.guild, m.tab, m.cursor, m.heroTop, m.help = h, false, tabDungeon, 0, 0, false
+	h.Events = h.Events[:0]
 	m.lastDeaths, m.lastBosses = h.Deaths, h.BossKills
 	m.spendFree(h)
 }
@@ -47,6 +48,9 @@ func (m Model) guildRows() []prepRow {
 	var rows []prepRow
 	for _, h := range m.g.Guild.Heroes {
 		where := lang.T("guild.where.town")
+		if h.Queue != 0 {
+			where = lang.T("guild.where.waiting")
+		}
 		if e := h.Exp; e != nil {
 			where = lang.T("guild.where.floor", h.Floor(e.Level.Depth))
 			if e.Retreating {

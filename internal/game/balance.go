@@ -387,6 +387,7 @@ const (
 	RecruitRefreshMs = int64(time.Hour / time.Millisecond)
 	RecruitReroll    = 100
 	HireBase         = 200
+	MissionSlots     = 2
 )
 
 // HireCost is the price of the next hero when the guild already has n.

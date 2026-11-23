@@ -47,6 +47,7 @@ func (m Model) nerdRows() []prepRow {
 	add("recruit_refresh", fmt.Sprintf("%d min", game.RecruitRefreshMs/60000))
 	add("recruit_reroll", fmt.Sprint(game.RecruitReroll))
 	add("hire_cost", lang.T("nerd.hire_cost.value", game.HireCost(1)))
+	add("mission_slots", fmt.Sprint(game.MissionSlots))
 
 	sec = lang.T("nerd.section.combat")
 	add("damage", lang.T("nerd.damage.value"))
