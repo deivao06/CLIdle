@@ -543,7 +543,7 @@ func (g *Game) killBoss(m *Monster, r *round) {
 		g.Shortcuts = append(g.ShortcutList(), depth+1)
 		text += lang.T("log.shortcut", g.Floor(depth+1))
 	}
-	r.after = append(r.after, LogEntry{Text: text, Kind: LogEpic})
+	r.after = append(r.after, LogEntry{Text: text, Kind: drop.Rarity.LogKind()})
 }
 
 // ShortcutList is the set of floors an expedition can start from.
