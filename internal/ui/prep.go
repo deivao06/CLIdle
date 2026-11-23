@@ -27,6 +27,8 @@ type prepRow struct {
 	sellAsk string
 	confirm string
 	desc    string
+	price   int
+	priceSt lipgloss.Style
 }
 
 func onOff(b bool) string {
@@ -154,7 +156,7 @@ func (m Model) townRows() []prepRow {
 		cost := g.UpgradeCost(s)
 		text := lang.T("prep.smith_row", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade)+it.ILvl(), next.StatLabel(), cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: m.priced(rarityStyle(it.Rarity), cost),
-			enter: func() { g.Upgrade(s) }, desc: lang.T("town.smith.desc")})
+			price: cost, priceSt: m.goldFor(cost), enter: func() { g.Upgrade(s) }, desc: lang.T("town.smith.desc")})
 	}
 
 	for t := range game.NumTraits {
@@ -162,7 +164,7 @@ func (m Model) townRows() []prepRow {
 		cost := game.TrainCost(lvl)
 		text := lang.T("prep.train_row", t.Name(), lvl, t.Effect(), cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.buyable(cost),
-			enter: func() { g.Train(t) }, desc: m.trainDesc(t)})
+			price: cost, priceSt: m.goldFor(cost), enter: func() { g.Train(t) }, desc: m.trainDesc(t)})
 	}
 
 	for i, it := range g.Shop {
@@ -174,7 +176,7 @@ func (m Model) townRows() []prepRow {
 			st = sMuted
 		}
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: st,
-			enter: func() { g.BuyShop(i) }, desc: m.itemDesc(it)})
+			price: price, priceSt: m.goldFor(price), enter: func() { g.BuyShop(i) }, desc: m.itemDesc(it)})
 	}
 	if len(g.Shop) == 0 {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.sold_out"), style: sMuted})
@@ -184,11 +186,11 @@ func (m Model) townRows() []prepRow {
 		potion = sMuted
 	}
 	rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.potion_row", g.Hero.Potions, game.MaxPotions, game.PotionPrice),
-		style: potion, enter: g.BuyPotion, desc: lang.T("town.potion.desc", game.MaxPotions)})
+		style: potion, price: game.PotionPrice, priceSt: m.goldFor(game.PotionPrice), enter: g.BuyPotion, desc: lang.T("town.potion.desc", game.MaxPotions)})
 	if size, cost, ok := g.NextBag(); ok {
 		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.buyable(cost),
-			enter: g.UpgradeBag, desc: lang.T("town.bag.desc")})
+			price: cost, priceSt: m.goldFor(cost), enter: g.UpgradeBag, desc: lang.T("town.bag.desc")})
 	} else {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.bag_max", size-game.BagSlotsPerLevel), style: sMuted})
 	}
@@ -212,7 +214,7 @@ func (m Model) townRows() []prepRow {
 			text += lang.T("prep.other_class")
 			st = sMuted
 		}
-		row := prepRow{section: chest, text: text, style: st,
+		row := prepRow{section: chest, text: text, style: st, price: it.SellPrice(), priceSt: sGold,
 			enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }, desc: m.itemDesc(it) + " " + lang.T("chest.desc", it.SellPrice())}
 		if it.Rarity == game.Legendary {
 			row.sellAsk = lang.T("confirm.sell_legendary", it.Title(), it.SellPrice())
@@ -266,6 +268,46 @@ func (m Model) buyable(cost int) lipgloss.Style {
 	return sBuy
 }
 
+func (m Model) goldFor(cost int) lipgloss.Style {
+	if cost > m.g.Gold {
+		return sGold.Faint(true)
+	}
+	return sGold
+}
+
+func goldText(price int) string { return fmt.Sprintf("%d %s", price, lang.T("help.gold")) }
+
+// glueGold keeps "N gold" on one line when text wraps; withGold turns it back into a normal space.
+func glueGold(text string, price int) string {
+	if price <= 0 {
+		return text
+	}
+	needle := goldText(price)
+	i := strings.LastIndex(text, needle)
+	if i < 0 {
+		return text
+	}
+	return text[:i] + strings.Replace(needle, " ", "\u00a0", 1) + text[i+len(needle):]
+}
+
+// withGold renders line in st, with its last "N gold" in pst so prices stand out.
+func withGold(line string, st lipgloss.Style, price int, pst lipgloss.Style) string {
+	line = strings.ReplaceAll(line, "\u00a0", " ")
+	needle := goldText(price)
+	i := strings.LastIndex(line, needle)
+	if price <= 0 || i < 0 {
+		return st.Render(line)
+	}
+	out := pst.Render(needle)
+	if i > 0 {
+		out = st.Render(line[:i]) + out
+	}
+	if rest := line[i+len(needle):]; rest != "" {
+		out += st.Render(rest)
+	}
+	return out
+}
+
 func (m Model) priced(st lipgloss.Style, cost int) lipgloss.Style {
 	if cost > m.g.Gold {
 		return st.Faint(true)
@@ -316,9 +358,9 @@ func (m Model) viewSettings(h int) string {
 // rowLines styles a row; the selected adjustable row shows ‹ value › so a tap on either side changes it.
 func (m Model) rowLines(r prepRow, selected bool, w int) []string {
 	if !selected || r.adjust == nil || r.value == "" {
-		lines := m.rowText(r.text, w)
+		lines := m.rowText(glueGold(r.text, r.price), w)
 		for i := range lines {
-			lines[i] = r.style.Render(lines[i])
+			lines[i] = withGold(lines[i], r.style, r.price, r.priceSt)
 		}
 		return lines
 	}

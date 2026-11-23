@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
 
 	"clidle/internal/game"
 	"clidle/internal/lang"
@@ -196,7 +197,7 @@ func (m Model) rowText(text string, w int) []string {
 			return []string{head + strings.Repeat(" ", gap) + tail, "    " + cols[1]}
 		}
 	}
-	lines := strings.Split(lipgloss.NewStyle().Width(w-2).Render(strings.Join(strings.Fields(text), " ")), "\n")
+	lines := strings.Split(lipgloss.NewStyle().Width(w-2).Render(strings.Join(strings.FieldsFunc(text, func(r rune) bool { return r != '\u00a0' && unicode.IsSpace(r) }), " ")), "\n")
 	for i := range lines {
 		lines[i] = strings.TrimRight(lines[i], " ")
 		if i > 0 {
