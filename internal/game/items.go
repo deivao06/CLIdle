@@ -60,6 +60,7 @@ const (
 	GoldFind
 	PotionBoost
 	XPBoost
+	CritDamage
 	NumEffects
 )
 
@@ -69,7 +70,7 @@ type ItemEffect struct {
 }
 
 func (f ItemEffect) Label() string {
-	return lang.T([...]string{"effect.life_steal", "effect.crit", "effect.vigor", "effect.gold_find", "effect.potion_boost", "effect.xp_boost"}[f.Kind], f.Value)
+	return lang.T([...]string{"effect.life_steal", "effect.crit", "effect.vigor", "effect.gold_find", "effect.potion_boost", "effect.xp_boost", "effect.crit_damage"}[f.Kind], f.Value)
 }
 
 type Item struct {

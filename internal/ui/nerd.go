@@ -44,6 +44,7 @@ func (m Model) nerdRows() []prepRow {
 	add("damage", lang.T("nerd.damage.value"))
 	add("miss_even", nerdPct(game.MissEven))
 	add("crit_top", nerdPct(game.CritTop))
+	add("crit_damage", fmt.Sprintf("+%d%%", game.CritDamageBase))
 	add("dex_soften", fmt.Sprint(game.DexSoften))
 	add("combat_round", fmt.Sprintf("%d ms", game.CombatRoundMs))
 
@@ -198,7 +199,7 @@ func streakValue(s game.Streak) string {
 
 func ratio(next, cur float64) string { return "×" + num(next/cur) }
 
-var effectKeys = [game.NumEffects]string{"life_steal", "crit", "vigor", "gold_find", "potion_boost", "xp_boost"}
+var effectKeys = [game.NumEffects]string{"life_steal", "crit", "vigor", "gold_find", "potion_boost", "xp_boost", "crit_damage"}
 
 func itemBase(sl game.Slot, depth int) string {
 	return fmt.Sprint(game.ItemRoll(sl, int(game.Medium), depth, game.Common, 0.5))

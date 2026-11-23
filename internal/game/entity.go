@@ -185,6 +185,12 @@ func (h *Hero) Spd() int {
 }
 
 func (h *Hero) MissChance(def int) float64 { return MissChance(h.Attr(Dex), def) }
+
+// CritDamage is the extra damage % of the hero's critical hits.
+func (h *Hero) CritDamage() int { return CritDamageBase + h.Effect(CritDamage) }
+
+func crit(d, pct int) int { return d * (100 + pct) / 100 }
+
 func (h *Hero) CritChance(def int) float64 {
 	return CritChance(h.Attr(Dex), def) + float64(h.Effect(Crit))/100
 }

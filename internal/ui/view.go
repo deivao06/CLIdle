@@ -763,6 +763,7 @@ func (m Model) heroCombat() string {
 		s += statIn([]lipgloss.Style{sMP}, "hero.spell", sp)
 	}
 	s += stat("hero.rates", pct(h.MissChance(m.typicalDex())), pct(h.CritChance(m.typicalDex())))
+	s += stat("hero.crit_damage", h.CritDamage())
 	if d := h.DodgeChance(); d > 0 {
 		s += stat("hero.dodge", pct(d))
 	}

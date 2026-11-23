@@ -42,6 +42,8 @@ var effectProbes = []effectProbe{
 		g.hurt(m, 1, &round{})
 		return g.Hero.XP - before
 	}, func(g *Game, pct int) int { return boosted(100, pct) }},
+	{CritDamage, Warrior, func(g *Game) int { return crit(100, g.Hero.CritDamage()) },
+		func(g *Game, pct int) int { return 100 + CritDamageBase + pct }},
 }
 
 func effectItem(slot Slot, k Effect, v int) *Item {

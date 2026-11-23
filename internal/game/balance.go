@@ -14,6 +14,7 @@ const (
 
 	MissEven       = 0.20
 	CritTop        = 0.30
+	CritDamageBase = 50
 	DexSoften      = 10
 	CombatRoundMs  = 1000
 	MonsterWindow  = 4
@@ -162,6 +163,7 @@ var EffectCap = [NumEffects]int{
 	GoldFind:    100,
 	PotionBoost: 60,
 	XPBoost:     50,
+	CritDamage:  150,
 }
 
 var EffectRange = [NumEffects][2]int{
@@ -171,6 +173,7 @@ var EffectRange = [NumEffects][2]int{
 	GoldFind:    {10, 30},
 	PotionBoost: {10, 30},
 	XPBoost:     {5, 15},
+	CritDamage:  {10, 30},
 }
 
 var RarityChance = [...]float64{Magic: 0.2, Rare: 0.08, Epic: 0.01, Legendary: 0.002}

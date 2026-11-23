@@ -474,7 +474,7 @@ func (g *Game) heroAttack(m *Monster, r *round) {
 	d := damage(e.RNG, h.Atk(), m.Def)
 	key := "combat.hero_hit"
 	if c := h.CritChance(m.Dex); c > 0 && e.RNG.Chance(c) {
-		d *= 2
+		d = crit(d, h.CritDamage())
 		key = "combat.hero_crit"
 	}
 	if sneak {
@@ -655,7 +655,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	e.MonMisses, r.monLuck = Streak{}, false
 	d := damage(e.RNG, m.Atk, h.Def())
 	if c := CritChance(m.Dex, h.Attr(Dex)); c > 0 && e.RNG.Chance(c) {
-		d *= 2
+		d = crit(d, CritDamageBase)
 	}
 	g.emit(Event{Kind: EventHurt, Pos: h.Pos, Value: d, Big: d*BigHitDiv >= h.MaxHP()})
 	h.HP -= d
