@@ -29,6 +29,7 @@ main.go                 carrega o save, calcula o tempo fora, abre a UI
 internal/game/          lógica pura, sem I/O de terminal
   game.go               Game, Expedition, Config, loop (Advance/step), IA do herói, combate, retirada
   guild.go              Guild: ouro, baú, opções do jogo, log da guilda e a lista de heróis (`Game.Guild` aponta de volta, fora do JSON); `Guild.Advance` roda os heróis juntos em fatias de `GuildTickMs`; Mesa de missões (`Slots`, fila por `Game.Queue`)
+  building.go           prédios da guilda (Alojamento, Mesa de missões, Ferreiro, Campo de treino, Mercado, Boticário): nível, custo, descontos (`TrainPrice`, `PotionCost`, `UpgradeCost`)
   recruit.go            recrutas (renovam a cada hora pelo `Guild.RNG`), contratar (`Guild.Hire`, vagas e preço), pontos de criação (`Hero.Points`, `FreePoints`, `Spend`)
   class.go              Class, atributos de dano, o que cada classe pode usar, escolha da classe
   ability.go            habilidades (Has), mana, golpe forte, segundo fôlego
@@ -55,6 +56,7 @@ internal/lang/          textos do jogo (en.json, pt.json embutidos), lang.T/Set
 internal/ui/            Bubble Tea
   model.go              Model, ticks, teclas, autosave, catch-up em goroutine, confirmações
   guild.go              tela da guilda (abre o jogo): abas Guilda, Recrutar e Config, lista de heróis, log da guilda; Enter abre o herói, esc volta (`Model.guild`, `tabs()`)
+  building.go           aba Prédios
   recruit.go            aba Recrutar e a tela de distribuir pontos (`Model.alloc`), usada ao contratar, criar herói, no herói novo e no prestígio
   view.go               layout adaptável, mapa, log, painel do herói, legenda, cidade, resumo
   prep.go               Preparação (só config), lista da cidade (`townRows`), Config, resetar save

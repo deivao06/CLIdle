@@ -85,6 +85,8 @@ func (m Model) view() string {
 		body = m.viewHelp(bodyH)
 	case m.alloc != nil:
 		body = m.viewRows(nil, m.allocRows(), m.w, bodyH)
+	case m.tab == tabBuildings:
+		body = m.viewRows([]string{sMuted.Render(m.keysHint("buildings.keys"))}, m.buildingRows(), m.w, bodyH)
 	case m.tab == tabRecruit:
 		body = m.viewRows([]string{sMuted.Render(m.keysHint("recruit.keys"))}, m.recruitRows(), m.w, bodyH)
 	case m.tab == tabDungeon:

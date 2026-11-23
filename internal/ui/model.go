@@ -20,6 +20,7 @@ const (
 	tabNerd
 	tabGuild
 	tabRecruit
+	tabBuildings
 )
 
 const (

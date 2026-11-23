@@ -17,7 +17,7 @@ const guildListMaxH = 10
 // tabs lists the screens of the current view: the guild's, or the open hero's.
 func (m Model) tabs() []int {
 	if m.guild {
-		return []int{tabGuild, tabRecruit, tabSettings}
+		return []int{tabGuild, tabBuildings, tabRecruit, tabSettings}
 	}
 	if m.g.Guild.Nerd {
 		return []int{tabDungeon, tabPrep, tabHero, tabNerd}

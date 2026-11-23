@@ -40,7 +40,7 @@ func (gd *Guild) RerollRecruits() bool {
 	return true
 }
 
-func (gd *Guild) Beds() int { return GuildBeds }
+func (gd *Guild) Beds() int { return GuildBeds + gd.Buildings[Lodging] }
 
 func (gd *Guild) HirePrice() int { return HireCost(len(gd.Heroes)) }
 

@@ -21,6 +21,8 @@ type Guild struct {
 	// AccMs is the time not yet given to the heroes; Ticket numbers the heroes waiting for the mission table.
 	AccMs  int64 `json:",omitempty"`
 	Ticket int64 `json:",omitempty"`
+	// Buildings holds the level of each building.
+	Buildings [NumBuildings]int `json:",omitempty"`
 }
 
 // GuildTickMs is the slice of time every hero runs before the next one, so heroes that share the gold and the
@@ -62,7 +64,7 @@ func (gd *Guild) Advance(ms int64) {
 	}
 }
 
-func (gd *Guild) Slots() int { return MissionSlots }
+func (gd *Guild) Slots() int { return MissionSlots + gd.Buildings[MissionTable] }
 
 // Running counts the heroes out on an expedition.
 func (gd *Guild) Running() int {

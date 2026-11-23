@@ -46,7 +46,7 @@ func TestResetSaveAsksThenStartsOver(t *testing.T) {
 	var tm tea.Model = NewWithSave(g, path, 0, false)
 	tm, _ = tm.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
-	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("3")})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("4")})
 	m := tm.(Model)
 	m.cursor = len(m.settingsRows()) - 1
 	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
@@ -414,7 +414,7 @@ func TestHireARecruitAndMakeAHero(t *testing.T) {
 	g.Hero.FreePoints, g.Guild.Gold = 0, 10000
 	m := New(g)
 	m.w, m.h = 100, 30
-	m = press(m, "2")
+	m = press(m, "3")
 	r := g.Guild.Recruits[0]
 	m = press(m, "enter")
 	if m.alloc == nil || m.alloc.name != r.Name {
@@ -430,7 +430,7 @@ func TestHireARecruitAndMakeAHero(t *testing.T) {
 		t.Fatalf("recruit not hired: %d heroes", len(gd.Heroes))
 	}
 
-	m = press(m, "2")
+	m = press(m, "3")
 	m.cursor = len(m.rows()) - 2
 	m = press(m, "enter")
 	if !m.naming {
@@ -451,7 +451,7 @@ func TestHireARecruitAndMakeAHero(t *testing.T) {
 	if len(gd.Heroes) != 3 || gd.Heroes[2].Hero.Name != "Zed" || gd.Heroes[2].Hero.Class != game.Mage {
 		t.Fatalf("hero not made: %d heroes", len(gd.Heroes))
 	}
-	m = press(m, "2")
+	m = press(m, "3")
 	if !strings.Contains(m.View(), lang.T("recruit.no_bed", gd.Beds())) && m.hireBlock() == "" {
 		t.Fatal("a full guild still lets you hire")
 	}

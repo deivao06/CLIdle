@@ -75,6 +75,8 @@ func (m Model) rows() []prepRow {
 		return m.guildRows()
 	case tabRecruit:
 		return m.recruitRows()
+	case tabBuildings:
+		return m.buildingRows()
 	}
 	if m.editing() {
 		return m.ruleRows(m.edit - 1)
@@ -168,7 +170,7 @@ func (m Model) townRows() []prepRow {
 
 	for t := range game.NumTraits {
 		lvl := g.Hero.Training[t]
-		cost := game.TrainCost(lvl)
+		cost := g.TrainPrice(t)
 		text := lang.T("prep.train_row", t.Name(), lvl, t.Effect(), cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.buyable(cost),
 			price: cost, priceSt: m.goldFor(cost), enter: func() { g.Train(t) }, desc: m.trainDesc(t)})
@@ -188,12 +190,13 @@ func (m Model) townRows() []prepRow {
 	if len(g.Shop) == 0 {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.sold_out"), style: sMuted})
 	}
-	potion, potionGold := m.buyable(game.PotionPrice), m.goldFor(game.PotionPrice)
+	potionPrice := g.PotionCost()
+	potion, potionGold := m.buyable(potionPrice), m.goldFor(potionPrice)
 	if g.Hero.Potions >= game.MaxPotions {
 		potion, potionGold = sMuted, sGold.Faint(true)
 	}
-	rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.potion_row", g.Hero.Potions, game.MaxPotions, game.PotionPrice),
-		style: potion, price: game.PotionPrice, priceSt: potionGold, enter: g.BuyPotion, desc: lang.T("town.potion.desc", game.MaxPotions)})
+	rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.potion_row", g.Hero.Potions, game.MaxPotions, potionPrice),
+		style: potion, price: potionPrice, priceSt: potionGold, enter: g.BuyPotion, desc: lang.T("town.potion.desc", game.MaxPotions)})
 	if size, cost, ok := g.NextBag(); ok {
 		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.buyable(cost),

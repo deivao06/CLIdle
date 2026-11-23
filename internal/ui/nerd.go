@@ -48,6 +48,10 @@ func (m Model) nerdRows() []prepRow {
 	add("recruit_reroll", fmt.Sprint(game.RecruitReroll))
 	add("hire_cost", lang.T("nerd.hire_cost.value", game.HireCost(1)))
 	add("mission_slots", fmt.Sprint(game.MissionSlots))
+	add("building_cost", lang.T("nerd.quad.value", fmt.Sprint(game.BuildingCost(0)), fmt.Sprint(game.BuildingCost(1)-game.BuildingCost(0))))
+	for b := range game.NumBuildings {
+		rows = append(rows, nerdRow(sec, b.Name(), lang.T("nerd.building.value", game.BuildingMax[b], buildingValue(b, 1)), b.Desc()))
+	}
 
 	sec = lang.T("nerd.section.combat")
 	add("damage", lang.T("nerd.damage.value"))

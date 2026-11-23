@@ -390,6 +390,20 @@ const (
 	MissionSlots     = 2
 )
 
+// Buildings: the most levels of each, what a level takes off a price (percent), and what each level costs.
+var (
+	BuildingMax      = [NumBuildings]int{Lodging: 5, MissionTable: 2, Smithy: 5, TrainingYard: 5, Market: 3, Apothecary: 5}
+	BuildingDiscount = [NumBuildings]int{Smithy: 5, TrainingYard: 5, Apothecary: 10}
+)
+
+const (
+	BuildingBase = 500
+	MarketItems  = 1
+)
+
+// BuildingCost is the price of a building's next level when it is at level.
+func BuildingCost(level int) int { return BuildingBase * (level + 1) * (level + 1) }
+
 // HireCost is the price of the next hero when the guild already has n.
 func HireCost(n int) int { return HireBase * n }
 

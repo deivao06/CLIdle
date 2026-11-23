@@ -53,7 +53,7 @@ func (g *Game) ToggleAuto() {
 
 func (g *Game) refreshShop() {
 	g.Shop = g.Shop[:0]
-	for range ShopSize {
+	for range g.shopSize() {
 		g.Shop = append(g.Shop, newItemOf(g.RNG, g.Deepest(), rollRarity(g.RNG, Epic)))
 	}
 }
@@ -102,7 +102,7 @@ func (g *Game) UpgradeCost(s Slot) int {
 	if it == nil {
 		return 0
 	}
-	return UpgradeCost(it, it.Upgrade)
+	return g.Guild.discounted(UpgradeCost(it, it.Upgrade), Smithy)
 }
 
 func (g *Game) Upgrade(s Slot) {
@@ -133,7 +133,7 @@ func (g *Game) UpgradeBag() {
 }
 
 func (g *Game) Train(t Trait) {
-	if !g.InTown() || !g.spend(TrainCost(g.Hero.Training[t])) {
+	if !g.InTown() || !g.spend(g.TrainPrice(t)) {
 		return
 	}
 	g.Hero.Training[t]++
@@ -141,26 +141,28 @@ func (g *Game) Train(t Trait) {
 }
 
 func (g *Game) BuyPotion() {
-	if !g.InTown() || g.Hero.Potions >= MaxPotions || !g.spend(PotionPrice) {
+	price := g.PotionCost()
+	if !g.InTown() || g.Hero.Potions >= MaxPotions || !g.spend(price) {
 		return
 	}
 	g.Hero.Potions++
-	g.logf(LogInfo, "%s", lang.T("log.buy_potion", 1, PotionPrice))
+	g.logf(LogInfo, "%s", lang.T("log.buy_potion", 1, price))
 }
 
 func (g *Game) buyPotions() {
 	h := g.Hero
-	n := min(g.Config.PotionsToBring-h.Potions, g.Guild.Gold/PotionPrice)
+	price := g.PotionCost()
+	n := min(g.Config.PotionsToBring-h.Potions, g.Guild.Gold/price)
 	if n <= 0 {
 		return
 	}
-	g.Guild.Gold -= n * PotionPrice
+	g.Guild.Gold -= n * price
 	h.Potions += n
 	key := "log.buy_potions"
 	if n == 1 {
 		key = "log.buy_potion"
 	}
-	g.logf(LogInfo, "%s", lang.T(key, n, n*PotionPrice))
+	g.logf(LogInfo, "%s", lang.T(key, n, n*price))
 }
 
 func (g *Game) arriveInTown() {
