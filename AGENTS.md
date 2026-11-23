@@ -143,17 +143,14 @@ Os 5 marcos do design estão prontos: exploração, combate, loot/retirada, cida
 
 **Problemas conhecidos / ajustes pendentes:**
 - Com a config padrão, a mochila (8 vagas) enche por volta do andar 6–8, o herói volta e recomeça do andar 1. O jogador destrava com o filtro de raridade, o upgrade da mochila (até 24) ou atalhos; o dono preferiu deixar o filtro em comum por padrão.
-- O andar 1 ainda leva ~110 s: o tempo é de exploração (ritmo de passos), não de luta.
 - Com "descer direto" e sem recuar com mochila cheia, ele chega ao andar 30 em ~1h. O ritmo geral ainda não foi ajustado jogando.
-- Os andares iniciais parecem parecidos (mesma grade 3×3).
 - O auto-update foi testado de ponta a ponta só com um servidor falso local; a primeira atualização real (v0.1.0 → v0.1.1) e o binário de Windows ainda precisam ser confirmados pelo dono.
-- O binário passou de 3,7 para 7,2 MB por causa do `net/http`/TLS do auto-update. O de Windows tem ~11 MB: é compilado sem `-s -w` e com recursos (ícone `assets/icon.png`, versão e manifesto de `winres/winres.json`, gerados no workflow pelo `go-winres`) para o Windows Defender desconfiar menos. Os `.syso` gerados são ignorados pelo git. Mesmo assim o SmartScreen mostra "Unknown publisher" (sem assinatura); o README ensina o "Run anyway". Assinar de graça pela SignPath Foundation (open source) fica para depois.
+- O binário passou de 3,7 para 7,2 MB por causa do `net/http`/TLS do auto-update. O de Windows tem ~11 MB: é compilado sem `-s -w` e com recursos (ícone `assets/icon.png`, versão e manifesto de `winres/winres.json`, gerados no workflow pelo `go-winres`) para o Windows Defender desconfiar menos. Os `.syso` gerados são ignorados pelo git. Mesmo assim o SmartScreen mostra "Unknown publisher" (sem assinatura); o README ensina o "Run anyway".
 - Modo gráfico (Ebitengine + shader CRT) foi avaliado e descartado pelo dono: ~14 MB, cgo obrigatório e ~25% de CPU num teste mínimo.
 - Números das classes não-guerreiro são provisórios. Na v0.8.0 (DES relativa ao alvo, esquiva menor, velocidade bota > nível > DES, treino com preço único), ladino e guerreiro empataram na mediana: andar 40 em 24h simuladas (8 seeds).
 - **HP do herói (R7 da auditoria):** feito na v0.3.1 com `ArmorHPPct = 50` (fator 1 e 2 deixaram o ladino fácil demais). O dono não quer HP por nível crescendo com o andar nem CON subindo com o nível.
 - **Próximo na fila (dono):** balancear FOR. Investir em FOR não compensa: +1 FOR = +1 Ataque, enquanto a arma dá muito mais. Propor opções antes de mexer. (O dono descartou mexer na "DEX baixa" das classes.)
 - Sem o recuo por chefe forte, mortes contra chefes (andares 10, 20, 30…) aumentaram de propósito.
-- O respingo da bola de fogo ignora paredes; segundo fôlego quase nunca dispara (a poção vem antes).
 
 **Ideias já combinadas para depois** (ver `docs/design.md` → "Para depois"):
 - Grupo de heróis (vários `@` com cores diferentes)
