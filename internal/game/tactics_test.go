@@ -88,6 +88,7 @@ func TestConditionsAtTheirLimits(t *testing.T) {
 		{CondAtStairs, Warrior, 7, func(g *Game) { g.Exp.Level.Depth, g.atStairs = 7, true }},
 		{CondLoot, Warrior, int(Rare), func(g *Game) { g.Exp.Bag = []*Item{{Rarity: Magic}, {Rarity: Rare}} }},
 		{CondLoot, Warrior, -1, func(g *Game) { g.Exp.Bag = nil }},
+		{CondGold, Warrior, 1234, func(g *Game) { g.Exp.Gold = 1234 }},
 	}
 	for _, c := range cases {
 		g := scene(c.class, 1)

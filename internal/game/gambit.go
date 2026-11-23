@@ -22,6 +22,7 @@ const (
 	CondFloor
 	CondAtStairs
 	CondLoot
+	CondGold
 	NumConds
 )
 
@@ -292,6 +293,8 @@ func (g *Game) holds(c Cond) bool {
 			best = max(best, int(it.Rarity))
 		}
 		return c.Op.cmp(best, c.N)
+	case CondGold:
+		return c.Op.cmp(e.Gold, c.N)
 	}
 	return false
 }
@@ -702,7 +705,7 @@ func (g *Game) driving(i int) Action {
 }
 
 var condKeys = [NumConds]string{"none", "hp", "mana", "visible", "adjacent",
-	"in_range", "lethal", "boss_visible", "bag_full", "potions", "floor", "at_stairs", "loot"}
+	"in_range", "lethal", "boss_visible", "bag_full", "potions", "floor", "at_stairs", "loot", "gold"}
 
 // HasN reports whether the condition takes a number.
 func (k CondKind) HasN() bool {
@@ -816,6 +819,8 @@ func (k CondKind) DefaultCond() Cond {
 		return Cond{k, OpAtLeast, 10}
 	case CondLoot:
 		return Cond{k, OpAtLeast, int(Rare)}
+	case CondGold:
+		return Cond{k, OpAtLeast, 1000}
 	}
 	return Cond{Kind: k}
 }
@@ -832,6 +837,22 @@ func (c *Cond) StepN(d int) {
 		lo, hi, by = 1, 999, 1
 	case CondLoot:
 		hi, by = int(NumRarities)-1, 1
+	case CondGold:
+		c.N = goldStep(c.N, d)
+		return
 	}
 	c.N = max(lo, min(hi, c.N+d*by))
+}
+
+// goldStep moves n d steps along 0, 100, 200, 500, 1000, 2000, 5000...
+func goldStep(n, d int) int {
+	steps := []int{0}
+	for p := 100; p <= MaxGold/10; p *= 10 {
+		steps = append(steps, p, 2*p, 5*p)
+	}
+	i, found := slices.BinarySearch(steps, n)
+	if !found && d > 0 {
+		i--
+	}
+	return steps[max(0, min(len(steps)-1, i+d))]
 }
