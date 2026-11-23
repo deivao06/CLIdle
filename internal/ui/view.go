@@ -83,6 +83,10 @@ func (m Model) view() string {
 		body = lipgloss.Place(m.w, bodyH, lipgloss.Center, lipgloss.Center, block)
 	case m.help:
 		body = m.viewHelp(bodyH)
+	case m.alloc != nil:
+		body = m.viewRows(nil, m.allocRows(), m.w, bodyH)
+	case m.tab == tabRecruit:
+		body = m.viewRows([]string{sMuted.Render(m.keysHint("recruit.keys"))}, m.recruitRows(), m.w, bodyH)
 	case m.tab == tabDungeon:
 		body = m.viewDungeon(bodyH)
 	case m.tab == tabPrep:

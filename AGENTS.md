@@ -29,6 +29,7 @@ main.go                 carrega o save, calcula o tempo fora, abre a UI
 internal/game/          lógica pura, sem I/O de terminal
   game.go               Game, Expedition, Config, loop (Advance/step), IA do herói, combate, retirada
   guild.go              Guild: ouro, baú, opções do jogo, log da guilda e a lista de heróis (`Game.Guild` aponta de volta, fora do JSON)
+  recruit.go            recrutas (renovam a cada hora pelo `Guild.RNG`), contratar (`Guild.Hire`, vagas e preço), pontos de criação (`Hero.Points`, `FreePoints`, `Spend`)
   class.go              Class, atributos de dano, o que cada classe pode usar, escolha da classe
   ability.go            habilidades (Has), mana, golpe forte, segundo fôlego
   gambit.go             táticas (gambits): Gambit/Cond/Action, lista padrão (`gambitsV5`), escolha do comportamento (`behavior`), ações (`instant`/`act`), comportamentos (`perform`), editar a lista
@@ -53,7 +54,8 @@ internal/update/         releases do GitHub: Check, Install (checksum + troca do
 internal/lang/          textos do jogo (en.json, pt.json embutidos), lang.T/Set
 internal/ui/            Bubble Tea
   model.go              Model, ticks, teclas, autosave, catch-up em goroutine, confirmações
-  guild.go              tela da guilda (abre o jogo): abas Guilda e Config, lista de heróis, log da guilda; Enter abre o herói, esc volta (`Model.guild`, `tabs()`)
+  guild.go              tela da guilda (abre o jogo): abas Guilda, Recrutar e Config, lista de heróis, log da guilda; Enter abre o herói, esc volta (`Model.guild`, `tabs()`)
+  recruit.go            aba Recrutar e a tela de distribuir pontos (`Model.alloc`), usada ao contratar, criar herói, no herói novo e no prestígio
   view.go               layout adaptável, mapa, log, painel do herói, legenda, cidade, resumo
   prep.go               Preparação (só config), lista da cidade (`townRows`), Config, resetar save
   tactics.go            seção Táticas da Preparação e editor de regra (`ruleRows`, `Model.edit`)

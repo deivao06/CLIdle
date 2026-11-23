@@ -125,10 +125,13 @@ type Hero struct {
 	Bonus int `json:",omitempty"`
 	// Legacy adds to every attribute for good: earned by prestige.
 	Legacy int `json:",omitempty"`
+	// Points are the attribute points the player spent on the hero; FreePoints are the ones still to spend.
+	Points     [NumTraits]int `json:",omitempty"`
+	FreePoints int            `json:",omitempty"`
 }
 
 func NewHero(c Class) *Hero {
-	h := &Hero{Class: c, Level: 1, Potions: StartPotions}
+	h := &Hero{Class: c, Level: 1, Potions: StartPotions, FreePoints: CreationPoints}
 	kind := ClassGear[c].Weapon[0]
 	h.Equip[Weapon] = &Item{ID: 1, Slot: Weapon, Kind: kind, Name: ItemNames[Weapon][kind][0].name, Base: int(ItemBase(Weapon, kind, 1, Common) + 0.5)}
 	h.HP = h.MaxHP()
@@ -167,7 +170,7 @@ func (h *Hero) MaxMP() int {
 
 func (h *Hero) Attr(t Trait) int {
 	s := ClassStats[h.Class]
-	return s.Start[t] + s.Growth[t]*(h.Level-1)/2 + h.Training[t]*TrainGain(t) + h.Bonus + h.Legacy
+	return s.Start[t] + s.Growth[t]*(h.Level-1)/2 + (h.Training[t]+h.Points[t])*TrainGain(t) + h.Bonus + h.Legacy
 }
 
 func (h *Hero) Atk() int {

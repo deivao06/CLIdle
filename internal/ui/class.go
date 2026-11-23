@@ -21,14 +21,23 @@ func (m *Model) chooseKey(key string) {
 		if m.prestige {
 			m.choosing, m.prestige, m.cursor = false, false, 0
 		}
+		if m.alloc != nil {
+			m.choosing, m.alloc, m.cursor = false, nil, 0
+		}
 	case "enter", " ":
-		if m.prestige {
+		switch {
+		case m.alloc != nil:
+			m.alloc.class = game.Class(m.cursor)
+		case m.prestige:
 			m.g.Prestige(game.Class(m.cursor))
 			m.tab, m.prestige = tabDungeon, false
-		} else {
+		default:
 			m.g.ChooseClass(game.Class(m.cursor))
 		}
 		m.choosing, m.cursor = false, 0
+		if m.alloc == nil {
+			m.spendFree(m.g)
+		}
 	}
 }
 

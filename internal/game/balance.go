@@ -379,4 +379,17 @@ func TrainGain(t Trait) int {
 
 const OfflineCap = 12 * time.Hour
 
+// The guild: points to spend on a new hero, rooms for heroes, and the recruits on offer.
+const (
+	CreationPoints   = 5
+	GuildBeds        = 3
+	RecruitCount     = 3
+	RecruitRefreshMs = int64(time.Hour / time.Millisecond)
+	RecruitReroll    = 100
+	HireBase         = 200
+)
+
+// HireCost is the price of the next hero when the guild already has n.
+func HireCost(n int) int { return HireBase * n }
+
 const MaxGold = math.MaxInt64

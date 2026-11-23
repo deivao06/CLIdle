@@ -75,7 +75,7 @@ func (g *Game) Prestige(c Class) {
 	if c != old.Class {
 		g.Config.Gambits = heroGambits(g.Hero)
 	}
-	g.Guild.Gold, g.BagLevel = 0, 0
+	g.BagLevel = 0
 	g.Dungeon, g.Reached, g.Shortcuts = 0, 0, nil
 	g.Config.StartFloor = 1
 	g.Prestiges++

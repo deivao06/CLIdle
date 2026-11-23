@@ -19,6 +19,7 @@ const (
 	tabSettings
 	tabNerd
 	tabGuild
+	tabRecruit
 )
 
 const (
@@ -34,6 +35,7 @@ type catchUpDoneMsg game.Summary
 type Model struct {
 	g        *game.Game
 	guild    bool
+	alloc    *allocDraft
 	w, h     int
 	tab      int
 	help     bool
@@ -204,7 +206,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tick()
 		}
 		now := time.Time(msg)
-		if m.choosing || m.naming {
+		if (m.choosing || m.naming) && m.alloc == nil {
 			m.lastTick = now
 			return m, tick()
 		}
@@ -282,7 +284,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, tea.Quit
 		case "1", "2", "3", "4", "5":
-			if i, tabs := int(msg.String()[0]-'1'), m.tabs(); i < len(tabs) {
+			if i, tabs := int(msg.String()[0]-'1'), m.tabs(); i < len(tabs) && m.alloc == nil {
 				m.leave(func(m *Model) {
 					if tabs[i] != tabHero {
 						m.cursor = 0
@@ -313,6 +315,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.help, m.helpTop = !m.help, 0
 		case "esc":
 			switch {
+			case !m.help && m.alloc != nil:
+				m.alloc = nil
 			case !m.help && m.edit > 0:
 				m.leave(func(*Model) {})
 			case !m.help && !m.guild:

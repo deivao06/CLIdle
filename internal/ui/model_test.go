@@ -46,7 +46,7 @@ func TestResetSaveAsksThenStartsOver(t *testing.T) {
 	var tm tea.Model = NewWithSave(g, path, 0, false)
 	tm, _ = tm.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
-	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("2")})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("3")})
 	m := tm.(Model)
 	m.cursor = len(m.settingsRows()) - 1
 	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
@@ -65,7 +65,7 @@ func TestResetSaveAsksThenStartsOver(t *testing.T) {
 
 func TestHeroTabScrollsOnSmallScreens(t *testing.T) {
 	g := game.New(1, game.Mage)
-	g.Hero.Level = 20
+	g.Hero.Level, g.Hero.FreePoints = 20, 0
 	var m tea.Model = New(g)
 	m, _ = m.Update(tea.WindowSizeMsg{Width: 60, Height: 14})
 	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
@@ -199,6 +199,7 @@ func TestRuleEditorChangesAndClosesARule(t *testing.T) {
 	g := game.New(1, game.Warrior)
 	g.Hero.Level = game.AbilityInfo[game.SecondWind].Level
 	g.ResetGambits()
+	g.Hero.FreePoints = 0
 	m := New(g)
 	m.w, m.h = 100, 30
 	m = press(m, "enter")
@@ -250,6 +251,7 @@ func TestRuleEditorChangesAndClosesARule(t *testing.T) {
 
 func TestAddAndDeleteRule(t *testing.T) {
 	g := game.New(1, game.Warrior)
+	g.Hero.FreePoints = 0
 	m := New(g)
 	m.w, m.h = 100, 30
 	m = press(m, "enter")
@@ -294,6 +296,7 @@ func TestNewsOpensOnceAfterAnUpdate(t *testing.T) {
 
 func TestScrollMovesTheListNotTheCursor(t *testing.T) {
 	m := New(game.New(1, game.Warrior))
+	m.g.Hero.FreePoints = 0
 	m.w, m.h = 45, 20
 	m = press(m, "enter")
 	m.g.Guild.Nerd = true
@@ -359,7 +362,7 @@ func TestOldSaveWithoutNameAsksOnlyTheName(t *testing.T) {
 
 func TestPrestigeAsksThenChoosesTheClass(t *testing.T) {
 	g := game.New(1, game.Warrior)
-	g.Hero.Name, g.Hero.Level, g.Dungeon = "Ana", 50, 1
+	g.Hero.Name, g.Hero.Level, g.Dungeon, g.Hero.FreePoints = "Ana", 50, 1, 0
 	var tm tea.Model = NewWithSave(g, "", 0, false)
 	tm, _ = tm.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
 	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyEnter})
@@ -390,7 +393,7 @@ func TestPrestigeAsksThenChoosesTheClass(t *testing.T) {
 
 func TestGuildOpensTheHeroAndEscComesBack(t *testing.T) {
 	g := game.New(1, game.Warrior)
-	g.Hero.Name = "Ana"
+	g.Hero.Name, g.Hero.FreePoints = "Ana", 0
 	m := New(g)
 	m.w, m.h = 100, 30
 	if !m.guild || !strings.Contains(m.View(), "Ana") || !strings.Contains(m.View(), lang.T("guild.log.title")) {
@@ -403,5 +406,53 @@ func TestGuildOpensTheHeroAndEscComesBack(t *testing.T) {
 	m = press(m, "esc")
 	if !m.guild || m.tab != tabGuild || m.cursor != 0 {
 		t.Fatalf("esc did not go back to the guild: guild %v tab %d", m.guild, m.tab)
+	}
+}
+
+func TestHireARecruitAndMakeAHero(t *testing.T) {
+	g := game.New(1, game.Warrior)
+	g.Hero.FreePoints, g.Guild.Gold = 0, 10000
+	m := New(g)
+	m.w, m.h = 100, 30
+	m = press(m, "2")
+	r := g.Guild.Recruits[0]
+	m = press(m, "enter")
+	if m.alloc == nil || m.alloc.name != r.Name {
+		t.Fatal("picking a recruit did not ask for the points")
+	}
+	for range game.CreationPoints {
+		m = press(m, "right")
+	}
+	m.cursor = len(m.rows()) - 1
+	m = press(m, "enter")
+	gd := g.Guild
+	if len(gd.Heroes) != 2 || gd.Heroes[1].Hero.Name != r.Name || gd.Heroes[1].Hero.Points[game.Str] != game.CreationPoints || !m.guild || m.cursor != 1 {
+		t.Fatalf("recruit not hired: %d heroes", len(gd.Heroes))
+	}
+
+	m = press(m, "2")
+	m.cursor = len(m.rows()) - 2
+	m = press(m, "enter")
+	if !m.naming {
+		t.Fatal("making a hero did not ask for a name")
+	}
+	for _, k := range []string{"Z", "e", "d", "enter", "down", "enter"} {
+		m = press(m, k)
+	}
+	if m.alloc == nil || m.alloc.name != "Zed" || m.alloc.class != game.Mage {
+		t.Fatalf("draft %+v", m.alloc)
+	}
+	m.cursor = int(game.Int)
+	for range game.CreationPoints {
+		m = press(m, "right")
+	}
+	m.cursor = len(m.rows()) - 1
+	m = press(m, "enter")
+	if len(gd.Heroes) != 3 || gd.Heroes[2].Hero.Name != "Zed" || gd.Heroes[2].Hero.Class != game.Mage {
+		t.Fatalf("hero not made: %d heroes", len(gd.Heroes))
+	}
+	m = press(m, "2")
+	if !strings.Contains(m.View(), lang.T("recruit.no_bed", gd.Beds())) && m.hireBlock() == "" {
+		t.Fatal("a full guild still lets you hire")
 	}
 }

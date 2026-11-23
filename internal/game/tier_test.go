@@ -116,7 +116,7 @@ func TestPrestigeStartsOverAndKeepsTheLegacy(t *testing.T) {
 	if h.Class != Mage || h.Level != 1 || h.Name != "Ana" || h.Legacy != 6 || h.Bonus != 0 || h.Training[Str] != 0 {
 		t.Fatalf("hero %+v", h)
 	}
-	if g.Guild.Gold != 0 || g.BagLevel != 0 || g.Dungeon != 0 || g.Reached != 0 || len(g.Guild.Stash) != 1 || g.Prestiges != 1 || g.startFloor() != 1 {
+	if g.Guild.Gold != 5000 || g.BagLevel != 0 || g.Dungeon != 0 || g.Reached != 0 || len(g.Guild.Stash) != 1 || g.Prestiges != 1 || g.startFloor() != 1 {
 		t.Fatal("prestige did not start over")
 	}
 	if h.Attr(Con) != 6 || g.CanPrestige() {

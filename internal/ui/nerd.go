@@ -40,6 +40,14 @@ func (m Model) nerdRows() []prepRow {
 	add("town_wait", fmt.Sprintf("%d s", game.TownWaitMs/1000))
 	add("offline_cap", fmt.Sprintf("%d h", int(game.OfflineCap.Hours())))
 
+	sec = lang.T("nerd.section.guild")
+	add("creation_points", fmt.Sprint(game.CreationPoints))
+	add("guild_beds", fmt.Sprint(game.GuildBeds))
+	add("recruits", fmt.Sprint(game.RecruitCount))
+	add("recruit_refresh", fmt.Sprintf("%d min", game.RecruitRefreshMs/60000))
+	add("recruit_reroll", fmt.Sprint(game.RecruitReroll))
+	add("hire_cost", lang.T("nerd.hire_cost.value", game.HireCost(1)))
+
 	sec = lang.T("nerd.section.combat")
 	add("damage", lang.T("nerd.damage.value"))
 	add("miss_even", nerdPct(game.MissEven))

@@ -61,6 +61,9 @@ func cfgRow(section, label, value string, adjust func(int)) prepRow {
 }
 
 func (m Model) rows() []prepRow {
+	if m.alloc != nil {
+		return m.allocRows()
+	}
 	switch m.tab {
 	case tabSettings:
 		return m.settingsRows()
@@ -70,6 +73,8 @@ func (m Model) rows() []prepRow {
 		return m.nerdRows()
 	case tabGuild:
 		return m.guildRows()
+	case tabRecruit:
+		return m.recruitRows()
 	}
 	if m.editing() {
 		return m.ruleRows(m.edit - 1)

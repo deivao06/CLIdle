@@ -17,7 +17,7 @@ const guildListMaxH = 10
 // tabs lists the screens of the current view: the guild's, or the open hero's.
 func (m Model) tabs() []int {
 	if m.guild {
-		return []int{tabGuild, tabSettings}
+		return []int{tabGuild, tabRecruit, tabSettings}
 	}
 	if m.g.Guild.Nerd {
 		return []int{tabDungeon, tabPrep, tabHero, tabNerd}
@@ -33,6 +33,14 @@ func (m *Model) openGuild() {
 func (m *Model) openHero(h *game.Game) {
 	m.g, m.guild, m.tab, m.cursor, m.heroTop, m.help = h, false, tabDungeon, 0, 0, false
 	m.lastDeaths, m.lastBosses = h.Deaths, h.BossKills
+	m.spendFree(h)
+}
+
+// spendFree asks for the hero's free attribute points, if any are left.
+func (m *Model) spendFree(h *game.Game) {
+	if h.Hero.FreePoints > 0 {
+		m.alloc, m.cursor = &allocDraft{recruit: -1, name: h.Hero.Name, class: h.Hero.Class, hero: h}, 0
+	}
 }
 
 func (m Model) guildRows() []prepRow {

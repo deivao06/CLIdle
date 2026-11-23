@@ -22,9 +22,18 @@ func (m *Model) nameKey(msg tea.KeyMsg) {
 		if name == "" {
 			return
 		}
-		m.g.Hero.Name = name
 		m.naming, m.nameDraft = false, nil
 		Typing(false)
+		if m.alloc != nil {
+			m.alloc.name, m.choosing, m.cursor = name, true, 0
+			return
+		}
+		m.g.Hero.Name = name
+	case tea.KeyEsc:
+		if m.alloc != nil {
+			m.alloc, m.naming, m.nameDraft = nil, false, nil
+			Typing(false)
+		}
 	case tea.KeyBackspace:
 		if n := len(m.nameDraft); n > 0 {
 			m.nameDraft = m.nameDraft[:n-1]

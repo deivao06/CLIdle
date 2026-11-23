@@ -42,6 +42,9 @@ func (m Model) barActions() []barAction {
 	if m.help {
 		return []barAction{{"?", lang.T("bar.close")}}
 	}
+	if m.alloc != nil {
+		return []barAction{{"esc", lang.T("bar.back")}, {"?", lang.T("bar.help")}}
+	}
 	if m.guild {
 		return []barAction{{"enter", lang.T("bar.open")}, {"?", lang.T("bar.help")}}
 	}
@@ -128,7 +131,7 @@ func (m Model) viewActions() string {
 	return b.String()
 }
 
-var tabKeys = []string{"tab.main", "tab.prep", "tab.hero", "tab.settings", "tab.nerd", "tab.guild"}
+var tabKeys = []string{"tab.main", "tab.prep", "tab.hero", "tab.settings", "tab.nerd", "tab.guild", "tab.recruit"}
 
 func (m Model) tabCount() int { return len(m.tabs()) }
 
@@ -310,5 +313,6 @@ func (m Model) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) listShown() bool {
-	return m.tab == tabPrep || m.tab == tabSettings || m.tab == tabNerd || m.tab == tabGuild || m.tab == tabDungeon && m.g.InTown()
+	return m.alloc != nil || m.tab == tabPrep || m.tab == tabSettings || m.tab == tabNerd || m.tab == tabGuild || m.tab == tabRecruit ||
+		m.tab == tabDungeon && m.g.InTown()
 }
