@@ -118,6 +118,17 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - Mochila: começa com 8 vagas; cada upgrade dá +2, até 24. Fica na loja.
 - Moeda única: ouro.
 
+## Guilda
+
+- O jogo abre na **Guilda de Aventureiros** (taverna animada). Abas: Guilda (heróis, taverna, registro), Prédios, Recrutar, Config. Enter abre um herói; esc (ou o botão Guilda no celular) volta.
+- **Ouro e baú são da guilda.** Cada herói tem equipamento, mochila, táticas, config da expedição, dungeon, atalhos e prestígio.
+- **Heróis em paralelo**, cada um sozinho na dungeon. A **Mesa de missões** limita quantos saem ao mesmo tempo (2, +1 por nível, até 4 por causa do custo do offline: ~8 s por herói em expedição em 12h). Os outros esperam em fila por ordem de chegada; partir à mão pula a fila se houver vaga.
+- **Recrutas:** 3 sorteados (nome e classe), trocam a cada 1h de jogo (conta o offline) ou pagando. Criar à mão: nome, classe e pontos. Os dois custam o mesmo (200 × heróis; trocar recrutas 100; valores provisórios, o dono quer subir). O recruta não troca de nome.
+- **Pontos de criação:** 5 para distribuir; um ponto em FOR vale +3, como no treino. Só na criação e no prestígio; não dá para redistribuir depois.
+- **Prédios** (melhoram com ouro, `500 × (nível+1)²`): Alojamento (vagas, 3 até 8), Mesa de missões, Ferreiro e Campo de treino (−5%/nível até −25%), Mercado (+1 item na loja até +3), Boticário (−10%/nível até −50% na poção). A loja continua sendo de cada herói.
+- **Prestígio:** não mexe no ouro da guilda. O bônus permanente virou pontos (4 × 2 × tier por dungeon, o mesmo total do bônus antigo); o herói novo distribui de novo os pontos de criação e todos os de prestígio. O bônus de concluir dungeon (+5 em tudo) continua como era.
+- Morte como antes; sem estresse; grupo no mesmo mapa fica para depois.
+
 ## Técnico
 
 - Números de balanceamento em tabelas Go num lugar só (`balance.go`). Ritmo definido jogando.
@@ -172,9 +183,9 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 ## Para depois
 
 - Grupo (vários `@` com cores diferentes).
-- Prestígio (reset com bônus permanente).
+- ~~Prestígio~~ (feito).
 - Itens lendários (únicos).
 - ~~Cavernas~~ (feito) e outras variações de andar.
 - Magias por loot (livros/pergaminhos).
-- Materiais, outros prédios.
+- Materiais; ~~outros prédios~~ (feito com a guilda).
 - ~~Regras de retirada mais elaboradas~~ (feito com as táticas).

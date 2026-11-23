@@ -57,21 +57,25 @@ func dungeonFor(depth int) int { return max(0, (depth-1)/DungeonStep) }
 // Deepest is the depth of the deepest floor reached in the current dungeon.
 func (g *Game) Deepest() int { return max(1, g.Offset()+g.Reached) }
 
-// PrestigeGain is what a prestige adds to every attribute for good: more for each tier cleared since the last one.
-func (g *Game) PrestigeGain() int { return PrestigePerTier * g.Dungeon * (g.Dungeon + 1) / 2 }
+// PrestigeGain is how many attribute points a prestige gives for good: more for each tier cleared since the last one.
+func (g *Game) PrestigeGain() int {
+	return int(NumTraits) * PrestigePerTier * g.Dungeon * (g.Dungeon + 1) / 2
+}
 
 func (g *Game) CanPrestige() bool {
 	return g.InTown() && g.Dungeon > 0 && g.Hero.Level >= PrestigeLevel
 }
 
-// Prestige starts over with a new hero of class c in the first tier; only the name, the chest and the legacy bonus stay.
+// Prestige starts over with a new hero of class c in the first tier; only the name, the chest and the legacy points
+// stay, and the new hero spends its creation and legacy points again.
 func (g *Game) Prestige(c Class) {
 	if !g.CanPrestige() {
 		return
 	}
 	old, gain := g.Hero, g.PrestigeGain()
 	g.Hero = NewHero(c)
-	g.Hero.Name, g.Hero.Legacy = old.Name, old.Legacy+gain
+	g.Hero.Name, g.Hero.LegacyPoints = old.Name, old.LegacyPoints+gain
+	g.Hero.FreePoints += g.Hero.LegacyPoints
 	if c != old.Class {
 		g.Config.Gambits = heroGambits(g.Hero)
 	}

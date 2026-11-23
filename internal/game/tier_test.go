@@ -108,18 +108,18 @@ func TestPrestigeStartsOverAndKeepsTheLegacy(t *testing.T) {
 	g.Hero.Name, g.Hero.Level, g.Hero.Training[Str], g.Hero.Bonus = "Ana", 40, 3, 2*DungeonAttrBonus
 	g.Guild.Gold, g.BagLevel, g.Dungeon, g.Reached = 5000, 3, 2, 40
 	g.Guild.Stash = []*Item{{ID: 99, Slot: Weapon, Rarity: Legendary, Base: 50}}
-	if g.PrestigeGain() != PrestigePerTier*(1+2) {
+	if g.PrestigeGain() != int(NumTraits)*PrestigePerTier*(1+2) {
 		t.Fatalf("gain %d", g.PrestigeGain())
 	}
 	g.Prestige(Mage)
 	h := g.Hero
-	if h.Class != Mage || h.Level != 1 || h.Name != "Ana" || h.Legacy != 6 || h.Bonus != 0 || h.Training[Str] != 0 {
+	if h.Class != Mage || h.Level != 1 || h.Name != "Ana" || h.LegacyPoints != 24 || h.FreePoints != CreationPoints+24 || h.Bonus != 0 || h.Training[Str] != 0 {
 		t.Fatalf("hero %+v", h)
 	}
 	if g.Guild.Gold != 5000 || g.BagLevel != 0 || g.Dungeon != 0 || g.Reached != 0 || len(g.Guild.Stash) != 1 || g.Prestiges != 1 || g.startFloor() != 1 {
 		t.Fatal("prestige did not start over")
 	}
-	if h.Attr(Con) != 6 || g.CanPrestige() {
+	if h.Spend([NumTraits]int{Con: CreationPoints + 24}) != nil || h.Attr(Con) != CreationPoints+24 || g.CanPrestige() {
 		t.Fatal("legacy missing, or prestige available with no dungeon cleared")
 	}
 	g.Dungeon = 1
@@ -129,7 +129,7 @@ func TestPrestigeStartsOverAndKeepsTheLegacy(t *testing.T) {
 	}
 	g.Hero.Level = PrestigeLevel
 	g.Prestige(Mage)
-	if g.Hero.Legacy != 6+PrestigePerTier || g.Prestiges != 2 {
-		t.Fatalf("legacy %d", g.Hero.Legacy)
+	if g.Hero.LegacyPoints != 24+int(NumTraits)*PrestigePerTier || g.Hero.FreePoints != CreationPoints+g.Hero.LegacyPoints || g.Prestiges != 2 {
+		t.Fatalf("legacy %d", g.Hero.LegacyPoints)
 	}
 }

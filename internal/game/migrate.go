@@ -39,7 +39,9 @@ func migrate(f *saveFile, old *legacy) {
 		f.Guild = &Guild{Gold: v.Gold, Stash: v.Stash, Bell: v.Bell, CRT: v.CRT, Nerd: v.Nerd, Effects: v.Effects,
 			Lang: v.Lang, SeenNews: v.SeenNews, Heroes: []*Game{f.Game}}
 		f.Game.Guild = f.Guild
-		f.Game.Hero.FreePoints = CreationPoints
+		h := f.Game.Hero
+		h.LegacyPoints, h.Legacy = int(NumTraits)*h.Legacy, 0
+		h.FreePoints = CreationPoints + h.LegacyPoints
 	}
 	q := &old.queueV3
 	if f.Version < 2 {

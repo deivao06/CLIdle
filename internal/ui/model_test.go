@@ -386,8 +386,12 @@ func TestPrestigeAsksThenChoosesTheClass(t *testing.T) {
 	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("y")})
 	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyDown})
 	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	if m = tm.(Model); m.choosing || m.g.Prestiges != 1 || m.g.Hero.Class != game.Mage || m.g.Hero.Legacy != game.PrestigePerTier {
-		t.Fatalf("prestiges %d class %v legacy %d", m.g.Prestiges, m.g.Hero.Class, m.g.Hero.Legacy)
+	gain := int(game.NumTraits) * game.PrestigePerTier
+	if m = tm.(Model); m.choosing || m.g.Prestiges != 1 || m.g.Hero.Class != game.Mage || m.g.Hero.LegacyPoints != gain {
+		t.Fatalf("prestiges %d class %v legacy %d", m.g.Prestiges, m.g.Hero.Class, m.g.Hero.LegacyPoints)
+	}
+	if m.alloc == nil || m.alloc.free() != game.CreationPoints+gain {
+		t.Fatal("the new hero did not get its points to spend")
 	}
 }
 

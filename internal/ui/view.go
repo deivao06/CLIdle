@@ -741,7 +741,7 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 	fmt.Fprintf(&b, "%s %s\n", sSection.Render(h.Class.Name()), lang.T("hero.level", h.Level))
 	dungeon := g.DungeonName()
 	if g.Prestiges > 0 {
-		dungeon += lang.T("hero.prestige", g.Prestiges, h.Legacy)
+		dungeon += lang.T("hero.prestige", g.Prestiges, h.LegacyPoints)
 	}
 	b.WriteString(sMuted.Render(dungeon) + "\n")
 	wrap := lipgloss.NewStyle().Width(w)

@@ -123,8 +123,10 @@ type Hero struct {
 	Training [NumTraits]int
 	// Bonus adds to every attribute: earned by clearing dungeons.
 	Bonus int `json:",omitempty"`
-	// Legacy adds to every attribute for good: earned by prestige.
+	// Legacy is the attribute bonus prestige gave before v12; v12 turns it into LegacyPoints.
 	Legacy int `json:",omitempty"`
+	// LegacyPoints are the attribute points prestige gave for good; every new hero of the line spends them again.
+	LegacyPoints int `json:",omitempty"`
 	// Points are the attribute points the player spent on the hero; FreePoints are the ones still to spend.
 	Points     [NumTraits]int `json:",omitempty"`
 	FreePoints int            `json:",omitempty"`
@@ -170,7 +172,7 @@ func (h *Hero) MaxMP() int {
 
 func (h *Hero) Attr(t Trait) int {
 	s := ClassStats[h.Class]
-	return s.Start[t] + s.Growth[t]*(h.Level-1)/2 + (h.Training[t]+h.Points[t])*TrainGain(t) + h.Bonus + h.Legacy
+	return s.Start[t] + s.Growth[t]*(h.Level-1)/2 + (h.Training[t]+h.Points[t])*TrainGain(t) + h.Bonus
 }
 
 func (h *Hero) Atk() int {

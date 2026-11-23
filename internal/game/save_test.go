@@ -208,3 +208,16 @@ func TestV11SaveBecomesAGuildWithItsHero(t *testing.T) {
 		t.Fatalf("after a v12 round trip: %+v err %v", again.Guild, err)
 	}
 }
+
+func TestV11PrestigeBonusBecomesPointsToSpend(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "save.json")
+	g := New(27182818, Warrior)
+	g.Hero.Legacy = 3
+	raw, _ := oldSave(11, g)
+	os.WriteFile(path, raw, 0o644)
+	got, _, err := Load(path)
+	h := got.Hero
+	if err != nil || h.Legacy != 0 || h.LegacyPoints != 3*int(NumTraits) || h.FreePoints != CreationPoints+3*int(NumTraits) {
+		t.Fatalf("legacy %d points %d free %d err %v", h.Legacy, h.LegacyPoints, h.FreePoints, err)
+	}
+}
