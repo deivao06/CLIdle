@@ -181,12 +181,12 @@ func (m Model) townRows() []prepRow {
 	if len(g.Shop) == 0 {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.sold_out"), style: sMuted})
 	}
-	potion := m.buyable(game.PotionPrice)
+	potion, potionGold := m.buyable(game.PotionPrice), m.goldFor(game.PotionPrice)
 	if g.Hero.Potions >= game.MaxPotions {
-		potion = sMuted
+		potion, potionGold = sMuted, sGold.Faint(true)
 	}
 	rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.potion_row", g.Hero.Potions, game.MaxPotions, game.PotionPrice),
-		style: potion, price: game.PotionPrice, priceSt: m.goldFor(game.PotionPrice), enter: g.BuyPotion, desc: lang.T("town.potion.desc", game.MaxPotions)})
+		style: potion, price: game.PotionPrice, priceSt: potionGold, enter: g.BuyPotion, desc: lang.T("town.potion.desc", game.MaxPotions)})
 	if size, cost, ok := g.NextBag(); ok {
 		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, cost)
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.buyable(cost),
