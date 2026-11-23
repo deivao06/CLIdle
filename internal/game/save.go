@@ -8,12 +8,13 @@ import (
 	"time"
 )
 
-const saveVersion = 11
+const saveVersion = 12
 
 type saveFile struct {
 	Version int
 	SavedAt time.Time
-	Game    *Game
+	Game    *Game  `json:",omitempty"`
+	Guild   *Guild `json:",omitempty"`
 }
 
 func SavePath() string {
@@ -26,14 +27,14 @@ func SavePath() string {
 }
 
 func (g *Game) Save(path string, now time.Time) error {
-	data, err := json.Marshal(saveFile{saveVersion, now, g})
+	data, err := json.Marshal(saveFile{Version: saveVersion, SavedAt: now, Guild: g.Guild})
 	if err != nil {
 		return err
 	}
 	return writeSave(path, data)
 }
 
-// Load returns a nil game when there is no save yet.
+// Load returns the guild's first hero, or nil when there is no save yet.
 func Load(path string) (*Game, time.Time, error) {
 	data, err := readSave(path)
 	if errors.Is(err, os.ErrNotExist) {
@@ -53,5 +54,9 @@ func Load(path string) (*Game, time.Time, error) {
 		}
 		migrate(&f, &old.Game)
 	}
-	return f.Game, f.SavedAt, nil
+	if f.Guild == nil || len(f.Guild.Heroes) == 0 {
+		return nil, time.Time{}, errors.New("save without heroes")
+	}
+	f.Guild.link()
+	return f.Guild.Heroes[0], f.SavedAt, nil
 }

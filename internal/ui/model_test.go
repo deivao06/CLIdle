@@ -41,22 +41,22 @@ func TestGameOptionsMovedToSettingsTab(t *testing.T) {
 func TestResetSaveAsksThenStartsOver(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "save.json")
 	g := game.New(1, game.Mage)
-	g.Gold = 500
+	g.Guild.Gold = 500
 	g.Hero.Name = "Test"
 	var tm tea.Model = NewWithSave(g, path, 0, false)
 	tm, _ = tm.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
-	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("4")})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("2")})
 	m := tm.(Model)
 	m.cursor = len(m.settingsRows()) - 1
 	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	if m = tm.(Model); m.confirmDo == nil || m.g.Gold != 500 {
+	if m = tm.(Model); m.confirmDo == nil || m.g.Guild.Gold != 500 {
 		t.Fatal("reset did not ask for confirmation first")
 	}
 	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
 	m = tm.(Model)
-	if m.g.Gold != 0 || !m.choosing {
-		t.Fatalf("game not reset: gold %d choosing %v", m.g.Gold, m.choosing)
+	if m.g.Guild.Gold != 0 || !m.choosing {
+		t.Fatalf("game not reset: gold %d choosing %v", m.g.Guild.Gold, m.choosing)
 	}
 	if _, err := os.Stat(path); err == nil {
 		t.Fatal("old save still on disk")
@@ -68,6 +68,7 @@ func TestHeroTabScrollsOnSmallScreens(t *testing.T) {
 	g.Hero.Level = 20
 	var m tea.Model = New(g)
 	m, _ = m.Update(tea.WindowSizeMsg{Width: 60, Height: 14})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
 	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("3")})
 	records := lang.T("hero.records")
 	if strings.Contains(m.View(), records) {
@@ -86,7 +87,7 @@ func TestHeroTabScrollsOnSmallScreens(t *testing.T) {
 func TestChestRowsEquipAndSell(t *testing.T) {
 	g := game.New(1, game.Warrior)
 	g.Hero.Equip[game.Weapon] = nil
-	g.Stash = []*game.Item{{Slot: game.Weapon, Kind: game.Blade, Base: 5}, {Slot: game.Armor, Base: 3}}
+	g.Guild.Stash = []*game.Item{{Slot: game.Weapon, Kind: game.Blade, Base: 5}, {Slot: game.Armor, Base: 3}}
 	m := New(g)
 	m.tab = tabDungeon
 	for i, r := range m.townRows() {
@@ -96,8 +97,8 @@ func TestChestRowsEquipAndSell(t *testing.T) {
 		}
 	}
 	m.prepKey("enter")
-	if g.Hero.Equip[game.Weapon] == nil || len(g.Stash) != 1 {
-		t.Fatalf("enter did not equip: stash %d", len(g.Stash))
+	if g.Hero.Equip[game.Weapon] == nil || len(g.Guild.Stash) != 1 {
+		t.Fatalf("enter did not equip: stash %d", len(g.Guild.Stash))
 	}
 	for i, r := range m.townRows() {
 		if r.sell != nil {
@@ -105,8 +106,8 @@ func TestChestRowsEquipAndSell(t *testing.T) {
 		}
 	}
 	m.prepKey("x")
-	if len(g.Stash) != 0 || g.Gold == 0 {
-		t.Fatalf("x did not sell: stash %d gold %d", len(g.Stash), g.Gold)
+	if len(g.Guild.Stash) != 0 || g.Guild.Gold == 0 {
+		t.Fatalf("x did not sell: stash %d gold %d", len(g.Guild.Stash), g.Guild.Gold)
 	}
 }
 
@@ -132,7 +133,7 @@ func TestEffectsOffDrawsNoLampOrFx(t *testing.T) {
 	if o, _, shake := m.fxLayers(); len(o) == 0 || shake == 0 {
 		t.Fatal("full effects should draw the hit and shake")
 	}
-	g.Effects = game.EffectsOff
+	g.Guild.Effects = game.EffectsOff
 	if o, f, shake := m.fxLayers(); len(o)+len(f) != 0 || shake != 0 {
 		t.Fatal("effects off still draws")
 	}
@@ -143,7 +144,7 @@ func TestEffectsOffDrawsNoLampOrFx(t *testing.T) {
 
 func TestSellingLegendaryAsksFirst(t *testing.T) {
 	g := game.New(1, game.Warrior)
-	g.Stash = []*game.Item{{Slot: game.Armor, Base: 3, Rarity: game.Legendary}}
+	g.Guild.Stash = []*game.Item{{Slot: game.Armor, Base: 3, Rarity: game.Legendary}}
 	m := New(g)
 	m.tab = tabDungeon
 	for i, r := range m.townRows() {
@@ -152,12 +153,12 @@ func TestSellingLegendaryAsksFirst(t *testing.T) {
 		}
 	}
 	m.prepKey("x")
-	if len(g.Stash) != 1 || m.confirmDo == nil {
-		t.Fatalf("legendary sold without asking: stash %d", len(g.Stash))
+	if len(g.Guild.Stash) != 1 || m.confirmDo == nil {
+		t.Fatalf("legendary sold without asking: stash %d", len(g.Guild.Stash))
 	}
 	m.confirmDo(&m)
-	if len(g.Stash) != 0 || g.Gold == 0 {
-		t.Fatalf("confirming did not sell: stash %d gold %d", len(g.Stash), g.Gold)
+	if len(g.Guild.Stash) != 0 || g.Guild.Gold == 0 {
+		t.Fatalf("confirming did not sell: stash %d gold %d", len(g.Guild.Stash), g.Guild.Gold)
 	}
 }
 
@@ -200,6 +201,7 @@ func TestRuleEditorChangesAndClosesARule(t *testing.T) {
 	g.ResetGambits()
 	m := New(g)
 	m.w, m.h = 100, 30
+	m = press(m, "enter")
 	m = press(m, "2")
 	rows := m.rows()
 	first := len(rows) - len(g.Config.Gambits) - 2
@@ -250,6 +252,7 @@ func TestAddAndDeleteRule(t *testing.T) {
 	g := game.New(1, game.Warrior)
 	m := New(g)
 	m.w, m.h = 100, 30
+	m = press(m, "enter")
 	m = press(m, "2")
 	n := len(g.Config.Gambits)
 	m.cursor = len(m.rows()) - 2
@@ -273,10 +276,10 @@ func TestNewsOpensOnceAfterAnUpdate(t *testing.T) {
 	defer func() { update.Version = old }()
 	update.Version = "v9.9.9"
 	g := game.New(1, game.Warrior)
-	if m := NewWithSave(g, "", 0, true); m.newsAuto || g.SeenNews != update.Version {
+	if m := NewWithSave(g, "", 0, true); m.newsAuto || g.Guild.SeenNews != update.Version {
 		t.Fatal("a fresh game should not open the news")
 	}
-	g.SeenNews = "v9.9.8"
+	g.Guild.SeenNews = "v9.9.8"
 	g.Hero.Name = "Test"
 	var tm tea.Model = NewWithSave(g, "", 0, false)
 	tm, _ = tm.Update(newsMsg{notes: []update.Note{{Version: "v9.9.9", Body: "* new thing"}}})
@@ -284,17 +287,17 @@ func TestNewsOpensOnceAfterAnUpdate(t *testing.T) {
 		t.Fatal("news page did not open with the notes")
 	}
 	tm, _ = tm.Update(tickMsg(time.Now()))
-	if g.SeenNews != update.Version || NewWithSave(g, "", 0, false).newsAuto {
-		t.Fatalf("seen %q, the news would open again", g.SeenNews)
+	if g.Guild.SeenNews != update.Version || NewWithSave(g, "", 0, false).newsAuto {
+		t.Fatalf("seen %q, the news would open again", g.Guild.SeenNews)
 	}
 }
 
 func TestScrollMovesTheListNotTheCursor(t *testing.T) {
 	m := New(game.New(1, game.Warrior))
 	m.w, m.h = 45, 20
+	m = press(m, "enter")
+	m.g.Guild.Nerd = true
 	m = press(m, "4")
-	m.g.Nerd = true
-	m = press(m, "5")
 	view := m.View()
 	next, _ := m.Update(ScrollMsg(6))
 	m = next.(Model)
@@ -359,6 +362,7 @@ func TestPrestigeAsksThenChoosesTheClass(t *testing.T) {
 	g.Hero.Name, g.Hero.Level, g.Dungeon = "Ana", 50, 1
 	var tm tea.Model = NewWithSave(g, "", 0, false)
 	tm, _ = tm.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyEnter})
 	m := tm.(Model)
 	at := slices.IndexFunc(m.townRows(), func(r prepRow) bool { return r.section == lang.T("prep.section.prestige") })
 	if at < 0 {
@@ -381,5 +385,23 @@ func TestPrestigeAsksThenChoosesTheClass(t *testing.T) {
 	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyEnter})
 	if m = tm.(Model); m.choosing || m.g.Prestiges != 1 || m.g.Hero.Class != game.Mage || m.g.Hero.Legacy != game.PrestigePerTier {
 		t.Fatalf("prestiges %d class %v legacy %d", m.g.Prestiges, m.g.Hero.Class, m.g.Hero.Legacy)
+	}
+}
+
+func TestGuildOpensTheHeroAndEscComesBack(t *testing.T) {
+	g := game.New(1, game.Warrior)
+	g.Hero.Name = "Ana"
+	m := New(g)
+	m.w, m.h = 100, 30
+	if !m.guild || !strings.Contains(m.View(), "Ana") || !strings.Contains(m.View(), lang.T("guild.log.title")) {
+		t.Fatal("the game does not open on the guild with its heroes and log")
+	}
+	m = press(m, "enter")
+	if m.guild || m.tab != tabDungeon || m.g != g {
+		t.Fatalf("enter did not open the hero: guild %v tab %d", m.guild, m.tab)
+	}
+	m = press(m, "esc")
+	if !m.guild || m.tab != tabGuild || m.cursor != 0 {
+		t.Fatalf("esc did not go back to the guild: guild %v tab %d", m.guild, m.tab)
 	}
 }

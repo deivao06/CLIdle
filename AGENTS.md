@@ -28,6 +28,7 @@ cmd/playground/         playground (ver docs/design.md → Playground)
 main.go                 carrega o save, calcula o tempo fora, abre a UI
 internal/game/          lógica pura, sem I/O de terminal
   game.go               Game, Expedition, Config, loop (Advance/step), IA do herói, combate, retirada
+  guild.go              Guild: ouro, baú, opções do jogo, log da guilda e a lista de heróis (`Game.Guild` aponta de volta, fora do JSON)
   class.go              Class, atributos de dano, o que cada classe pode usar, escolha da classe
   ability.go            habilidades (Has), mana, golpe forte, segundo fôlego
   gambit.go             táticas (gambits): Gambit/Cond/Action, lista padrão (`gambitsV5`), escolha do comportamento (`behavior`), ações (`instant`/`act`), comportamentos (`perform`), editar a lista
@@ -52,6 +53,7 @@ internal/update/         releases do GitHub: Check, Install (checksum + troca do
 internal/lang/          textos do jogo (en.json, pt.json embutidos), lang.T/Set
 internal/ui/            Bubble Tea
   model.go              Model, ticks, teclas, autosave, catch-up em goroutine, confirmações
+  guild.go              tela da guilda (abre o jogo): abas Guilda e Config, lista de heróis, log da guilda; Enter abre o herói, esc volta (`Model.guild`, `tabs()`)
   view.go               layout adaptável, mapa, log, painel do herói, legenda, cidade, resumo
   prep.go               Preparação (só config), lista da cidade (`townRows`), Config, resetar save
   tactics.go            seção Táticas da Preparação e editor de regra (`ruleRows`, `Model.edit`)
@@ -76,7 +78,7 @@ web/                    versão de navegador (WASM + xterm.js): main.go (ponte J
 2. **`Advance` é independente do fatiamento.** `Advance(120000)` precisa dar o mesmo estado que 2400× `Advance(50)`. O tempo é contado em milissegundos inteiros (`AccMs`). Não zere nem arredonde `AccMs` no meio do loop. Há testes para isso (`TestAdvanceChunkingIsDeterministic`, `TestCatchUpMatchesOnlinePlay`).
 3. **Offline usa a mesma lógica do jogo ao vivo.** `CatchUp` só chama `Advance`. Não crie atalhos estatísticos.
 4. **Save/load preserva a simulação.** `TestSaveLoadRoundTripKeepsSimulationIdentical` garante que carregar e continuar dá o mesmo resultado. Ponteiros não sobrevivem ao JSON: identidade de item é por `Item.ID`, não por ponteiro.
-5. **Compatibilidade do save.** `saveVersion = 11`. Campos novos devem funcionar com valor zero (ex.: `Shortcuts` vazio vira `ShortcutList() == [1]`). O que valor zero não resolve ganha um passo em `migrate.go`; nunca edite um passo já publicado. Não renomeie campos exportados de structs salvas sem migração.
+5. **Compatibilidade do save.** `saveVersion = 12` (o save guarda a `Guild`; v11 e anteriores guardavam um `Game` e migram para uma guilda com esse herói). Campos novos devem funcionar com valor zero (ex.: `Shortcuts` vazio vira `ShortcutList() == [1]`). O que valor zero não resolve ganha um passo em `migrate.go`; nunca edite um passo já publicado. Não renomeie campos exportados de structs salvas sem migração.
 6. **Concorrência.** `path.go` usa um buffer global (`scratch`) e o jogo não é thread-safe. Enquanto `Model.catching` for verdadeiro, a UI não pode tocar em `m.g` (a goroutine do `CatchUp` está rodando). `View` retorna cedo nesse estado.
 7. **Desempenho.** 12h offline devem simular em poucos segundos (`TestTwelveHoursIsFastEnough`, limite de 15s). O custo está no `search` por passo. Evite BFS extras por passo.
 8. **Bubble Tea:** `Init` tem receiver por valor; mudanças no model feitas ali se perdem. Configure o estado no construtor (`NewWithSave`).
@@ -89,7 +91,7 @@ web/                    versão de navegador (WASM + xterm.js): main.go (ponte J
 - **Ritmo:** explorar segue `StepsPerSec(Velocidade)`; combate é fixo em `CombatRoundMs` (também quando o mago tem alvo e mana para atacar de longe). Velocidade em combate = iniciativa e ataques extras (sistema de energia).
 - **IA do herói** (`chooseStep` → `plan`): uma BFS com prioridade: monstro visível > item desejado > escada (modo descer direto) > fronteira inexplorada > chefe ou escada. `Game.Doing()` usa o mesmo `plan` para a linha de status (`▸ ...`) acima do log; só a UI chama.
 - **Config da expedição:** a IA lê `Game.Config` ao vivo; mudanças valem na hora. Só poções e andar inicial são usados na partida. Exceção: o editor de regra trabalha numa cópia (`Model.draft`) e só aplica no Salvar (`Game.SetGambits`, que chama `TacticsChanged()` e devolve regras liberadas por subida de nível durante a edição); esc, Cancelar e trocar de tela perguntam antes de descartar.
-- **Compras só na cidade:** loja, ferreiro, treino, mochila e baú não fazem nada com o herói fora; não há fila. Na tela 1, com o herói na cidade, `viewTownScreen` mostra a fogueira (`campfire`, animada pelo relógio da UI, nunca pelo `RNG`) e a lista `townRows`. O passo v4 de `migrate.go` devolve o ouro da antiga fila (`queueV3`).
+- **Compras só na cidade:** loja, ferreiro, treino, mochila e baú não fazem nada com o herói fora; não há fila. Na tela 1, com o herói na cidade, `viewTownScreen` mostra a taverna da guilda (`tavern` em `ui/tavern.go`, animada pelo relógio da UI, nunca pelo `RNG`; heróis na guilda sentados nas mesas, o herói aberto em destaque) e a lista `townRows`. O passo v4 de `migrate.go` devolve o ouro da antiga fila (`queueV3`).
 - **Efeitos de item:** `Item.Effects` (raro 1, épico 2, lendário 3: `EffectCount`), somados por `Hero.Effect` até o teto `EffectCap`. Aparecem no `StatLabel`. Crítico só gasta RNG se o herói tiver o efeito, para não mudar a sequência de quem não tem.
 - **Baú:** `Game.Stash`, sem limite de tamanho. Comprar na loja equipa na hora e manda o item antigo para o baú (`equipBought`). Só enche com `Config.KeepLoot` (vender loot desligado): `returnToTown` guarda a mochila no baú em vez de vender. `Config.ManualEquip` (auto-equipar desligado) é separado: `better()` devolve falso. O passo v5 de `migrate.go` liga `KeepLoot` em quem tinha `ManualEquip`.
 - **Item level:** `Item.Floor` é o andar onde o item nasceu (`newItemOf`); `Item.Title()` mostra `(iLvl N)`. Zero (saves antigos, arma inicial) não mostra nada.

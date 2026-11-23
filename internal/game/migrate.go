@@ -16,11 +16,30 @@ type queueV3 struct {
 // legacy holds the fields older saves had that the current structs dropped.
 type legacy struct {
 	queueV3
+	guildV11
 	Config configV5
+}
+
+// guildV11 holds what v11 kept in the hero's game and v12 moved to the guild.
+type guildV11 struct {
+	Gold     int
+	Stash    []*Item
+	Bell     bool
+	CRT      bool
+	Nerd     bool
+	Effects  Effects
+	Lang     string
+	SeenNews string
 }
 
 // migrate brings an older save up to saveVersion, one version at a time.
 func migrate(f *saveFile, old *legacy) {
+	if f.Version < 12 {
+		v := old.guildV11
+		f.Guild = &Guild{Gold: v.Gold, Stash: v.Stash, Bell: v.Bell, CRT: v.CRT, Nerd: v.Nerd, Effects: v.Effects,
+			Lang: v.Lang, SeenNews: v.SeenNews, Heroes: []*Game{f.Game}}
+		f.Game.Guild = f.Guild
+	}
 	q := &old.queueV3
 	if f.Version < 2 {
 		migrateV2(f.Game)
@@ -54,6 +73,7 @@ func migrate(f *saveFile, old *legacy) {
 	if f.Version < 11 {
 		migrateV11Bless(f.Game)
 	}
+	f.Game = nil
 	f.Version = saveVersion
 }
 
@@ -64,7 +84,7 @@ func migrateV2(g *Game) {
 }
 
 func savedItems(g *Game, q *queueV3) []*Item {
-	items := append(append(append(g.Hero.Equip[:], g.Shop...), q.Pending...), g.Stash...)
+	items := append(append(append(g.Hero.Equip[:], g.Shop...), q.Pending...), g.Guild.Stash...)
 	if e := g.Exp; e != nil {
 		items = append(append(items, e.StartEquip[:]...), e.Bag...)
 		for _, f := range e.Level.Items {
@@ -99,7 +119,7 @@ func migrateV3Rarity(g *Game, q *queueV3) {
 // migrateV4Refund gives back the gold of everything still queued, since purchases now only happen in town.
 func migrateV4Refund(g *Game, q *queueV3) {
 	for _, it := range q.Pending {
-		g.Gold += ShopPrice(it)
+		g.Guild.Gold += ShopPrice(it)
 	}
 	for s, n := range q.Upgrades {
 		it := g.Hero.Equip[s]
@@ -110,12 +130,12 @@ func migrateV4Refund(g *Game, q *queueV3) {
 		}
 		for i := range n {
 			if it != nil {
-				g.Gold += UpgradeCost(it, it.Upgrade+i)
+				g.Guild.Gold += UpgradeCost(it, it.Upgrade+i)
 			}
 		}
 	}
 	for i := range q.BagQueued {
-		g.Gold += BagCost(g.BagLevel + i)
+		g.Guild.Gold += BagCost(g.BagLevel + i)
 	}
 }
 
@@ -128,8 +148,8 @@ func migrateV8Forged(g *Game, q *queueV3) {
 
 // migrateV9Gold gives back the gold that wrapped below zero before v9 capped it at MaxGold.
 func migrateV9Gold(g *Game) {
-	if g.Gold < 0 {
-		g.Gold = MaxGold
+	if g.Guild.Gold < 0 {
+		g.Guild.Gold = MaxGold
 	}
 	if g.Exp != nil && g.Exp.Gold < 0 {
 		g.Exp.Gold = MaxGold

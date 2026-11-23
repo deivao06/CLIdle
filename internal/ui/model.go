@@ -18,6 +18,7 @@ const (
 	tabHero
 	tabSettings
 	tabNerd
+	tabGuild
 )
 
 const (
@@ -32,6 +33,7 @@ type catchUpDoneMsg game.Summary
 
 type Model struct {
 	g        *game.Game
+	guild    bool
 	w, h     int
 	tab      int
 	help     bool
@@ -100,8 +102,8 @@ func (m *Model) ask(text string, do func(*Model)) {
 }
 
 func New(g *game.Game) Model {
-	return Model{g: g, lastTick: time.Now(), lastSave: time.Now(), progress: &atomic.Int64{}, shown: &scrolled{},
-		lastDeaths: g.Deaths, lastBosses: g.BossKills, crt: g.CRT}
+	return Model{g: g, guild: true, tab: tabGuild, lastTick: time.Now(), lastSave: time.Now(), progress: &atomic.Int64{}, shown: &scrolled{},
+		lastDeaths: g.Deaths, lastBosses: g.BossKills, crt: g.Guild.CRT}
 }
 
 // NewWithSave catches up on the time spent away before resuming live play; a fresh game first asks for the class.
@@ -116,9 +118,9 @@ func NewWithSave(g *game.Game, path string, away time.Duration, fresh bool) Mode
 	m.away = away
 	m.catching = away >= wakeGap
 	if fresh {
-		g.SeenNews = update.Version
+		g.Guild.SeenNews = update.Version
 	}
-	m.newsAuto = wantsNews(g.SeenNews, fresh)
+	m.newsAuto = wantsNews(g.Guild.SeenNews, fresh)
 	m.newsLoading = m.newsAuto
 	return m
 }
@@ -154,7 +156,7 @@ func (m *Model) resetSave() {
 		game.RemoveSave(m.savePath)
 	}
 	g := game.New(uint64(time.Now().UnixNano()), game.Warrior)
-	g.Lang = lang.Current()
+	g.Guild.Lang = lang.Current()
 	w, h := m.w, m.h
 	*m = NewWithSave(g, m.savePath, 0, true)
 	m.w, m.h = w, h
@@ -177,7 +179,7 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if !m.catching {
-		m.crt = m.g.CRT
+		m.crt = m.g.Guild.CRT
 	}
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -207,7 +209,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tick()
 		}
 		if m.newsSeen {
-			m.g.SeenNews, m.newsSeen = update.Version, false
+			m.g.Guild.SeenNews, m.newsSeen = update.Version, false
 			m.save(now)
 		}
 		gap := now.Sub(m.lastTick)
@@ -217,7 +219,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(m.catchUp(gap), tick())
 		}
 		ms := gap.Milliseconds()
-		m.g.Advance(ms)
+		m.g.Guild.Advance(ms)
 		m.lastTick = m.lastTick.Add(time.Duration(ms) * time.Millisecond)
 		m.collectFx(now)
 		if g := m.g; g.Exp != nil && g.Exp.Acted > 0 {
@@ -279,30 +281,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.save(time.Now())
 			}
 			return m, tea.Quit
-		case "1":
-			m.leave(func(m *Model) { m.tab, m.help, m.cursor = tabDungeon, false, 0 })
-		case "2":
-			m.leave(func(m *Model) { m.tab, m.help, m.cursor = tabPrep, false, 0 })
-		case "3":
-			m.leave(func(m *Model) { m.tab, m.help = tabHero, false })
-		case "4":
-			m.leave(func(m *Model) { m.tab, m.help, m.cursor = tabSettings, false, 0 })
-		case "5":
-			if m.g.Nerd {
-				m.leave(func(m *Model) { m.tab, m.help, m.cursor = tabNerd, false, 0 })
+		case "1", "2", "3", "4", "5":
+			if i, tabs := int(msg.String()[0]-'1'), m.tabs(); i < len(tabs) {
+				m.leave(func(m *Model) {
+					if tabs[i] != tabHero {
+						m.cursor = 0
+					}
+					m.tab, m.help = tabs[i], false
+				})
 			}
 		case "r":
-			if e := m.g.Exp; e != nil && !e.Retreating {
+			if e := m.g.Exp; e != nil && !e.Retreating && !m.guild {
 				m.ask(lang.T("confirm.retreat"), func(m *Model) { m.g.Retreat() })
 			}
 		case "a":
+			if m.guild {
+				break
+			}
 			if !m.g.Auto && m.g.InTown() {
 				m.ask(lang.T("confirm.auto"), func(m *Model) { m.g.ToggleAuto(); m.g.Depart() })
 			} else {
 				m.g.ToggleAuto()
 			}
 		case "e":
-			if m.g.InTown() {
+			if m.g.InTown() && !m.guild {
 				m.ask(lang.T("confirm.depart"), func(m *Model) { m.g.Depart() })
 			}
 		case "u":
@@ -310,15 +312,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "?":
 			m.help, m.helpTop = !m.help, 0
 		case "esc":
-			if !m.help && m.edit > 0 {
+			switch {
+			case !m.help && m.edit > 0:
 				m.leave(func(*Model) {})
+			case !m.help && !m.guild:
+				m.leave((*Model).openGuild)
 			}
 			m.help = false
 		default:
 			if m.help {
 				m.helpKey(msg.String())
 			}
-			if (m.tab == tabPrep || m.tab == tabSettings || m.tab == tabNerd || m.tab == tabDungeon && m.g.InTown()) && !m.help {
+			if m.listShown() && !m.help {
 				m.prepKey(msg.String())
 			}
 			if m.tab == tabHero && !m.help {
@@ -344,7 +349,7 @@ func (m *Model) helpKey(key string) {
 
 func (m *Model) bell() {
 	g := m.g
-	if g.Bell && (g.Deaths > m.lastDeaths || g.BossKills > m.lastBosses) {
+	if g.Guild.Bell && (g.Deaths > m.lastDeaths || g.BossKills > m.lastBosses) {
 		os.Stdout.WriteString("\a")
 	}
 	m.lastDeaths, m.lastBosses = g.Deaths, g.BossKills

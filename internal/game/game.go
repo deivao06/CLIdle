@@ -66,7 +66,6 @@ type Game struct {
 	Exp      *Expedition
 	Config   Config
 	Log      []LogEntry
-	Gold     int
 	ExpNum   int
 	AccMs    int64
 	MaxDepth int
@@ -84,21 +83,15 @@ type Game struct {
 	Kills      int
 	BossKills  int
 	AutoDeaths int
-	Stash      []*Item
-	Bell       bool
-	CRT        bool
-	Nerd       bool
-	Effects    Effects
-	Lang       string
 	BagLevel   int
 	LastDeath  []LogEntry
 	DeathScene *DeathScene `json:",omitempty"`
-	SeenNews   string      `json:",omitempty"`
 	// BestHeroMisses and BestMonMisses are the least likely miss streaks ever seen.
 	BestHeroMisses Streak `json:",omitempty"`
 	BestMonMisses  Streak `json:",omitempty"`
 
 	Events   []Event `json:"-"`
+	Guild    *Guild  `json:"-"`
 	lab      *LabRun
 	strong   bool
 	atStairs bool
@@ -112,6 +105,7 @@ func New(seed uint64, c Class) *Game {
 	}
 	g.Config.Gambits = heroGambits(g.Hero)
 	g.rollDungeonName(NewRNG(^seed))
+	g.Guild = &Guild{Heroes: []*Game{g}}
 	g.refreshShop()
 	g.logf(LogInfo, "%s", lang.T("log.welcome"))
 	return g
@@ -266,13 +260,13 @@ func (g *Game) returnToTown() {
 	sold, kept := 0, 0
 	for _, it := range e.Bag {
 		if it.Rarity == Legendary || g.Config.KeepLoot {
-			g.Stash = append(g.Stash, it)
+			g.Guild.Stash = append(g.Guild.Stash, it)
 			kept++
 			continue
 		}
 		sold = addGold(sold, it.SellPrice())
 	}
-	g.Gold = addGold(g.Gold, addGold(e.Gold, sold))
+	g.Guild.Gold = addGold(g.Guild.Gold, addGold(e.Gold, sold))
 	g.Returns++
 	if len(e.Bag) == kept {
 		g.logf(LogGood, "%s", lang.T("log.return", e.Num, e.RetreatWhy, e.Gold))
@@ -282,6 +276,7 @@ func (g *Game) returnToTown() {
 	if kept > 0 {
 		g.logf(LogLoot, "%s", lang.T("log.chest_kept", kept))
 	}
+	g.note(LogGood, lang.T("guild.log.return", addGold(e.Gold, sold), e.RetreatWhy))
 	g.endExpedition()
 }
 
@@ -531,6 +526,7 @@ func (g *Game) killBoss(m *Monster, r *round) {
 	case roll < BossLegendaryChance+BossEpicChance:
 		rarity = Epic
 	}
+	g.note(LogEpic, lang.T("guild.log.boss", lang.T(m.Info().Name), g.Floor(depth)))
 	if g.lab == nil && g.Floor(depth) >= DungeonFloors {
 		r.after = append(r.after, LogEntry{Text: lang.T("log.boss_dead_last", lang.T(m.Info().Name)), Kind: LogEpic})
 		g.completeDungeon(r)
@@ -665,6 +661,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 		h.HP = 0
 		r.after = append(r.after, LogEntry{Text: lang.T("log.death",
 			mr.name, g.Floor(e.Level.Depth), e.Gold-e.deathKeep(), len(e.Bag), e.deathKeep()), Kind: LogBad})
+		g.note(LogBad, lang.T("guild.log.death", mr.name, g.Floor(e.Level.Depth)))
 		g.die(m)
 	}
 }
@@ -674,7 +671,7 @@ func (e *Expedition) deathKeep() int { return pctOf(e.Gold, DeathKeepGoldPct) }
 func (g *Game) die(killer *Monster) {
 	g.LastDeath = slices.Clone(g.Log[max(0, len(g.Log)-DeathLogLines):])
 	g.DeathScene = g.deathScene(killer)
-	g.Gold = addGold(g.Gold, g.Exp.deathKeep())
+	g.Guild.Gold = addGold(g.Guild.Gold, g.Exp.deathKeep())
 	g.Deaths++
 	if g.Auto && g.Config.DeathLimit > 0 {
 		g.AutoDeaths++

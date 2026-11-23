@@ -36,7 +36,7 @@ func (g *Game) CatchUp(away time.Duration, progress func(float64)) Summary {
 		Deaths:      -g.Deaths,
 		Kills:       -g.Kills,
 		BossKills:   -g.BossKills,
-		Gold:        -g.Gold,
+		Gold:        -g.Guild.Gold,
 		LevelFrom:   g.Hero.Level,
 		DepthFrom:   g.Reached,
 		Dungeons:    -g.Dungeon,
@@ -55,7 +55,7 @@ func (g *Game) CatchUp(away time.Duration, progress func(float64)) Summary {
 	s.Deaths += g.Deaths
 	s.Kills += g.Kills
 	s.BossKills += g.BossKills
-	s.Gold += g.Gold
+	s.Gold += g.Guild.Gold
 	s.LevelTo = g.Hero.Level
 	s.DepthTo = g.Reached
 	s.Dungeons += g.Dungeon

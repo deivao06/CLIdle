@@ -13,8 +13,8 @@ func TestReturnDepositsGoldAndSellsBag(t *testing.T) {
 	g.Exp.Gold = 10
 	g.Exp.Bag = []*Item{it}
 	g.returnToTown()
-	if g.Exp != nil || g.Gold != 10+it.SellPrice() {
-		t.Fatalf("gold %d, exp %v", g.Gold, g.Exp)
+	if g.Exp != nil || g.Guild.Gold != 10+it.SellPrice() {
+		t.Fatalf("gold %d, exp %v", g.Guild.Gold, g.Exp)
 	}
 }
 
@@ -31,8 +31,8 @@ func TestDeathLosesTheBagButKeepsWhatIsEquipped(t *testing.T) {
 	for i := 0; i < 50 && g.Exp != nil; i++ {
 		g.monsterAttack(m, &round{})
 	}
-	if g.Exp != nil || g.Gold != 50*DeathKeepGoldPct/100 || g.Hero.Equip[Weapon] != found || len(g.Stash) != 0 {
-		t.Fatalf("gold %d, weapon %+v", g.Gold, g.Hero.Equip[Weapon])
+	if g.Exp != nil || g.Guild.Gold != 50*DeathKeepGoldPct/100 || g.Hero.Equip[Weapon] != found || len(g.Guild.Stash) != 0 {
+		t.Fatalf("gold %d, weapon %+v", g.Guild.Gold, g.Hero.Equip[Weapon])
 	}
 }
 
@@ -224,11 +224,11 @@ func TestDeathKeepsTheSceneAroundTheCorpse(t *testing.T) {
 
 func TestBuyPotionInTownUpToTheCap(t *testing.T) {
 	g := New(1, Warrior)
-	g.Gold = PotionPrice * 20
+	g.Guild.Gold = PotionPrice * 20
 	start := g.Hero.Potions
 	g.BuyPotion()
-	if g.Hero.Potions != start+1 || g.Gold != PotionPrice*19 {
-		t.Fatalf("potions %d gold %d", g.Hero.Potions, g.Gold)
+	if g.Hero.Potions != start+1 || g.Guild.Gold != PotionPrice*19 {
+		t.Fatalf("potions %d gold %d", g.Hero.Potions, g.Guild.Gold)
 	}
 	for range 20 {
 		g.BuyPotion()
@@ -238,9 +238,9 @@ func TestBuyPotionInTownUpToTheCap(t *testing.T) {
 	}
 	g.Hero.Potions = 0
 	g.StartExpedition()
-	before, gold := g.Hero.Potions, g.Gold
+	before, gold := g.Hero.Potions, g.Guild.Gold
 	g.BuyPotion()
-	if g.Hero.Potions != before || g.Gold != gold {
+	if g.Hero.Potions != before || g.Guild.Gold != gold {
 		t.Fatal("bought outside town")
 	}
 }

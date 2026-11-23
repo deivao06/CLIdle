@@ -42,9 +42,14 @@ func (m Model) barActions() []barAction {
 	if m.help {
 		return []barAction{{"?", lang.T("bar.close")}}
 	}
+	if m.guild {
+		return []barAction{{"enter", lang.T("bar.open")}, {"?", lang.T("bar.help")}}
+	}
 	var a []barAction
 	if m.tab == tabPrep && m.editing() {
 		a = append(a, barAction{"esc", lang.T("bar.back")})
+	} else {
+		a = append(a, barAction{"esc", lang.T("bar.guild")})
 	}
 	switch {
 	case g.InTown():
@@ -123,27 +128,23 @@ func (m Model) viewActions() string {
 	return b.String()
 }
 
-var tabKeys = []string{"tab.main", "tab.prep", "tab.hero", "tab.settings", "tab.nerd"}
+var tabKeys = []string{"tab.main", "tab.prep", "tab.hero", "tab.settings", "tab.nerd", "tab.guild"}
 
-func (m Model) tabCount() int {
-	if m.g.Nerd {
-		return 5
-	}
-	return 4
-}
+func (m Model) tabCount() int { return len(m.tabs()) }
 
 func (m Model) viewTabs(boxed bool) string {
-	n := m.tabCount()
+	tabs := m.tabs()
+	n := len(tabs)
 	widths := spread(make([]string, n), m.w-n-1)
 	var cells []string
-	for i := range n {
+	for i, t := range tabs {
 		cw := widths[i]
-		label := lang.T(tabKeys[i])
+		label := lang.T(tabKeys[t])
 		if lipgloss.Width(label) > cw-2 {
-			label = lang.T(tabKeys[i] + "_short")
+			label = lang.T(tabKeys[t] + "_short")
 		}
 		label = lipgloss.PlaceHorizontal(cw, lipgloss.Center, truncate(label, cw))
-		if i == m.tab && !m.help {
+		if t == m.tab && !m.help {
 			label = sTabOn.Render(label)
 		} else {
 			label = sTabOff.Render(label)
@@ -309,5 +310,5 @@ func (m Model) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) listShown() bool {
-	return m.tab == tabPrep || m.tab == tabSettings || m.tab == tabNerd || m.tab == tabDungeon && m.g.InTown()
+	return m.tab == tabPrep || m.tab == tabSettings || m.tab == tabNerd || m.tab == tabGuild || m.tab == tabDungeon && m.g.InTown()
 }

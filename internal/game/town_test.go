@@ -4,7 +4,7 @@ import "testing"
 
 func townGame() *Game {
 	g := New(9, Warrior)
-	g.Gold = 100000
+	g.Guild.Gold = 100000
 	return g
 }
 
@@ -15,30 +15,30 @@ func TestBuyInTownEquipsAndStashesOld(t *testing.T) {
 	g.Shop = []*Item{{Slot: Weapon, Base: 10}}
 	price := ShopPrice(g.Shop[0])
 	g.BuyShop(0)
-	if g.Hero.Equip[Weapon].Base != 10 || g.Gold != 100000-price || len(g.Stash) != 1 || g.Stash[0] != old {
-		t.Fatalf("equip %+v gold %d stash %v", g.Hero.Equip[Weapon], g.Gold, g.Stash)
+	if g.Hero.Equip[Weapon].Base != 10 || g.Guild.Gold != 100000-price || len(g.Guild.Stash) != 1 || g.Guild.Stash[0] != old {
+		t.Fatalf("equip %+v gold %d stash %v", g.Hero.Equip[Weapon], g.Guild.Gold, g.Guild.Stash)
 	}
 }
 
 func TestTownActionsDoNothingAway(t *testing.T) {
 	g := departed(9)
-	g.Gold = 100000
+	g.Guild.Gold = 100000
 	g.Hero.Equip[Armor] = &Item{Slot: Armor, Base: 3}
 	g.Shop = []*Item{{Slot: Boots, Base: 3}}
-	g.Stash = []*Item{{Slot: Weapon, Base: 3}}
+	g.Guild.Stash = []*Item{{Slot: Weapon, Base: 3}}
 	g.BuyShop(0)
 	g.Upgrade(Armor)
 	g.Train(Con)
 	g.UpgradeBag()
 	g.SellStash(0)
-	if g.Gold != 100000 || len(g.Shop) != 1 || len(g.Stash) != 1 || g.Hero.Equip[Armor].Upgrade != 0 || g.Hero.Training[Con] != 0 || g.BagLevel != 0 {
+	if g.Guild.Gold != 100000 || len(g.Shop) != 1 || len(g.Guild.Stash) != 1 || g.Hero.Equip[Armor].Upgrade != 0 || g.Hero.Training[Con] != 0 || g.BagLevel != 0 {
 		t.Fatal("a town action worked in the dungeon")
 	}
 }
 
 func TestNotEnoughGold(t *testing.T) {
 	g := townGame()
-	g.Gold = 0
+	g.Guild.Gold = 0
 	g.Train(Con)
 	if g.Hero.Training[Con] != 0 {
 		t.Fatal("trained without gold")
@@ -72,8 +72,8 @@ func TestPotionsBoughtBeforeExpedition(t *testing.T) {
 	g.Hero.Potions = 0
 	g.Config.PotionsToBring = 4
 	g.StartExpedition()
-	if g.Hero.Potions != 4 || g.Gold != 100000-4*PotionPrice {
-		t.Fatalf("potions %d gold %d", g.Hero.Potions, g.Gold)
+	if g.Hero.Potions != 4 || g.Guild.Gold != 100000-4*PotionPrice {
+		t.Fatalf("potions %d gold %d", g.Hero.Potions, g.Guild.Gold)
 	}
 }
 
@@ -95,10 +95,10 @@ func TestNewGameStartsInTown(t *testing.T) {
 
 func TestShopRefusesOtherClassItem(t *testing.T) {
 	g := New(1, Mage)
-	g.Gold = 100000
+	g.Guild.Gold = 100000
 	g.Shop = []*Item{{Slot: Shield, Base: 3}}
 	g.BuyShop(0)
-	if g.Gold != 100000 || g.Hero.Equip[Shield] != nil {
+	if g.Guild.Gold != 100000 || g.Hero.Equip[Shield] != nil {
 		t.Fatal("bought a shield as mage")
 	}
 }
@@ -107,8 +107,8 @@ func TestExtraPotionsSoldInTown(t *testing.T) {
 	g := townGame()
 	g.Hero.Potions = MaxPotions + 3
 	g.arriveInTown()
-	if g.Hero.Potions != MaxPotions || g.Gold != 100000+3*PotionSellPrice {
-		t.Fatalf("potions %d gold %d", g.Hero.Potions, g.Gold)
+	if g.Hero.Potions != MaxPotions || g.Guild.Gold != 100000+3*PotionSellPrice {
+		t.Fatalf("potions %d gold %d", g.Hero.Potions, g.Guild.Gold)
 	}
 }
 
@@ -151,7 +151,7 @@ func TestSmithIgnoresRarityAndStopsAtTheMax(t *testing.T) {
 		t.Fatalf("steps %d/%d", common.UpgradeStep(), legend.UpgradeStep())
 	}
 	g.Hero.Equip[Weapon] = legend
-	g.Gold = 1 << 40
+	g.Guild.Gold = 1 << 40
 	for range UpgradeMax + 3 {
 		g.Upgrade(Weapon)
 	}

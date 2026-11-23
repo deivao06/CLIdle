@@ -30,7 +30,7 @@ func main() {
 	} else {
 		away = time.Since(savedAt)
 	}
-	lang.Set(g.Lang)
+	lang.Set(g.Guild.Lang)
 	final, err := tea.NewProgram(ui.NewWithSave(g, path, away, fresh), tea.WithAltScreen(), tea.WithMouseCellMotion()).Run()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

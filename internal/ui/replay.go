@@ -271,7 +271,7 @@ func (l Lab) replayHead(w int) []string {
 	}
 	head = append(head, sTitle.Render(where),
 		fmt.Sprintf("%s %d (%s) · HP %d/%d · %s %d · %s %d", h.Class.Name(), h.Level, rp.runner.Profile.Name(), h.HP, h.MaxHP(),
-			lang.T("lab.replay.deaths"), g.Deaths, lang.T("lab.replay.gold"), g.Gold))
+			lang.T("lab.replay.deaths"), g.Deaths, lang.T("lab.replay.gold"), g.Guild.Gold))
 	if g.Exp != nil {
 		head = append(head, sMuted.Render("▸ "+g.Doing()))
 	}
@@ -290,7 +290,7 @@ func (l Lab) replayMap(h int) string {
 	}
 	m := l.Model
 	m.w, m.g, m.fx = game.MapW, g, rp.fx
-	g.Effects = l.g.Effects
+	g.Guild.Effects = l.g.Guild.Effects
 	return m.viewDungeon(h)
 }
 

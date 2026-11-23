@@ -1,13 +1,11 @@
 package game
 
 import (
-	"encoding/json"
 	"math"
 	"os"
 	"path/filepath"
 	"slices"
 	"testing"
-	"time"
 
 	"clidle/internal/lang"
 )
@@ -36,9 +34,9 @@ func TestClearingADungeonRewardsAndOpensTheNext(t *testing.T) {
 	g := heroAt(Rogue, 1, 1)
 	g.enterLevel(DungeonFloors)
 	boss := g.Exp.Level.boss()
-	gold, stash, dex := g.Gold, len(g.Stash), g.Hero.Attr(Dex)
+	gold, stash, dex := g.Guild.Gold, len(g.Guild.Stash), g.Hero.Attr(Dex)
 	g.killBoss(boss, &round{})
-	if len(g.Stash) != stash+1 || g.Stash[stash].Rarity != Legendary || g.Gold <= gold || g.Hero.Attr(Dex) != dex+DungeonAttrBonus {
+	if len(g.Guild.Stash) != stash+1 || g.Guild.Stash[stash].Rarity != Legendary || g.Guild.Gold <= gold || g.Hero.Attr(Dex) != dex+DungeonAttrBonus {
 		t.Fatal("no reward for clearing the dungeon")
 	}
 	if !g.Exp.Retreating || !g.Exp.DungeonDone || g.Dungeon != 0 {
@@ -81,7 +79,7 @@ func TestV9DeepSaveMovesToItsDungeon(t *testing.T) {
 	g := New(1, Warrior)
 	g.MaxDepth = 330
 	g.Shortcuts = []int{1, 11, 101, 311, 321, 331}
-	raw, _ := json.Marshal(saveFile{9, time.Now(), g})
+	raw, _ := oldSave(9, g)
 	os.WriteFile(path, raw, 0o644)
 	got, _, err := Load(path)
 	if err != nil || got.Dungeon != 4 || got.Reached != 30 || got.Hero.Bonus != 4*DungeonAttrBonus {
@@ -97,7 +95,7 @@ func TestV9ShallowSaveStaysInTheFirstDungeon(t *testing.T) {
 	g := New(1, Warrior)
 	g.MaxDepth = 42
 	g.Shortcuts = []int{1, 11, 21, 31, 41}
-	raw, _ := json.Marshal(saveFile{9, time.Now(), g})
+	raw, _ := oldSave(9, g)
 	os.WriteFile(path, raw, 0o644)
 	got, _, err := Load(path)
 	if err != nil || got.Dungeon != 0 || got.Reached != 42 || got.Hero.Bonus != 0 || !slices.Equal(got.ShortcutList(), g.Shortcuts) {
@@ -108,8 +106,8 @@ func TestV9ShallowSaveStaysInTheFirstDungeon(t *testing.T) {
 func TestPrestigeStartsOverAndKeepsTheLegacy(t *testing.T) {
 	g := New(1, Warrior)
 	g.Hero.Name, g.Hero.Level, g.Hero.Training[Str], g.Hero.Bonus = "Ana", 40, 3, 2*DungeonAttrBonus
-	g.Gold, g.BagLevel, g.Dungeon, g.Reached = 5000, 3, 2, 40
-	g.Stash = []*Item{{ID: 99, Slot: Weapon, Rarity: Legendary, Base: 50}}
+	g.Guild.Gold, g.BagLevel, g.Dungeon, g.Reached = 5000, 3, 2, 40
+	g.Guild.Stash = []*Item{{ID: 99, Slot: Weapon, Rarity: Legendary, Base: 50}}
 	if g.PrestigeGain() != PrestigePerTier*(1+2) {
 		t.Fatalf("gain %d", g.PrestigeGain())
 	}
@@ -118,7 +116,7 @@ func TestPrestigeStartsOverAndKeepsTheLegacy(t *testing.T) {
 	if h.Class != Mage || h.Level != 1 || h.Name != "Ana" || h.Legacy != 6 || h.Bonus != 0 || h.Training[Str] != 0 {
 		t.Fatalf("hero %+v", h)
 	}
-	if g.Gold != 0 || g.BagLevel != 0 || g.Dungeon != 0 || g.Reached != 0 || len(g.Stash) != 1 || g.Prestiges != 1 || g.startFloor() != 1 {
+	if g.Guild.Gold != 0 || g.BagLevel != 0 || g.Dungeon != 0 || g.Reached != 0 || len(g.Guild.Stash) != 1 || g.Prestiges != 1 || g.startFloor() != 1 {
 		t.Fatal("prestige did not start over")
 	}
 	if h.Attr(Con) != 6 || g.CanPrestige() {

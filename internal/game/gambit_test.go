@@ -12,7 +12,7 @@ import (
 func TestV5RetreatOptionsBecomeGambits(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "save.json")
 	g := New(1, Warrior)
-	raw, _ := json.Marshal(saveFile{5, time.Now(), g})
+	raw, _ := oldSave(5, g)
 	var f map[string]any
 	json.Unmarshal(raw, &f)
 	cfg := f["Game"].(map[string]any)["Config"].(map[string]any)
@@ -35,7 +35,7 @@ func TestV6DropsRulesThatBreakTheGame(t *testing.T) {
 	g.Config.Gambits = []Gambit{keep[0], {Do: ActIdle}, {If: stairs, Do: ActHunt},
 		{If: [2]Cond{{CondLethal, 0, 0}}, Do: ActPotion}, {Do: ActFlee, Exit: ExitCond, Until: Cond{Kind: CondLethal}},
 		keep[1], {Do: ActDescend}, {Do: ActExplore}}
-	raw, _ := json.Marshal(saveFile{6, time.Now(), g})
+	raw, _ := oldSave(6, g)
 	os.WriteFile(path, raw, 0o644)
 	got, _, err := Load(path)
 	if err != nil || !slices.Equal(got.Config.Gambits, keep) {

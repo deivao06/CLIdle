@@ -71,8 +71,8 @@ func (m *Model) collectFx(now time.Time) {
 // fxLayers returns the floating numbers and flashes to draw over the map, and the camera shake offset.
 func (m Model) fxLayers() (overlay, flash map[game.Pos]fxCell, shake int) {
 	overlay, flash = map[game.Pos]fxCell{}, map[game.Pos]fxCell{}
-	full := m.g.Effects == game.EffectsFull
-	if m.g.Effects == game.EffectsOff {
+	full := m.g.Guild.Effects == game.EffectsFull
+	if m.g.Guild.Effects == game.EffectsOff {
 		return overlay, flash, 0
 	}
 	for _, f := range m.fx {

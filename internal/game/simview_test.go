@@ -87,7 +87,7 @@ func (r *simRecorder) add(s *simSeries, ms int64, g *Game) {
 	for _, n := range g.Hero.Training {
 		train += n
 	}
-	s.Points = append(s.Points, simPoint{float64(ms) / 3.6e6, g.MaxDepth, g.Hero.Level, g.Deaths, g.Dungeon, g.Gold, s.spent, train})
+	s.Points = append(s.Points, simPoint{float64(ms) / 3.6e6, g.MaxDepth, g.Hero.Level, g.Deaths, g.Dungeon, g.Guild.Gold, s.spent, train})
 	if time.Since(r.last) > 500*time.Millisecond {
 		r.flush()
 	}

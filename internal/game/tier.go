@@ -32,9 +32,9 @@ func (g *Game) completeDungeon(r *round) {
 	e := g.Exp
 	e.DungeonDone = true
 	it := newItemOf(e.RNG, e.Level.Depth, Legendary)
-	g.Stash = append(g.Stash, it)
+	g.Guild.Stash = append(g.Guild.Stash, it)
 	gold := goldOf(GoldPerPile(e.Level.Depth) * DungeonGoldPiles)
-	g.Gold = addGold(g.Gold, gold)
+	g.Guild.Gold = addGold(g.Guild.Gold, gold)
 	g.Hero.Bonus += DungeonAttrBonus
 	r.after = append(r.after, LogEntry{Text: lang.T("log.dungeon_done", g.DungeonName(), it.Title(), gold, DungeonAttrBonus), Kind: LogEpic})
 	if !e.Retreating {
@@ -75,7 +75,7 @@ func (g *Game) Prestige(c Class) {
 	if c != old.Class {
 		g.Config.Gambits = heroGambits(g.Hero)
 	}
-	g.Gold, g.BagLevel = 0, 0
+	g.Guild.Gold, g.BagLevel = 0, 0
 	g.Dungeon, g.Reached, g.Shortcuts = 0, 0, nil
 	g.Config.StartFloor = 1
 	g.Prestiges++

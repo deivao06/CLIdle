@@ -93,9 +93,9 @@ func NewLab() Lab {
 }
 
 func (l *Lab) rebuild() {
-	effects := l.g.Effects
+	effects := l.g.Guild.Effects
 	l.g = game.NewLab(*l.sc)
-	l.g.Effects = effects
+	l.g.Guild.Effects = effects
 	l.built = fmt.Sprint(*l.sc)
 	l.running, l.acc, l.fx = false, 0, nil
 }
@@ -451,7 +451,7 @@ func (l Lab) viewMap(h int) string {
 			return sMuted.Render(lang.T("lab.floor.none", l.st.floor))
 		}
 		m.g, m.fx, m.seeAll = g, nil, true
-		g.Effects = l.g.Effects
+		g.Guild.Effects = l.g.Guild.Effects
 		return sTitle.Render(lang.T("lab.preview", l.st.floor)) + "\n" + m.renderMap(game.MapW, min(game.MapH, h-1))
 	}
 	if l.g.Exp == nil {

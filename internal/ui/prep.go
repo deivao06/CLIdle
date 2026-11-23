@@ -68,6 +68,8 @@ func (m Model) rows() []prepRow {
 		return m.townRows()
 	case tabNerd:
 		return m.nerdRows()
+	case tabGuild:
+		return m.guildRows()
 	}
 	if m.editing() {
 		return m.ruleRows(m.edit - 1)
@@ -79,15 +81,15 @@ func (m Model) settingsRows() []prepRow {
 	g := m.g
 	sec := lang.T("prep.section.game")
 	return []prepRow{
-		cfgRow(sec, "prep.bell", onOff(g.Bell), func(int) { g.Bell = !g.Bell }),
-		cfgRow(sec, "prep.crt", crtLabel(g.CRT), func(int) { g.CRT = !g.CRT }),
-		cfgRow(sec, "prep.nerd", crtLabel(g.Nerd), func(int) { g.Nerd = !g.Nerd }),
-		cfgRow(sec, "prep.effects", lang.T([...]string{"prep.effects_full", "prep.effects_subtle", "prep.effects_off"}[g.Effects]), func(d int) {
-			g.Effects = (g.Effects + game.Effects(d) + game.NumEffectLevels) % game.NumEffectLevels
+		cfgRow(sec, "prep.bell", onOff(g.Guild.Bell), func(int) { g.Guild.Bell = !g.Guild.Bell }),
+		cfgRow(sec, "prep.crt", crtLabel(g.Guild.CRT), func(int) { g.Guild.CRT = !g.Guild.CRT }),
+		cfgRow(sec, "prep.nerd", crtLabel(g.Guild.Nerd), func(int) { g.Guild.Nerd = !g.Guild.Nerd }),
+		cfgRow(sec, "prep.effects", lang.T([...]string{"prep.effects_full", "prep.effects_subtle", "prep.effects_off"}[g.Guild.Effects]), func(d int) {
+			g.Guild.Effects = (g.Guild.Effects + game.Effects(d) + game.NumEffectLevels) % game.NumEffectLevels
 		}),
 		cfgRow(sec, "prep.language", lang.T("lang.name"), func(int) {
-			g.Lang = lang.Next(lang.Current())
-			lang.Set(g.Lang)
+			g.Guild.Lang = lang.Next(lang.Current())
+			lang.Set(g.Guild.Lang)
 		}),
 		{section: lang.T("settings.section.save"), text: lang.T("settings.reset"), style: sWarn,
 			confirm: lang.T("confirm.reset"), do: (*Model).resetSave, desc: lang.T("settings.reset.desc")},
@@ -206,8 +208,8 @@ func (m Model) townRows() []prepRow {
 		rows = append(rows, row)
 	}
 
-	chest := lang.T("prep.section.chest", len(g.Stash))
-	for i, it := range g.Stash {
+	chest := lang.T("prep.section.chest", len(g.Guild.Stash))
+	for i, it := range g.Guild.Stash {
 		text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.SellPrice(), m.compare(it))
 		st := rarityStyle(it.Rarity)
 		if !g.Hero.Class.CanUse(it) {
@@ -262,14 +264,14 @@ func (m Model) itemDesc(it *game.Item) string {
 }
 
 func (m Model) buyable(cost int) lipgloss.Style {
-	if cost > m.g.Gold {
+	if cost > m.g.Guild.Gold {
 		return sMuted
 	}
 	return sBuy
 }
 
 func (m Model) goldFor(cost int) lipgloss.Style {
-	if cost > m.g.Gold {
+	if cost > m.g.Guild.Gold {
 		return sGold.Faint(true)
 	}
 	return sGold
@@ -309,7 +311,7 @@ func withGold(line string, st lipgloss.Style, price int, pst lipgloss.Style) str
 }
 
 func (m Model) priced(st lipgloss.Style, cost int) lipgloss.Style {
-	if cost > m.g.Gold {
+	if cost > m.g.Guild.Gold {
 		return st.Faint(true)
 	}
 	return st
@@ -334,7 +336,7 @@ func (m Model) viewPrep(h int) string {
 	}
 	g := m.g
 	rows := m.prepRows()
-	head := []string{sGold.Render(lang.T("prep.gold", g.Gold))}
+	head := []string{sGold.Render(lang.T("prep.gold", g.Guild.Gold))}
 	if !g.InTown() {
 		head = append(head, sMuted.Render(lang.T("prep.away_config")))
 	}
@@ -343,7 +345,7 @@ func (m Model) viewPrep(h int) string {
 }
 
 func (m Model) viewTownList(w, h int) string {
-	head := []string{sGold.Render(lang.T("prep.gold", m.g.Gold)), sMuted.Render(m.keysHint("town.keys"))}
+	head := []string{sGold.Render(lang.T("prep.gold", m.g.Guild.Gold)), sMuted.Render(m.keysHint("town.keys"))}
 	return m.viewRows(head, m.townRows(), w, h)
 }
 

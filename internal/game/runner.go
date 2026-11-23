@@ -103,7 +103,7 @@ func (r *Runner) Advance(ms int64) {
 func (r *Runner) depart() {
 	g := r.Game
 	r.Deaths = g.Deaths
-	before := g.Gold
+	before := g.Guild.Gold
 	list := g.ShortcutList()
 	if r.Profile == ProfileCareful {
 		smartSpend(g)
@@ -114,7 +114,7 @@ func (r *Runner) depart() {
 		g.Config.StartFloor = slices.Max(list)
 	}
 	g.Depart()
-	r.Spent += before - g.Gold
+	r.Spent += before - g.Guild.Gold
 	r.InExp = true
 }
 
@@ -145,7 +145,7 @@ func auditSpend(g *Game) {
 	reserve := g.Config.PotionsToBring * PotionPrice
 	for {
 		best, cost := auditCheapest(g)
-		if best < 0 || g.Gold-cost < reserve {
+		if best < 0 || g.Guild.Gold-cost < reserve {
 			return
 		}
 		switch {
@@ -187,7 +187,7 @@ func smartSpend(g *Game) {
 		bought := false
 		for i, it := range g.Shop {
 			cur := g.Hero.Equip[it.Slot]
-			if g.Hero.Class.CanUse(it) && (cur == nil || it.Bonus() > cur.Bonus()) && g.Gold-ShopPrice(it) >= 5*PotionPrice {
+			if g.Hero.Class.CanUse(it) && (cur == nil || it.Bonus() > cur.Bonus()) && g.Guild.Gold-ShopPrice(it) >= 5*PotionPrice {
 				g.BuyShop(i)
 				bought = true
 				break
@@ -216,7 +216,7 @@ func smartSpend(g *Game) {
 		if _, c, ok := g.NextBag(); ok {
 			try(200, c)
 		}
-		if best < 0 || g.Gold-cost < reserve {
+		if best < 0 || g.Guild.Gold-cost < reserve {
 			return
 		}
 		switch {

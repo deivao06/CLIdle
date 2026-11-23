@@ -50,7 +50,7 @@ func TestCRTSettingTogglesAndPersists(t *testing.T) {
 		}
 	}
 	m.prepKey("enter")
-	if !g.CRT {
+	if !g.Guild.CRT {
 		t.Fatal("enter did not turn CRT on")
 	}
 	path := filepath.Join(t.TempDir(), "save.json")
@@ -58,7 +58,7 @@ func TestCRTSettingTogglesAndPersists(t *testing.T) {
 		t.Fatal(err)
 	}
 	got, _, err := game.Load(path)
-	if err != nil || !got.CRT {
+	if err != nil || !got.Guild.CRT {
 		t.Fatalf("CRT on not saved: %v", err)
 	}
 	if New(game.New(1, game.Warrior)).crt {

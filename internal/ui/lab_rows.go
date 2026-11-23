@@ -329,8 +329,8 @@ func (l Lab) configRows() []prepRow {
 		{section: sec, text: fmt.Sprintf("%-24s %s", lang.T("lab.code"), code), style: style, desc: lang.T("lab.code.desc"),
 			act: func(*Model) { st.typing, st.field, st.buf = true, fieldCode, "" }},
 		cfgRow(sec, "prep.language", lang.T("lang.name"), func(int) { lang.Set(lang.Next(lang.Current())) }),
-		cfgRow(sec, "prep.effects", lang.T([...]string{"prep.effects_full", "prep.effects_subtle", "prep.effects_off"}[g.Effects]), func(d int) {
-			g.Effects = (g.Effects + game.Effects(sign(d)) + game.NumEffectLevels) % game.NumEffectLevels
+		cfgRow(sec, "prep.effects", lang.T([...]string{"prep.effects_full", "prep.effects_subtle", "prep.effects_off"}[g.Guild.Effects]), func(d int) {
+			g.Guild.Effects = (g.Guild.Effects + game.Effects(sign(d)) + game.NumEffectLevels) % game.NumEffectLevels
 		}),
 	}
 }

@@ -13,8 +13,8 @@ func TestCatchUpMatchesOnlinePlay(t *testing.T) {
 		for range 20 * 60 * 20 {
 			b.Advance(50)
 		}
-		if a.Gold != b.Gold || a.Hero.XP != b.Hero.XP || a.Hero.MP != b.Hero.MP || a.ExpNum != b.ExpNum {
-			t.Fatalf("%s offline differs from online: gold %d/%d xp %d/%d", c.Name(), a.Gold, b.Gold, a.Hero.XP, b.Hero.XP)
+		if a.Guild.Gold != b.Guild.Gold || a.Hero.XP != b.Hero.XP || a.Hero.MP != b.Hero.MP || a.ExpNum != b.ExpNum {
+			t.Fatalf("%s offline differs from online: gold %d/%d xp %d/%d", c.Name(), a.Guild.Gold, b.Guild.Gold, a.Hero.XP, b.Hero.XP)
 		}
 	}
 }

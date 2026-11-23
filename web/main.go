@@ -45,7 +45,7 @@ func main() {
 	} else {
 		away = time.Since(savedAt)
 	}
-	lang.Set(g.Lang)
+	lang.Set(g.Guild.Lang)
 	update.Site = js.Global().Get("location").Get("href").String()
 
 	keys := make(chan []byte, 256)

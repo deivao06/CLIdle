@@ -262,6 +262,7 @@ func NewLab(s Scenario) *Game {
 	h := s.hero()
 	seed := s.Seed
 	g := &Game{RNG: NewRNG(seed), Hero: h, Config: DefaultConfig(), lab: &LabRun{sc: s}, ExpNum: 1}
+	g.Guild = &Guild{Heroes: []*Game{g}}
 	g.Config.Gambits = slices.Clone(s.Gambits)
 	g.Config.Mode = s.Mode
 	s.Prune()

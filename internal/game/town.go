@@ -58,11 +58,11 @@ func (g *Game) refreshShop() {
 func ShopPrice(it *Item) int { return pctOf(it.Value(), 100*ShopMarkup) }
 
 func (g *Game) spend(cost int) bool {
-	if g.Gold < cost {
+	if g.Guild.Gold < cost {
 		g.logf(LogBad, "%s", lang.T("log.no_gold", cost))
 		return false
 	}
-	g.Gold -= cost
+	g.Guild.Gold -= cost
 	return true
 }
 
@@ -86,7 +86,7 @@ func (g *Game) equipBought(it *Item) {
 	h := g.Hero
 	msg := lang.T("log.hero_equips", it.Title(), it.StatLabel())
 	if old := h.Equip[it.Slot]; old != nil {
-		g.Stash = append(g.Stash, old)
+		g.Guild.Stash = append(g.Guild.Stash, old)
 		msg += lang.T("log.kept_old", old.Title())
 	}
 	h.Equip[it.Slot] = it
@@ -147,11 +147,11 @@ func (g *Game) BuyPotion() {
 
 func (g *Game) buyPotions() {
 	h := g.Hero
-	n := min(g.Config.PotionsToBring-h.Potions, g.Gold/PotionPrice)
+	n := min(g.Config.PotionsToBring-h.Potions, g.Guild.Gold/PotionPrice)
 	if n <= 0 {
 		return
 	}
-	g.Gold -= n * PotionPrice
+	g.Guild.Gold -= n * PotionPrice
 	h.Potions += n
 	key := "log.buy_potions"
 	if n == 1 {
@@ -164,7 +164,7 @@ func (g *Game) arriveInTown() {
 	g.Hero.HP = g.Hero.MaxHP()
 	if n := g.Hero.Potions - MaxPotions; n > 0 {
 		g.Hero.Potions = MaxPotions
-		g.Gold = addGold(g.Gold, n*PotionSellPrice)
+		g.Guild.Gold = addGold(g.Guild.Gold, n*PotionSellPrice)
 		key := "log.sell_potions"
 		if n == 1 {
 			key = "log.sell_potion"
@@ -175,18 +175,18 @@ func (g *Game) arriveInTown() {
 }
 
 func (g *Game) EquipStash(i int) {
-	if !g.InTown() || i < 0 || i >= len(g.Stash) {
+	if !g.InTown() || i < 0 || i >= len(g.Guild.Stash) {
 		return
 	}
-	it := g.Stash[i]
+	it := g.Guild.Stash[i]
 	if !g.Hero.Class.CanUse(it) {
 		g.logf(LogInfo, "%s", lang.T("log.cannot_use", it.Title()))
 		return
 	}
 	if old := g.Hero.Equip[it.Slot]; old != nil {
-		g.Stash[i] = old
+		g.Guild.Stash[i] = old
 	} else {
-		g.Stash = slices.Delete(g.Stash, i, i+1)
+		g.Guild.Stash = slices.Delete(g.Guild.Stash, i, i+1)
 	}
 	g.Hero.Equip[it.Slot] = it
 	g.Hero.HP = min(g.Hero.HP, g.Hero.MaxHP())
@@ -200,16 +200,16 @@ func (g *Game) Unequip(s Slot) {
 	}
 	g.Hero.Equip[s] = nil
 	g.Hero.HP = min(g.Hero.HP, g.Hero.MaxHP())
-	g.Stash = append(g.Stash, it)
+	g.Guild.Stash = append(g.Guild.Stash, it)
 	g.logf(LogInfo, "%s", lang.T("log.unequip", it.Title()))
 }
 
 func (g *Game) SellStash(i int) {
-	if !g.InTown() || i < 0 || i >= len(g.Stash) {
+	if !g.InTown() || i < 0 || i >= len(g.Guild.Stash) {
 		return
 	}
-	it := g.Stash[i]
-	g.Stash = slices.Delete(g.Stash, i, i+1)
-	g.Gold = addGold(g.Gold, it.SellPrice())
+	it := g.Guild.Stash[i]
+	g.Guild.Stash = slices.Delete(g.Guild.Stash, i, i+1)
+	g.Guild.Gold = addGold(g.Guild.Gold, it.SellPrice())
 	g.logf(LogInfo, "%s", lang.T("log.sell_item", it.Title(), it.SellPrice()))
 }

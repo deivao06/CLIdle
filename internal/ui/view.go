@@ -91,6 +91,8 @@ func (m Model) view() string {
 		body = m.viewSettings(bodyH)
 	case m.tab == tabNerd:
 		body = m.viewNerd(bodyH)
+	case m.tab == tabGuild:
+		body = m.viewGuild(bodyH)
 	case m.tab == tabHero:
 		lines := m.heroLines()
 		top := clamp(m.heroTop, 0, max(0, len(lines)-bodyH))
@@ -141,20 +143,20 @@ func (m Model) confirmButtons() string {
 
 func (m Model) viewHeader() string {
 	right := m.updateNotice() + m.statusLine()
-	full := []string{"1 " + lang.T("tab.main"), "2 " + lang.T("tab.prep"), "3 " + lang.T("tab.hero"), "4 " + lang.T("tab.settings")}
-	short := []string{"1", "2", "3", "4"}
-	if m.g.Nerd {
-		full, short = append(full, "5 "+lang.T("tab.nerd")), append(short, "5")
+	var full, short []string
+	for i, t := range m.tabs() {
+		full, short = append(full, fmt.Sprintf("%d %s", i+1, lang.T(tabKeys[t]))), append(short, fmt.Sprint(i+1))
 	}
+	at := slices.Index(m.tabs(), m.tab)
 	active := slices.Clone(short)
-	if !m.help {
-		active[m.tab] = full[m.tab]
+	if !m.help && at >= 0 {
+		active[at] = full[at]
 	}
 	for _, tabs := range [][]string{full, active, short} {
 		var parts []string
 		for i, t := range tabs {
 			st := sTabOff
-			if i == m.tab && !m.help {
+			if i == at && !m.help {
 				st = sTabOn
 			}
 			parts = append(parts, zone.Mark(fmt.Sprintf("tab:%d", i), st.Render(" "+t+" ")))
@@ -169,13 +171,20 @@ func (m Model) viewHeader() string {
 
 func (m Model) statusLine() string {
 	g := m.g
+	if m.guild {
+		key := "guild.status"
+		if len(g.Guild.Heroes) == 1 {
+			key = "guild.status_one"
+		}
+		return sMuted.Render(lang.T(key, len(g.Guild.Heroes))) + sGold.Render(lang.T("status.gold", g.Guild.Gold))
+	}
 	h := g.Hero
 	hp := hpStyle(h.HP, h.MaxHP()).Render(fmt.Sprintf("HP %d/%d", h.HP, h.MaxHP()))
 	where := lang.T("status.town")
 	if g.Exp != nil {
 		where = lang.T("status.floor", g.Floor(g.Exp.Level.Depth))
 	}
-	return hp + sMuted.Render(lang.T("status.level", h.Level, where)) + sGold.Render(lang.T("status.gold", g.Gold))
+	return hp + sMuted.Render(lang.T("status.level", h.Level, where)) + sGold.Render(lang.T("status.gold", g.Guild.Gold))
 }
 
 func (m Model) viewFooter() string {
@@ -183,12 +192,12 @@ func (m Model) viewFooter() string {
 	if m.g.Auto {
 		auto = lang.T("prep.on")
 	}
-	tabs := 4
-	if m.g.Nerd {
-		tabs = 5
-	}
+	tabs := len(m.tabs())
 	keys := lang.T("footer.dungeon", tabs, auto)
-	if m.g.InTown() {
+	switch {
+	case m.guild:
+		keys = lang.T("footer.guild", tabs)
+	case m.g.InTown():
 		keys = lang.T("footer.town", tabs, auto)
 	}
 	if m.confirmDo != nil {
@@ -242,7 +251,7 @@ func (m Model) viewDungeon(h int) string {
 		doing += "\n"
 		logH--
 	}
-	left = lipgloss.JoinVertical(lipgloss.Left, left, doing, m.renderLog(mapW, logH))
+	left = lipgloss.JoinVertical(lipgloss.Left, left, doing, m.renderLog(m.g.Log, mapW, logH))
 	if !side {
 		return left
 	}
@@ -253,7 +262,7 @@ func (m Model) viewTownScreen(h int) string {
 	listW := min(townListW, m.w)
 	sceneW := m.w - listW
 	if sceneW < townSceneMinW {
-		art := m.campfire()
+		art := m.tavern(m.g)
 		listH := h - lipgloss.Height(art) - 1
 		if listH < townListMinH {
 			return m.viewTownList(m.w, h)
@@ -267,7 +276,7 @@ func (m Model) viewTownScreen(h int) string {
 	}
 	left := lipgloss.JoinVertical(lipgloss.Left,
 		lipgloss.Place(sceneW, sceneH, lipgloss.Center, lipgloss.Center, m.viewTown(sceneW-2)),
-		m.renderLog(sceneW, logH))
+		m.renderLog(m.g.Log, sceneW, logH))
 	return lipgloss.JoinHorizontal(lipgloss.Top, left, sPanel.Width(listW-1).Height(h).Render(m.viewTownList(listW-2, h)))
 }
 
@@ -352,7 +361,7 @@ func fmtDuration(d time.Duration) string {
 
 func (m Model) viewTown(w int) string {
 	g := m.g
-	art := m.campfire()
+	art := m.tavern(m.g)
 	next := sTitle.Render(lang.T("town.press_e"))
 	if g.Auto {
 		secs := (game.TownWaitMs - g.AccMs + 999) / 1000
@@ -383,70 +392,6 @@ func flicker(frame, salt int64) float64 {
 	x *= 0x5bd1e995
 	x ^= x >> 15
 	return float64(x%1000) / 1000
-}
-
-var fireCache struct {
-	frame int64
-	art   string
-}
-
-// campfire draws a small dungeon room lit by the fire the hero rests beside.
-func (m Model) campfire() string {
-	const w, h = 23, 9
-	fx, fy := w/2, h/2
-	frame := m.lastTick.UnixMilli() / campfireFrameMs
-	if fireCache.art != "" && fireCache.frame == frame {
-		return fireCache.art
-	}
-	radius := 5.5 + flicker(frame, 0)*1.5
-	var b, run strings.Builder
-	var runStyle lipgloss.Style
-	runKey := ""
-	flush := func() {
-		if run.Len() > 0 {
-			b.WriteString(runStyle.Render(run.String()))
-			run.Reset()
-		}
-	}
-	put := func(key string, st lipgloss.Style, ch string) {
-		if key != runKey {
-			flush()
-			runKey, runStyle = key, st
-		}
-		run.WriteString(ch)
-	}
-	for y := range h {
-		for x := range w {
-			ch := '.'
-			switch {
-			case y == 0 || y == h-1:
-				ch = '-'
-			case x == 0 || x == w-1:
-				ch = '|'
-			}
-			dx, dy := float64(x-fx), float64(y-fy)*2
-			d := math.Sqrt(dx*dx + dy*dy)
-			switch {
-			case x == fx && y == fy:
-				c := fireColors[int(flicker(frame, 1)*float64(len(fireColors)))]
-				put("fire", lipgloss.NewStyle().Foreground(lipgloss.Color(c)).Bold(true), "&")
-			case x == fx-1 && y == fy:
-				put("hero", sHero, "@")
-			case d > radius:
-				put("dark", sDark, string(ch))
-			default:
-				c := lightColors[min(len(lightColors)-1, int(d/radius*float64(len(lightColors))))]
-				put(c, lipgloss.NewStyle().Foreground(lipgloss.Color(c)), string(ch))
-			}
-		}
-		flush()
-		runKey = ""
-		if y < h-1 {
-			b.WriteByte('\n')
-		}
-	}
-	fireCache.frame, fireCache.art = frame, b.String()
-	return fireCache.art
 }
 
 func (m Model) statsLine(w int) string {
@@ -544,13 +489,13 @@ func (m Model) cell(l *game.Level, p game.Pos) (rune, *lipgloss.Style) {
 // lampLight returns the warmth level of a tile lit by the hero's lamp, or -1 when it is dark.
 // It only lights what the hero sees, so light never goes through walls.
 func (m Model) lampLight(l *game.Level, p game.Pos, visible bool) int {
-	if m.g.Effects == game.EffectsOff || !visible {
+	if m.g.Guild.Effects == game.EffectsOff || !visible {
 		return -1
 	}
 	h := m.g.Hero.Pos
 	dx, dy := float64(p.X-h.X), float64(p.Y-h.Y)*2
 	radius := lampRadius
-	if m.g.Effects == game.EffectsFull {
+	if m.g.Guild.Effects == game.EffectsFull {
 		radius += flicker(m.lastTick.UnixMilli()/campfireFrameMs, 2) * lampFlicker
 	}
 	d := math.Sqrt(dx*dx + dy*dy)
@@ -560,8 +505,7 @@ func (m Model) lampLight(l *game.Level, p game.Pos, visible bool) int {
 	return min(len(lampStyles)-1, int(d/radius*float64(len(lampStyles))))
 }
 
-func (m Model) renderLog(w, h int) string {
-	entries := m.g.Log
+func (m Model) renderLog(entries []game.LogEntry, w, h int) string {
 	start := max(0, len(entries)-h)
 	var lines []string
 	for i := len(entries) - 1; i >= start && len(lines) < h; i-- {
@@ -807,7 +751,7 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 			b.WriteString(statIn([]lipgloss.Style{sMP}, "hero.spell", sp))
 		}
 		b.WriteString(stat("hero.speed", h.Spd(), game.StepsPerSec(h.Spd())))
-		b.WriteString(statIn([]lipgloss.Style{sPotion, sGold}, "hero.potions_gold", h.Potions, g.Gold))
+		b.WriteString(statIn([]lipgloss.Style{sPotion, sGold}, "hero.potions_gold", h.Potions, g.Guild.Gold))
 	}
 	b.WriteString("\n" + sTitle.Render(lang.T("hero.equipment")) + "\n")
 	for s, it := range h.Equip {

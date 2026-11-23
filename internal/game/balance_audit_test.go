@@ -123,15 +123,15 @@ func auditFullRun(c Class, seed uint64, hours int) *auditRun {
 	snap := func(sec int) auditHour {
 		h := g.Hero
 		_, cost := auditCheapest(g)
-		return auditHour{sec / 3600, h.Level, g.MaxDepth, g.Deaths, g.ExpNum, h.MaxHP(), h.Atk(), h.Def(), h.Spd(), g.Gold, income, g.Kills, cost}
+		return auditHour{sec / 3600, h.Level, g.MaxDepth, g.Deaths, g.ExpNum, h.MaxHP(), h.Atk(), h.Def(), h.Spd(), g.Guild.Gold, income, g.Kills, cost}
 	}
 	for sec := 0; sec < hours*3600 && g.MaxDepth < auditMaxDepth; sec++ {
-		depth, expGold, gold, deaths, kills0, xp := 0, 0, g.Gold, g.Deaths, g.Kills, auditTotalXP(g.Hero)
+		depth, expGold, gold, deaths, kills0, xp := 0, 0, g.Guild.Gold, g.Deaths, g.Kills, auditTotalXP(g.Hero)
 		if g.Exp != nil {
 			depth, expGold = g.Exp.Level.Depth, g.Exp.Gold
 		}
 		g.Advance(1000)
-		if d := g.Gold - gold; d > 0 {
+		if d := g.Guild.Gold - gold; d > 0 {
 			income += d
 		}
 		if depth > 0 {
@@ -202,6 +202,7 @@ func auditFight(h *Hero, ms []*Monster, depth int, seed uint64, raw bool, d *aud
 		hero.Potions = cfg.PotionsToBring
 	}
 	g := &Game{RNG: NewRNG(seed), Hero: hero, Config: cfg}
+	g.Guild = &Guild{Heroes: []*Game{g}}
 	l := auditArena(depth)
 	g.Exp = &Expedition{Num: 1, Seed: seed, RNG: NewRNG(seed ^ 0x9e3779b97f4a7c15), Level: l, StartEquip: hero.Equip}
 	hero.Pos = Pos{20, 9}
