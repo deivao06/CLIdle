@@ -207,8 +207,6 @@ func (h *Hero) DodgeChance() float64 {
 	return min(DodgeCap, float64(h.Attr(Dex))*DodgePerDex)
 }
 
-func (h *Hero) PotionHeal() int { return h.MaxHP() * (PotionHealPct + h.Effect(PotionBoost)) / 100 }
-
 // ManaPerStep is the mana recovered per step, for display.
 func (h *Hero) ManaPerStep() float64 {
 	if h.MaxMP() == 0 {

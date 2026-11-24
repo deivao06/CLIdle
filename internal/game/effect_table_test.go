@@ -33,7 +33,7 @@ var effectProbes = []effectProbe{
 		g.hurt(m, 1, &round{})
 		return g.Exp.Gold
 	}, func(g *Game, pct int) int { return 2 * boosted(100, pct) }},
-	{PotionBoost, Warrior, func(g *Game) int { return g.Hero.PotionHeal() },
+	{PotionBoost, Warrior, func(g *Game) int { return g.PotionHeal() },
 		func(g *Game, pct int) int { return g.Hero.MaxHP() * (PotionHealPct + pct) / 100 }},
 	{XPBoost, Warrior, func(g *Game) int {
 		before := g.Hero.XP

@@ -747,7 +747,7 @@ func (m Model) heroCombat() string {
 	if r := h.ManaPerStep(); r > 0 {
 		s += statIn([]lipgloss.Style{sMP}, "hero.mana_regen", r)
 	}
-	s += statIn([]lipgloss.Style{sPotion, sHPGood}, "hero.potions_heal", h.Potions, h.PotionHeal())
+	s += statIn([]lipgloss.Style{sPotion, sHPGood}, "hero.potions_heal", h.Potions, m.g.PotionHeal())
 	s += statIn([]lipgloss.Style{sGold}, "hero.gold_find", h.Effect(game.GoldFind))
 	if h.Has(game.TreasureNose) {
 		s += statIn([]lipgloss.Style{sGold}, "hero.gold_nose", game.NoseGoldMult, game.TreasureNose.Name())

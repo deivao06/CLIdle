@@ -246,7 +246,11 @@ func (g *Game) step() {
 	}
 }
 
-func (g *Game) potionHeal() int { return g.Hero.PotionHeal() }
+// PotionHeal is the HP a potion gives the hero: a share of max HP raised by item effects and the Apothecary.
+func (g *Game) PotionHeal() int {
+	h := g.Hero
+	return h.MaxHP() * (PotionHealPct + h.Effect(PotionBoost) + ApothecaryHeal(g.Guild.Buildings[Apothecary])) / 100
+}
 
 // Retreat orders the hero back to the exit and keeps him in town afterwards.
 func (g *Game) Retreat() {

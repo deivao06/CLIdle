@@ -18,8 +18,14 @@ func buildingValue(b game.Building, lvl int) string {
 		return lang.T("building.value.slots", game.MissionSlots+lvl)
 	case game.Market:
 		return lang.T("building.value.items", game.ShopSize+lvl*game.MarketItems)
+	case game.Apothecary:
+		v := lang.T("building.value.heal", game.PotionHealPct+game.ApothecaryHeal(lvl))
+		if d := game.BuildingDiscountAt(b, lvl); d > 0 {
+			v += " · " + lang.T("building.value.discount", d)
+		}
+		return v
 	}
-	return lang.T("building.value.discount", lvl*game.BuildingDiscount[b])
+	return lang.T("building.value.discount", game.BuildingDiscountAt(b, lvl))
 }
 
 func (m Model) buildingRows() []prepRow {

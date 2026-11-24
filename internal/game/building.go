@@ -44,7 +44,7 @@ func (gd *Guild) discounted(price int, b Building) int {
 	if price <= 0 {
 		return price
 	}
-	return max(1, price*(100-gd.Buildings[b]*BuildingDiscount[b])/100)
+	return max(1, price*(100-BuildingDiscountAt(b, gd.Buildings[b]))/100)
 }
 
 func (g *Game) TrainPrice(t Trait) int {

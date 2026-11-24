@@ -52,6 +52,7 @@ func (m Model) nerdRows() []prepRow {
 	for b := range game.NumBuildings {
 		rows = append(rows, nerdRow(sec, b.Name(), lang.T("nerd.building.value", game.BuildingMax[b], buildingValue(b, 1), game.BuildingCost(b, 0)), b.Desc()))
 	}
+	add("apothecary", lang.T("nerd.apothecary.value", game.ApothecaryHealPct, game.ApothecaryHealLevels, game.BuildingDiscount[game.Apothecary]))
 
 	sec = lang.T("nerd.section.combat")
 	add("damage", lang.T("nerd.damage.value"))

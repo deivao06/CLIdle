@@ -108,7 +108,7 @@ var MonsterKinds = []MonsterKind{
 const (
 	BagSize           = 8
 	StartPotions      = 5
-	PotionHealPct     = 35
+	PotionHealPct     = 30
 	PotionChance      = 0.2
 	GoldPilesMin      = 1
 	GoldPilesMax      = 3
@@ -161,7 +161,7 @@ var EffectCap = [NumEffects]int{
 	Crit:        75,
 	Vigor:       50,
 	GoldFind:    100,
-	PotionBoost: 60,
+	PotionBoost: 30,
 	XPBoost:     50,
 	CritDamage:  150,
 }
@@ -171,7 +171,7 @@ var EffectRange = [NumEffects][2]int{
 	Crit:        {5, 15},
 	Vigor:       {5, 15},
 	GoldFind:    {10, 30},
-	PotionBoost: {10, 30},
+	PotionBoost: {5, 15},
 	XPBoost:     {5, 15},
 	CritDamage:  {10, 30},
 }
@@ -315,8 +315,8 @@ var ItemNames = [NumSlots][][]itemName{
 const (
 	ShopSize        = 3
 	ShopMarkup      = 5
-	PotionPrice     = 10
-	PotionSellPrice = 5
+	PotionPrice     = 50
+	PotionSellPrice = 25
 	MaxPotions      = 10
 	TrainHP         = 5
 	ArmorHPPct      = 50
@@ -394,14 +394,28 @@ const (
 // Buildings: the most levels of each, what a level takes off a price (percent), and what each level costs.
 var (
 	BuildingMax      = [NumBuildings]int{Lodging: 5, MissionTable: 2, Smithy: 5, TrainingYard: 5, Market: 3, Apothecary: 5}
-	BuildingDiscount = [NumBuildings]int{Smithy: 5, TrainingYard: 5, Apothecary: 10}
+	BuildingDiscount = [NumBuildings]int{Smithy: 8, TrainingYard: 5, Apothecary: 5}
 	BuildingBase     = [NumBuildings]int{Lodging: 20000, MissionTable: 100000, Smithy: 50000, TrainingYard: 50000, Market: 30000, Apothecary: 10000}
 )
 
 const (
 	BuildingGrowth = 4
 	MarketItems    = 1
+	// The Apothecary's first levels add to the potion's healing (percent of max HP); the rest take off its price.
+	ApothecaryHealLevels = 3
+	ApothecaryHealPct    = 5
 )
+
+// ApothecaryHeal is the potion healing the Apothecary adds at level.
+func ApothecaryHeal(level int) int { return min(level, ApothecaryHealLevels) * ApothecaryHealPct }
+
+// BuildingDiscountAt is what the building takes off its price at level (percent).
+func BuildingDiscountAt(b Building, level int) int {
+	if b == Apothecary {
+		level = max(0, level-ApothecaryHealLevels)
+	}
+	return level * BuildingDiscount[b]
+}
 
 // BuildingCost is the price of the building's next level when it is at level.
 func BuildingCost(b Building, level int) int { return BuildingBase[b] * growth(BuildingGrowth, level) }

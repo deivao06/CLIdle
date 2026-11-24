@@ -471,7 +471,7 @@ func (g *Game) act(gb Gambit, r *round) bool {
 		if h.Potions == 0 || h.HP >= h.MaxHP() {
 			return false
 		}
-		heal := min(g.potionHeal(), h.MaxHP()-h.HP)
+		heal := min(g.PotionHeal(), h.MaxHP()-h.HP)
 		h.HP += heal
 		g.emitHeal(-1, heal)
 		h.Potions--
