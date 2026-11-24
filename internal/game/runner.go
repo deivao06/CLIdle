@@ -68,7 +68,23 @@ type Runner struct {
 	Fails   int
 	Start   int
 	Deaths  int
+	// SpentOn splits Spent by what the gold bought.
+	SpentOn [NumSpends]int
+	// Endless keeps playing the next dungeons after the first is cleared.
+	Endless bool
 }
+
+// Spend is what a simulated player spends gold on.
+type Spend int
+
+const (
+	SpendSmith Spend = iota
+	SpendTrain
+	SpendBag
+	SpendShop
+	SpendPotions
+	NumSpends
+)
 
 // NewRunner starts a new hero of class c for the profile, before its first trip to town.
 func NewRunner(c Class, p Profile, seed uint64) *Runner {
@@ -80,11 +96,11 @@ func NewRunner(c Class, p Profile, seed uint64) *Runner {
 }
 
 // Advance plays ms of simulated time; the town visit between expeditions is instant and is followed by a
-// TownWaitMs pause that only the clock sees. It stops once the first dungeon is cleared.
+// TownWaitMs pause that only the clock sees. It stops once the first dungeon is cleared, unless Endless.
 func (r *Runner) Advance(ms int64) {
 	g := r.Game
 	end := r.Ms + ms
-	for r.Ms < end && g.Dungeon == 0 {
+	for r.Ms < end && (g.Dungeon == 0 || r.Endless) {
 		if !r.InExp {
 			r.depart()
 		}
@@ -106,14 +122,16 @@ func (r *Runner) depart() {
 	before := g.Guild.Gold
 	list := g.ShortcutList()
 	if r.Profile == ProfileCareful {
-		smartSpend(g)
+		smartSpend(g, &r.SpentOn)
 		r.Start = min(max(r.Start, 0), len(list)-1)
 		g.Config.StartFloor = list[r.Start]
 	} else {
-		auditSpend(g)
+		auditSpend(g, &r.SpentOn)
 		g.Config.StartFloor = slices.Max(list)
 	}
+	potions := g.Guild.Gold
 	g.Depart()
+	r.SpentOn[SpendPotions] += potions - g.Guild.Gold
 	r.Spent += before - g.Guild.Gold
 	r.InExp = true
 }
@@ -141,21 +159,32 @@ var auditTraits = [NumClasses][]Trait{
 
 // auditSpend is the same policy as spendClass (sim50_test.go): buy the cheapest of smith/train/bag while
 // keeping gold for the potions.
-func auditSpend(g *Game) {
+func auditSpend(g *Game, on *[NumSpends]int) {
 	reserve := g.Config.PotionsToBring * PotionPrice
 	for {
 		best, cost := auditCheapest(g)
 		if best < 0 || g.Guild.Gold-cost < reserve {
 			return
 		}
-		switch {
-		case best < 100:
-			g.Upgrade(Slot(best))
-		case best < 200:
-			g.Train(Trait(best - 100))
-		default:
-			g.UpgradeBag()
-		}
+		buyUpgrade(g, best, on)
+	}
+}
+
+// buyUpgrade buys the smith, training or bag upgrade best names, adding its price to on when on is set.
+func buyUpgrade(g *Game, best int, on *[NumSpends]int) {
+	before, kind := g.Guild.Gold, SpendBag
+	switch {
+	case best < 100:
+		g.Upgrade(Slot(best))
+		kind = SpendSmith
+	case best < 200:
+		g.Train(Trait(best - 100))
+		kind = SpendTrain
+	default:
+		g.UpgradeBag()
+	}
+	if on != nil {
+		on[kind] += before - g.Guild.Gold
 	}
 }
 
@@ -182,13 +211,17 @@ func auditCheapest(g *Game) (int, int) {
 
 // smartSpend buys shop upgrades first, then the cheapest of blacksmith, training (main attribute and CON) and bag,
 // keeping gold for five potions.
-func smartSpend(g *Game) {
+func smartSpend(g *Game, on *[NumSpends]int) {
 	for {
 		bought := false
 		for i, it := range g.Shop {
 			cur := g.Hero.Equip[it.Slot]
 			if g.Hero.Class.CanUse(it) && (cur == nil || it.Bonus() > cur.Bonus()) && g.Guild.Gold-ShopPrice(it) >= 5*PotionPrice {
+				before := g.Guild.Gold
 				g.BuyShop(i)
+				if on != nil {
+					on[SpendShop] += before - g.Guild.Gold
+				}
 				bought = true
 				break
 			}
@@ -219,13 +252,6 @@ func smartSpend(g *Game) {
 		if best < 0 || g.Guild.Gold-cost < reserve {
 			return
 		}
-		switch {
-		case best < 100:
-			g.Upgrade(Slot(best))
-		case best < 200:
-			g.Train(Trait(best - 100))
-		default:
-			g.UpgradeBag()
-		}
+		buyUpgrade(g, best, on)
 	}
 }

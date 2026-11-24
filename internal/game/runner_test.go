@@ -19,11 +19,11 @@ func referenceRun(g *Game, smart bool, trips int) int64 {
 		deaths := g.Deaths
 		list := g.ShortcutList()
 		if smart {
-			smartSpend(g)
+			smartSpend(g, nil)
 			start = min(max(start, 0), len(list)-1)
 			g.Config.StartFloor = list[start]
 		} else {
-			auditSpend(g)
+			auditSpend(g, nil)
 			g.Config.StartFloor = slices.Max(list)
 		}
 		g.Depart()

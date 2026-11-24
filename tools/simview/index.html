@@ -196,7 +196,9 @@
 (() => {
   const CLASSES = ["Warrior", "Mage", "Rogue", "Cleric"];
   const CLASS_PT = { Warrior: "Guerreiro", Mage: "Mago", Rogue: "Ladino", Cleric: "Clérigo" };
-  const METRICS = [["floor", "Andar"], ["level", "Nível"], ["deaths", "Mortes"], ["gold", "Saldo"], ["spent", "Gasto"], ["train", "Treino"]];
+  const METRICS = [["floor", "Andar"], ["level", "Nível"], ["deaths", "Mortes"], ["gold", "Saldo"], ["spent", "Gasto"], ["train", "Treino"],
+    ["earned", "Ganho"], ["rate", "Ganho/hora"], ["smith", "Ferreiro $"], ["trainGold", "Treino $"], ["potions", "Poções $"], ["shop", "Loja $"], ["bag", "Mochila $"],
+    ["heroes", "Heróis"], ["built", "Níveis de prédio"], ["mission", "Mesa de missões"]];
   const BOSS_METRICS = [["pct", "% de vitória"], ["bossLeft", "HP do chefe que sobrou"]];
   const BOSS_PASS = 50;
   const BOSS_HELP = {
@@ -214,6 +216,16 @@
     gold: "Saldo: o ouro no bolso naquele momento. Cai quando o jogador gasta na cidade.",
     spent: "Gasto: todo o ouro gasto na cidade até ali (ferreiro, treino, loja, mochila e poções).",
     train: "Treino: a soma dos níveis comprados no treino, nos 4 atributos.",
+    earned: "Ganho: todo o ouro ganho até ali (saldo + gasto), contando só o que voltou para a cidade.",
+    rate: "Ganho/hora: o ouro ganho na última hora de jogo.",
+    smith: "Ferreiro $: ouro gasto no ferreiro até ali.",
+    trainGold: "Treino $: ouro gasto no treino até ali.",
+    potions: "Poções $: ouro gasto em poções compradas ao partir até ali.",
+    shop: "Loja $: ouro gasto em itens da loja até ali.",
+    bag: "Mochila $: ouro gasto em melhorias da mochila até ali.",
+    heroes: "Heróis: quantos heróis a guilda tem (o primeiro mais os contratados).",
+    built: "Níveis de prédio: soma dos níveis de todos os prédios (25 = tudo no máximo).",
+    mission: "Mesa de missões: nível da Mesa (2 = máximo, 4 heróis ao mesmo tempo).",
   };
   const LIVE_MS = 1000, LIST_MS = 4000, STALE_MS = 15000;
   const css = getComputedStyle(document.documentElement);
@@ -258,6 +270,11 @@
   const stateOf = (m) => m.series.length && m.series.every((s) => s.done) ? "done" : Date.now() - m.updated < STALE_MS ? "run" : "stale";
   const STATE_TEXT = { run: "rodando", stale: "parada", done: "terminada" };
 
+  const GUILD_TRAITS = {
+      start: "Cada herói joga como o Afobado: sempre no atalho mais fundo.",
+      gold: "25% do ouro que volta fica guardado para a guilda; o resto o herói gasta em si. A guilda compra o mais barato entre o próximo herói (enquanto a Mesa tem vaga) e o próximo nível de prédio.",
+      train: "Como o Afobado; o herói contratado põe os 5 pontos no atributo principal.",
+      potions: "Leva 3 (o padrão do jogo)." };
   const PROFILES = {
     rash: { name: "Afobado (rash)", summary: "Quer chegar fundo rápido e não liga de morrer.", traits: {
       start: "Sempre no atalho mais fundo já liberado, mesmo depois de morrer várias vezes seguidas.",
@@ -269,9 +286,17 @@
       gold: "Primeiro troca equipamento na loja quando o item é melhor que o atual. Depois compra a melhoria mais barata: ferreiro, treino ou mochila.",
       train: "O atributo principal da classe e CON. O ladino também treina CON.",
       potions: "Leva 5 e sempre guarda ouro para elas." } },
+    v18: { name: "Preços da v0.18 (v18)", summary: "Guilda com os preços até a v0.18: prédio 500×(nível+1)², herói 200×heróis.", traits: GUILD_TRAITS },
+    A: { name: "Preços A (×4)", summary: "Prédio = base × 4^nível (Mesa 100k, Ferreiro/Treino 50k, Mercado 30k, Alojamento 20k, Boticário 10k); herói 2k × 3^(heróis−1).", traits: GUILD_TRAITS },
+    B: { name: "Preços B (×3)", summary: "Prédio = base × 3^nível (mesmas bases, Mesa 125k); herói 2k × 3^(heróis−1).", traits: GUILD_TRAITS },
+    idle: { name: "Sem gastos (idle)", summary: "Deixa a auto-expedição ligada e não compra nada para o herói: o ouro todo fica para a guilda.", traits: {
+      start: "Sempre no andar 1 (a configuração padrão).",
+      gold: "Não gasta: é o máximo de ouro que um herói deixa para a guilda.",
+      train: "Nenhum.",
+      potions: "Compra 3 ao partir (o padrão do jogo); esse gasto já sai do ganho." } },
   };
   const TRAITS = [["start", "Onde começa"], ["gold", "Como gasta o ouro"], ["train", "Treino"], ["potions", "Poções"]];
-  const PROFILE_ALIAS = { old: "rash", smart: "careful", afobado: "rash", cuidadoso: "careful" };
+  const PROFILE_ALIAS = { now: "v18", old: "rash", smart: "careful", afobado: "rash", cuidadoso: "careful" };
   const profileOf = (l) => PROFILES[PROFILE_ALIAS[l] || l];
 
   async function loadBatch(id) {

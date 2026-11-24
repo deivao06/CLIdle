@@ -17,6 +17,18 @@ type simPoint struct {
 	Gold    int     `json:"gold"`
 	Spent   int     `json:"spent"`
 	Train   int     `json:"train"`
+	// Economy (TestSimEconomy): all the gold earned so far, the gold earned in the last hour, and the gold spent on each thing.
+	Earned    int `json:"earned,omitempty"`
+	Rate      int `json:"rate,omitempty"`
+	Smith     int `json:"smith,omitempty"`
+	TrainGold int `json:"trainGold,omitempty"`
+	Bag       int `json:"bag,omitempty"`
+	Shop      int `json:"shop,omitempty"`
+	Potions   int `json:"potions,omitempty"`
+	// Guild (TestSimGuild): heroes hired, building levels bought in all and the mission table's level.
+	Heroes  int `json:"heroes,omitempty"`
+	Built   int `json:"built,omitempty"`
+	Mission int `json:"mission,omitempty"`
 }
 
 type simSeries struct {
@@ -87,7 +99,7 @@ func (r *simRecorder) add(s *simSeries, ms int64, g *Game) {
 	for _, n := range g.Hero.Training {
 		train += n
 	}
-	s.Points = append(s.Points, simPoint{float64(ms) / 3.6e6, g.MaxDepth, g.Hero.Level, g.Deaths, g.Dungeon, g.Guild.Gold, s.spent, train})
+	s.Points = append(s.Points, simPoint{H: float64(ms) / 3.6e6, Floor: g.MaxDepth, Level: g.Hero.Level, Deaths: g.Deaths, Dungeon: g.Dungeon, Gold: g.Guild.Gold, Spent: s.spent, Train: train})
 	if time.Since(r.last) > 500*time.Millisecond {
 		r.flush()
 	}

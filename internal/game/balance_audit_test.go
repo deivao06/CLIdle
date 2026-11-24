@@ -152,7 +152,7 @@ func auditFullRun(c Class, seed uint64, hours int) *auditRun {
 			}
 		}
 		if g.InTown() {
-			auditSpend(g)
+			auditSpend(g, nil)
 			g.Config.StartFloor = slices.Max(g.ShortcutList())
 		}
 		if (sec+1)%3600 == 0 {
