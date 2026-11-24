@@ -77,6 +77,7 @@ type Game struct {
 	Prestiges  int `json:",omitempty"`
 	Deaths     int
 	Returns    int
+	LastGold   int `json:",omitempty"`
 	Auto       bool
 	Shop       []*Item
 	Shortcuts  []int
@@ -275,7 +276,8 @@ func (g *Game) returnToTown() {
 		}
 		sold = addGold(sold, it.SellPrice())
 	}
-	g.Guild.Gold = addGold(g.Guild.Gold, addGold(e.Gold, sold))
+	g.LastGold = addGold(e.Gold, sold)
+	g.Guild.Gold = addGold(g.Guild.Gold, g.LastGold)
 	g.Returns++
 	if len(e.Bag) == kept {
 		g.logf(LogGood, "%s", lang.T("log.return", e.Num, e.RetreatWhy, e.Gold))
@@ -285,7 +287,7 @@ func (g *Game) returnToTown() {
 	if kept > 0 {
 		g.logf(LogLoot, "%s", lang.T("log.chest_kept", kept))
 	}
-	g.note(LogGood, lang.T("guild.log.return", addGold(e.Gold, sold), e.RetreatWhy))
+	g.note(LogGood, lang.T("guild.log.return", addGold(e.Gold, sold), e.RetreatWhy, g.DungeonName()))
 	g.endExpedition()
 }
 
@@ -535,7 +537,7 @@ func (g *Game) killBoss(m *Monster, r *round) {
 	case roll < BossLegendaryChance+BossEpicChance:
 		rarity = Epic
 	}
-	g.note(LogEpic, lang.T("guild.log.boss", lang.T(m.Info().Name), g.Floor(depth)))
+	g.note(LogEpic, lang.T("guild.log.boss", lang.T(m.Info().Name), g.Floor(depth), g.DungeonName()))
 	if g.lab == nil && g.Floor(depth) >= DungeonFloors {
 		r.after = append(r.after, LogEntry{Text: lang.T("log.boss_dead_last", lang.T(m.Info().Name)), Kind: LogEpic})
 		g.completeDungeon(r)
@@ -670,7 +672,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 		h.HP = 0
 		r.after = append(r.after, LogEntry{Text: lang.T("log.death",
 			mr.name, g.Floor(e.Level.Depth), e.Gold-e.deathKeep(), len(e.Bag), e.deathKeep()), Kind: LogBad})
-		g.note(LogBad, lang.T("guild.log.death", mr.name, g.Floor(e.Level.Depth)))
+		g.note(LogBad, lang.T("guild.log.death", mr.name, g.Floor(e.Level.Depth), g.DungeonName()))
 		g.die(m)
 	}
 }
@@ -680,7 +682,8 @@ func (e *Expedition) deathKeep() int { return pctOf(e.Gold, DeathKeepGoldPct) }
 func (g *Game) die(killer *Monster) {
 	g.LastDeath = slices.Clone(g.Log[max(0, len(g.Log)-DeathLogLines):])
 	g.DeathScene = g.deathScene(killer)
-	g.Guild.Gold = addGold(g.Guild.Gold, g.Exp.deathKeep())
+	g.LastGold = g.Exp.deathKeep()
+	g.Guild.Gold = addGold(g.Guild.Gold, g.LastGold)
 	g.Deaths++
 	if g.Auto && g.Config.DeathLimit > 0 {
 		g.AutoDeaths++

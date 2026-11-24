@@ -17,6 +17,11 @@ func (g *Game) DungeonName() string {
 	return lang.T("dungeon.name", lang.T(dungeonNouns[g.Noun%len(dungeonNouns)]), lang.T(dungeonAdjs[g.Adj%len(dungeonAdjs)]), g.Dungeon+1)
 }
 
+// DungeonPlace is the current dungeon's name without its tier.
+func (g *Game) DungeonPlace() string {
+	return lang.T("dungeon.place", lang.T(dungeonNouns[g.Noun%len(dungeonNouns)]), lang.T(dungeonAdjs[g.Adj%len(dungeonAdjs)]))
+}
+
 // Cave tells whether the current dungeon's floors are caves; it follows the dungeon's name.
 func (g *Game) Cave() bool { return slices.Contains(caveNouns, dungeonNouns[g.Noun%len(dungeonNouns)]) }
 

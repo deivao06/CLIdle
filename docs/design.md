@@ -121,6 +121,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 ## Guilda
 
 - O jogo abre na **Guilda de Aventureiros** (taverna animada). Abas: Guilda (heróis, taverna, registro), Prédios, Recrutar, Config. Enter abre um herói; esc (ou o botão Guilda no celular) volta.
+- **Card do herói na guilda** (2 linhas): corredor animado (`.@.` anda para a direita explorando, para a esquerda voltando, `.@†` lutando; `π@` em casa, cinza se a auto-expedição está desligada; `@+` na fila), nome, classe, nível e HP; embaixo a situação, a dungeon com o tier e o ouro (da expedição atual, ou o que trouxe na última volta, `Game.LastGold`). Cada herói tem uma cadeira fixa na taverna e a mesma cor do `@` no card; o selecionado aparece invertido. O registro da guilda diz a dungeon de cada evento.
 - **Ouro e baú são da guilda.** Cada herói tem equipamento, mochila, táticas, config da expedição, dungeon, atalhos e prestígio.
 - **Heróis em paralelo**, cada um sozinho na dungeon. A **Mesa de missões** limita quantos saem ao mesmo tempo (2, +1 por nível, até 4 por causa do custo do offline: ~8 s por herói em expedição em 12h). Os outros esperam em fila por ordem de chegada; partir à mão pula a fila se houver vaga.
 - **Recrutas:** 3 sorteados (nome e classe), trocam a cada 1h de jogo (conta o offline) ou pagando. Criar à mão: nome, classe e pontos. Os dois custam o mesmo (200 × heróis; trocar recrutas 100; valores provisórios, o dono quer subir). O recruta não troca de nome.

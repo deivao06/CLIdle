@@ -29,6 +29,7 @@ type prepRow struct {
 	desc    string
 	price   int
 	priceSt lipgloss.Style
+	card    func(w int) []string
 }
 
 func onOff(b bool) string {
@@ -344,7 +345,7 @@ func (m Model) viewPrep(h int) string {
 	}
 	g := m.g
 	rows := m.prepRows()
-	head := []string{sGold.Render(lang.T("prep.gold", g.Guild.Gold))}
+	head := []string{sGold.Render(lang.T("prep.gold", game.Group(int64(g.Guild.Gold))))}
 	if !g.InTown() {
 		head = append(head, sMuted.Render(lang.T("prep.away_config")))
 	}
@@ -353,7 +354,7 @@ func (m Model) viewPrep(h int) string {
 }
 
 func (m Model) viewTownList(w, h int) string {
-	head := []string{sGold.Render(lang.T("prep.gold", m.g.Guild.Gold)), sMuted.Render(m.keysHint("town.keys"))}
+	head := []string{sGold.Render(lang.T("prep.gold", game.Group(int64(m.g.Guild.Gold)))), sMuted.Render(m.keysHint("town.keys"))}
 	return m.viewRows(head, m.townRows(), w, h)
 }
 
@@ -367,6 +368,9 @@ func (m Model) viewSettings(h int) string {
 
 // rowLines styles a row; the selected adjustable row shows ‹ value › so a tap on either side changes it.
 func (m Model) rowLines(r prepRow, selected bool, w int) []string {
+	if r.card != nil {
+		return r.card(w)
+	}
 	if !selected || r.adjust == nil || r.value == "" {
 		lines := m.rowText(glueGold(r.text, r.price), w)
 		for i := range lines {

@@ -6,6 +6,8 @@ import (
 
 	"clidle/internal/game"
 	"clidle/internal/lang"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 // allocDraft is a hero getting its attribute points: a recruit (index), one made by hand (-1 with a name and
@@ -57,6 +59,14 @@ func (m Model) recruitRows() []prepRow {
 	for i, r := range gd.Recruits {
 		row := prepRow{section: sec, text: lang.T("recruit.row", r.Name, r.Class.Name(), price), style: style,
 			price: price, priceSt: m.goldFor(price), desc: r.Class.Desc() + " " + next}
+		name := sTitle
+		if block != "" {
+			name = sMuted
+		}
+		row.card = func(w int) []string {
+			who := name.Render(fmt.Sprintf("%-12s", r.Name)) + " " + sMuted.Render(r.Class.Name())
+			return []string{ends(who, row.priceSt.Render(goldText(price)), min(w, lipgloss.Width(lang.T("recruit.make", price))))}
+		}
 		if block != "" {
 			row.desc = block
 		} else {

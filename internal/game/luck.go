@@ -41,10 +41,11 @@ func (s Streak) Odds() string {
 		dec = min(8, int(math.Ceil(-math.Log10(pct)))+1)
 	}
 	p := strings.Replace(strconv.FormatFloat(pct, 'f', dec, 64), ".", lang.T("num.decimal"), 1)
-	return lang.T("luck.odds", group(int64(math.Round(1/s.Chance))), p)
+	return lang.T("luck.odds", Group(int64(math.Round(1/s.Chance))), p)
 }
 
-func group(n int64) string {
+// Group writes n with the language's thousands separator.
+func Group(n int64) string {
 	s := strconv.FormatInt(n, 10)
 	for i := len(s) - 3; i > 0; i -= 3 {
 		s = s[:i] + lang.T("num.thousands") + s[i:]

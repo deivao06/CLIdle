@@ -27,21 +27,25 @@ var (
 	tavernColor = map[rune]string{'π': "130", '=': "94", '║': "94", '0': "136", '▤': "180"}
 	sKeeper     = lipgloss.NewStyle().Foreground(lipgloss.Color("173"))
 	sResting    = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
+	tableStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color(tavernColor['π']))
 )
 
 const keeperStepMs = 900
 
-// tavern draws the guild's tavern with the heroes who are home sitting at the tables; when hl is set, only
-// that hero stands out.
+// heroStyle is the color of the i-th hero's @ in the tavern and in the guild's hero list.
+func heroStyle(i int) lipgloss.Style {
+	return lipgloss.NewStyle().Foreground(lipgloss.Color(heroColors[i%len(heroColors)])).Bold(true)
+}
+
+// tavern draws the guild's tavern with the heroes who are home, each in their own seat; when hl is set, only
+// that hero stands out, and in the guild the hero under the cursor does.
 func (m Model) tavern(hl *game.Game) string {
 	ms := m.lastTick.UnixMilli()
 	frame := ms / campfireFrameMs
 	radius := 32 + flicker(frame, 0)*3
-	var home []int
-	for i, h := range m.g.Guild.Heroes {
-		if h.Exp == nil {
-			home = append(home, i)
-		}
+	picked := -1
+	if m.guild && m.tab == tabGuild {
+		picked = m.cursor
 	}
 	var kx, ky, kFrom, kTo int
 	for y, row := range tavernRows {
@@ -92,19 +96,21 @@ func (m Model) tavern(hl *game.Game) string {
 			case r == 'k':
 				r = '.'
 			case r == 's':
-				if seat < len(home) {
-					i := home[seat]
-					seat++
-					st, key := lipgloss.NewStyle().Foreground(lipgloss.Color(heroColors[i%len(heroColors)])).Bold(true), "hero"+heroColors[i%len(heroColors)]
-					if hl != nil && m.g.Guild.Heroes[i] != hl {
+				i := seat
+				seat++
+				if i < len(m.g.Guild.Heroes) && m.g.Guild.Heroes[i].Exp == nil {
+					st, key := heroStyle(i), "hero"+heroColors[i%len(heroColors)]
+					switch {
+					case hl != nil && m.g.Guild.Heroes[i] != hl:
 						st, key = sResting, "resting"
-					} else if hl != nil {
+					case hl != nil:
 						st, key = sHero, "hl"
+					case i == picked:
+						st, key = st.Reverse(true), "picked"
 					}
 					put(key, st, '@')
 					continue
 				}
-				seat++
 				r = '.'
 			}
 			if !lit {

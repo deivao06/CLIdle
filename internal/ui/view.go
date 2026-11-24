@@ -182,7 +182,7 @@ func (m Model) statusLine() string {
 		if len(g.Guild.Heroes) == 1 {
 			key = "guild.status_one"
 		}
-		return sMuted.Render(lang.T(key, len(g.Guild.Heroes))) + sGold.Render(lang.T("status.gold", g.Guild.Gold))
+		return sMuted.Render(lang.T(key, len(g.Guild.Heroes))) + sGold.Render(lang.T("status.gold", game.Group(int64(g.Guild.Gold))))
 	}
 	h := g.Hero
 	hp := hpStyle(h.HP, h.MaxHP()).Render(fmt.Sprintf("HP %d/%d", h.HP, h.MaxHP()))
@@ -190,7 +190,7 @@ func (m Model) statusLine() string {
 	if g.Exp != nil {
 		where = lang.T("status.floor", g.Floor(g.Exp.Level.Depth))
 	}
-	return hp + sMuted.Render(lang.T("status.level", h.Level, where)) + sGold.Render(lang.T("status.gold", g.Guild.Gold))
+	return hp + sMuted.Render(lang.T("status.level", h.Level, where)) + sGold.Render(lang.T("status.gold", game.Group(int64(g.Guild.Gold))))
 }
 
 func (m Model) viewFooter() string {
@@ -304,11 +304,15 @@ func (m Model) viewSummary() string {
 		}
 		b.WriteString(lipgloss.NewStyle().Width(min(m.w-4, 90)).Render(sTitle.Render(h.Name)+strings.TrimPrefix(line, h.Name)) + "\n")
 	}
-	b.WriteString("\n" + sGold.Render(lang.T("summary.gold", s.Gold)) + "\n")
+	b.WriteString("\n" + sGold.Render(lang.T("summary.gold", game.Group(int64(s.Gold)))) + "\n")
 	if s.Capped {
 		b.WriteString("\n" + sMuted.Render(lang.T("summary.capped", fmtDuration(game.OfflineCap))) + "\n")
 	}
-	b.WriteString("\n" + sMuted.Render(lang.T("summary.any_key")))
+	key := "summary.any_key"
+	if m.narrow() {
+		key = "summary.any_key_touch"
+	}
+	b.WriteString("\n" + sMuted.Render(lang.T(key)))
 	return b.String()
 }
 
@@ -524,7 +528,7 @@ func (m Model) renderLog(entries []game.LogEntry, w, h int) string {
 		}
 		wrapped := strings.Split(logStyles[e.Kind].Width(w).Render(text), "\n")
 		if len(lines)+len(wrapped) > h {
-			wrapped = []string{logStyles[e.Kind].Render(truncate(text, w))}
+			wrapped = []string{logStyles[e.Kind].Render(ellipsis(text, w))}
 		}
 		lines = append(wrapped, lines...)
 	}
@@ -759,7 +763,7 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 			b.WriteString(statIn([]lipgloss.Style{sMP}, "hero.spell", sp))
 		}
 		b.WriteString(stat("hero.speed", h.Spd(), game.StepsPerSec(h.Spd())))
-		b.WriteString(statIn([]lipgloss.Style{sPotion, sGold}, "hero.potions_gold", h.Potions, g.Guild.Gold))
+		b.WriteString(statIn([]lipgloss.Style{sPotion, sGold}, "hero.potions_gold", h.Potions, game.Group(int64(g.Guild.Gold))))
 	}
 	b.WriteString("\n" + sTitle.Render(lang.T("hero.equipment")) + "\n")
 	for s, it := range h.Equip {
