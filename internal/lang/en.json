@@ -231,7 +231,7 @@
   "prep.other_class": "  (other class)",
   "prep.shop_row": "%c %-28s %-8s %6s gold%s",
   "prep.sold_out": "sold out: restocks when the hero returns",
-  "prep.smith_max": "%c %-28s → max",
+  "prep.smith_max": "%c %-28s   %s · max",
   "prep.smith_row": "%c %-28s → %-8s %6s gold",
   "prep.potion_row": "Potion      %2d/%-13d %6s gold",
   "prep.bag_row": "Bag         %2d slots → %-5d %6s gold",

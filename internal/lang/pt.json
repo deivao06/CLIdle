@@ -231,7 +231,7 @@
   "prep.other_class": "  (outra classe)",
   "prep.shop_row": "%c %-28s %-8s %6s ouro%s",
   "prep.sold_out": "esgotada: renova quando o herói voltar",
-  "prep.smith_max": "%c %-28s → máximo",
+  "prep.smith_max": "%c %-28s   %s · máximo",
   "prep.smith_row": "%c %-28s → %-8s %6s ouro",
   "prep.potion_row": "Poção       %2d/%-13d %6s ouro",
   "prep.bag_row": "Mochila     %2d vagas → %-5d %6s ouro",

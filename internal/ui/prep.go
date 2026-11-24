@@ -156,7 +156,7 @@ func (m Model) townRows() []prepRow {
 			continue
 		}
 		if it.Upgrade >= game.UpgradeMax {
-			text := lang.T("prep.smith_max", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade)+it.ILvl())
+			text := lang.T("prep.smith_max", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade)+it.ILvl(), it.StatLabel())
 			rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: rarityStyle(it.Rarity), desc: lang.T("town.smith_max.desc")})
 			continue
 		}
