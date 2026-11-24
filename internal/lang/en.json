@@ -188,7 +188,6 @@
   "help.boss": "%s (boss)",
   "help.footer_touch": "tap a page · drag to scroll",
   "help.footer": "←→ pages · ↑↓ scroll · ? or esc closes",
-  "help.footer_symbols": "←→ pages · ? or esc closes",
 
   "slot.weapon": "weapon",
   "slot.armor": "armor",

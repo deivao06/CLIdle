@@ -20,6 +20,8 @@ import (
 const (
 	minW, minH       = 40, 10
 	sideW            = 28
+	dungeonLogMinH   = 4
+	dungeonMapMinH   = 7
 	townListW        = 70
 	gapMinH          = 20
 	townSceneMinW    = 30
@@ -105,7 +107,11 @@ func (m Model) view() string {
 		*m.shown = scrolled{top, max(0, len(lines)-bodyH)}
 		shown := lines[top:min(len(lines), top+bodyH)]
 		if top+bodyH < len(lines) {
-			shown[len(shown)-1] = sMuted.Render(lang.T("hero.more"))
+			more := "hero.more"
+			if m.narrow() {
+				more = "hero.more_touch"
+			}
+			shown[len(shown)-1] = sMuted.Render(lang.T(more))
 		}
 		body = strings.Join(shown, "\n")
 	default:
@@ -149,16 +155,17 @@ func (m Model) confirmButtons() string {
 
 func (m Model) viewHeader() string {
 	right := m.updateNotice() + m.statusLine()
-	var full, short []string
+	var full, brief, short []string
 	for i, t := range m.tabs() {
 		full, short = append(full, fmt.Sprintf("%d %s", i+1, lang.T(tabKeys[t]))), append(short, fmt.Sprint(i+1))
+		brief = append(brief, fmt.Sprintf("%d %s", i+1, lang.T(tabKeys[t]+"_short")))
 	}
 	at := slices.Index(m.tabs(), m.tab)
-	active := slices.Clone(short)
+	mixed, active := slices.Clone(brief), slices.Clone(short)
 	if !m.help && at >= 0 {
-		active[at] = full[at]
+		mixed[at], active[at] = full[at], full[at]
 	}
-	for _, tabs := range [][]string{full, active, short} {
+	for _, tabs := range [][]string{full, mixed, brief, active, short} {
 		var parts []string
 		for i, t := range tabs {
 			st := sTabOff
@@ -237,13 +244,20 @@ func (m Model) viewDungeon(h int) string {
 	if side {
 		mapW = min(game.MapW, m.w-sideW)
 	}
-	mapH, logH := game.MapH, h-game.MapH-1
-	if logH < 3 {
-		mapH, logH = h-2, 1
+	stats := ""
+	if !side {
+		stats = m.statsLine(mapW)
+	}
+	mapH := min(game.MapH, h-1-lipgloss.Height(stats)-dungeonLogMinH)
+	if side {
+		mapH = min(game.MapH, h-1-dungeonLogMinH)
+	}
+	if mapH < dungeonMapMinH {
+		mapH, stats = max(1, h-2), ""
 	}
 	left := m.renderMap(mapW, mapH)
-	if !side && logH >= 3 {
-		stats := m.statsLine(mapW)
+	logH := h - mapH - 1
+	if stats != "" {
 		left = lipgloss.JoinVertical(lipgloss.Left, left, stats)
 		logH -= lipgloss.Height(stats)
 	}
@@ -419,10 +433,16 @@ func (m Model) statsLine(w int) string {
 	if e := m.g.Exp; e != nil {
 		s += lang.T("stats.bag", len(e.Bag), m.g.BagCap())
 	}
-	if m.narrow() {
-		return sStats.Width(w).Render(s)
+	lines := strings.Split(lipgloss.NewStyle().Width(w).Render(h.Name+" · "+s), "\n")
+	for i, l := range lines {
+		l = strings.TrimRight(l, " ")
+		if rest, ok := strings.CutPrefix(l, h.Name); ok && i == 0 {
+			lines[i] = sTitle.Render(h.Name) + sStats.Render(rest)
+			continue
+		}
+		lines[i] = sStats.Render(l)
 	}
-	return sStats.Render(truncate(s, w))
+	return strings.Join(lines, "\n")
 }
 
 func (m Model) renderMap(w, h int) string {
@@ -830,11 +850,14 @@ func (m Model) viewHelp(h int) string {
 		tabs = append(tabs, zone.Mark(fmt.Sprintf("help:%d", i), st.Render(" "+name+" ")))
 	}
 	head := lipgloss.NewStyle().Width(m.w).Render(strings.Join(tabs, " ")) + "\n\n"
-	foot := "\n" + sMuted.Render(truncate(lang.T("help.footer"), m.w))
+	footKey := "help.footer"
+	if m.narrow() {
+		footKey = "help.footer_touch"
+	}
+	foot := "\n" + sMuted.Render(truncate(lang.T(footKey), m.w))
 	bodyH := max(1, h-lipgloss.Height(head))
 	if m.helpPage == 0 {
-		*m.shown = scrolled{}
-		return head + m.viewSymbols(bodyH) + "\n" + sMuted.Render(truncate(lang.T("help.footer_symbols"), m.w))
+		return head + m.viewSymbols(bodyH-1) + foot
 	}
 	w := min(m.w, 80)
 	var lines []string
@@ -905,7 +928,6 @@ func hangWrap(p string, w int) []string {
 }
 
 func (m Model) viewSymbols(h int) string {
-	var b strings.Builder
 	rows := [][2]string{
 		{sHero.Render("@"), lang.T("help.hero")},
 		{sFloor.Render("."), lang.T("help.floor")},
@@ -923,36 +945,78 @@ func (m Model) viewSymbols(h int) string {
 		{sPlain.Render("^"), lang.T("slot.helmet")},
 		{sPlain.Render("}"), lang.T("slot.shield")},
 	}
+	var unknown [][2]string
 	for _, k := range game.MonsterKinds {
 		if k.MinDepth > m.g.MaxDepth {
-			rows = append(rows, [2]string{sMuted.Render("?"), sMuted.Render(lang.T("help.unknown"))})
+			unknown = append(unknown, [2]string{sMuted.Render("?"), sMuted.Render(lang.T("help.unknown"))})
 			break
 		}
 		rows = append(rows, [2]string{monsterStyle(k).Render(string(k.Glyph)), lang.T(k.Name)})
 	}
 	for i, k := range game.BossKinds {
 		if (i+1)*game.BossEvery > m.g.MaxDepth {
-			rows = append(rows, [2]string{sMuted.Render("?"), sMuted.Render(lang.T("help.unknown_boss"))})
+			unknown = append(unknown, [2]string{sMuted.Render("?"), sMuted.Render(lang.T("help.unknown_boss"))})
 			break
 		}
 		rows = append(rows, [2]string{monsterStyle(k).Render(string(k.Glyph)), lang.T("help.boss", lang.T(k.Name))})
 	}
-	perCol := max(1, h-2)
-	var cols []string
-	for i := 0; i < len(rows); i += perCol {
-		var col strings.Builder
-		for _, r := range rows[i:min(i+perCol, len(rows))] {
-			col.WriteString("  " + r[0] + strings.Repeat(" ", max(1, 4-lipgloss.Width(r[0]))) + r[1] + "  \n")
+	cell := func(r [2]string) string {
+		return "  " + r[0] + strings.Repeat(" ", max(1, 4-lipgloss.Width(r[0]))) + r[1]
+	}
+	cells := make([]string, len(rows))
+	for i, r := range rows {
+		cells[i] = cell(r)
+	}
+	var below []string
+	for _, r := range unknown {
+		below = append(below, hangWrap(cell(r), m.w)...)
+	}
+	rarity := lipgloss.NewStyle().Width(m.w).Render(lang.T("help.rarity"))
+	perCol := max(1, h-1-len(below)-lipgloss.Height(rarity))
+	var lines []string
+	for n := (len(cells) + perCol - 1) / perCol; n >= 1; n-- {
+		lines = symbolColumns(cells, n)
+		if n == 1 || slices.IndexFunc(lines, func(l string) bool { return lipgloss.Width(l) > m.w }) < 0 {
+			break
 		}
-		cols = append(cols, col.String())
 	}
-	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, cols...))
-	rarity := truncate(lang.T("help.rarity"), m.w)
-	if m.narrow() {
-		rarity = lipgloss.NewStyle().Width(m.w).Render(lang.T("help.rarity"))
+	if slices.IndexFunc(lines, func(l string) bool { return lipgloss.Width(l) > m.w }) >= 0 {
+		lines = nil
+		for _, c := range cells {
+			lines = append(lines, hangWrap(c, m.w)...)
+		}
 	}
-	b.WriteString("\n" + sMuted.Render(rarity))
-	return b.String()
+	lines = append(append(append(lines, below...), ""), strings.Split(sMuted.Render(rarity), "\n")...)
+	top := clamp(m.helpTop, 0, max(0, len(lines)-h))
+	*m.shown = scrolled{top, max(0, len(lines)-h)}
+	return strings.Join(lines[top:min(len(lines), top+h)], "\n")
+}
+
+// symbolColumns lays the symbol cells out top to bottom in n columns, each as wide as its widest cell.
+func symbolColumns(cells []string, n int) []string {
+	per := (len(cells) + n - 1) / n
+	lines := make([]string, per)
+	for c := 0; c*per < len(cells); c++ {
+		col := cells[c*per : min(len(cells), (c+1)*per)]
+		w := 0
+		for _, cell := range col {
+			w = max(w, lipgloss.Width(cell))
+		}
+		for i := range per {
+			cell := ""
+			if i < len(col) {
+				cell = col[i]
+			}
+			if c*per+per < len(cells) {
+				cell += strings.Repeat(" ", w-lipgloss.Width(cell)+2)
+			}
+			lines[i] += cell
+		}
+	}
+	for i := range lines {
+		lines[i] = strings.TrimRight(lines[i], " ")
+	}
+	return lines
 }
 
 var slotNames = [...]string{"slot.weapon", "slot.armor", "slot.boots", "slot.helmet", "slot.shield"}

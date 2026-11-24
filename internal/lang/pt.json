@@ -188,7 +188,6 @@
   "help.boss": "%s (chefe)",
   "help.footer_touch": "toque numa página · arraste para rolar",
   "help.footer": "←→ páginas · ↑↓ rolar · ? ou esc fecha",
-  "help.footer_symbols": "←→ páginas · ? ou esc fecha",
 
   "slot.weapon": "arma",
   "slot.armor": "armadura",

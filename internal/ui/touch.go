@@ -197,7 +197,11 @@ func (m Model) rowText(text string, w int) []string {
 		lines := strings.Split(hangLine(text, w), "\n")
 		return lines[:min(len(lines), maxRowLines)]
 	}
-	if cols := columns.Split(strings.TrimSpace(text), -1); len(cols) >= 3 {
+	cols := columns.Split(strings.TrimSpace(text), -1)
+	if len(cols) == 2 && lipgloss.Width(cols[0]) <= w && lipgloss.Width(cols[1]) <= w-4 {
+		return []string{cols[0], "    " + cols[1]}
+	}
+	if len(cols) >= 3 {
 		head, tail := cols[0], strings.Join(cols[2:], "  ")
 		if gap := w - lipgloss.Width(head) - lipgloss.Width(tail); gap >= 1 && lipgloss.Width(cols[1]) <= w-4 {
 			return []string{head + strings.Repeat(" ", gap) + tail, "    " + cols[1]}

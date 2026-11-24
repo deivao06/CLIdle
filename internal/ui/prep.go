@@ -389,11 +389,7 @@ func (m Model) rowLines(r prepRow, selected bool, w int) []string {
 func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {
 	var fit []string
 	for _, l := range head {
-		if m.narrow() {
-			fit = append(fit, strings.Split(lipgloss.NewStyle().Width(w).Render(l), "\n")...)
-		} else {
-			fit = append(fit, truncate(l, w))
-		}
+		fit = append(fit, strings.Split(lipgloss.NewStyle().Width(w).Render(l), "\n")...)
 	}
 	head = fit
 	var foot []string
