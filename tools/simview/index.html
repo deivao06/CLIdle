@@ -321,7 +321,7 @@
     await Promise.all(dirs.filter((d) => d !== selected || !batches.has(d)).map(loadBatch));
     for (const id of batches.keys()) if (!dirs.includes(id)) batches.delete(id);
     if (!selected || !batches.has(selected)) {
-      const first = [...batches.values()].map(merged).sort((a, b) => b.updated - a.updated)[0];
+      const first = [...batches.values()].map(merged).sort((a, b) => (b.started || 0) - (a.started || 0) || (a.id < b.id ? 1 : -1))[0];
       if (first && page === "sim") select(first.id);
       else if (first) selected = first.id;
     }
@@ -545,11 +545,14 @@
 
   // ---------- views ----------
   function renderList() {
-    const all = [...batches.values()].map(merged).sort((a, b) => b.updated - a.updated);
-    const fill = (nav, items) => { nav.innerHTML = items.length ? items.map((m) => { const st = stateOf(m);
+    const all = [...batches.values()].map(merged).sort((a, b) => (b.started || 0) - (a.started || 0) || (a.id < b.id ? 1 : -1));
+    const fill = (nav, items) => { const html = items.length ? items.map((m) => { const st = stateOf(m);
       return `<button class="item" data-id="${esc(m.id)}" aria-current="${page === "sim" && m.id === selected}"><span class="t">${esc(m.title)}</span>
-        <span class="s"><span class="dot ${st}"></span>${STATE_TEXT[st]} · ${new Date(m.updated).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span></button>`; }).join("")
+        <span class="s"><span class="dot ${st}"></span>${STATE_TEXT[st]} · ${isFinite(m.started) ? new Date(m.started).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}</span></button>`; }).join("")
         : `<p class="side-empty">Nenhum ainda</p>`;
+      if (nav.dataset.html === html) return;
+      nav.dataset.html = html;
+      nav.innerHTML = html;
       nav.querySelectorAll(".item").forEach((b) => b.addEventListener("click", () => select(b.dataset.id))); };
     fill($("#batches"), all.filter((m) => m.kind !== "boss"));
     fill($("#bossBatches"), all.filter((m) => m.kind === "boss"));
