@@ -25,7 +25,7 @@ func (gd *Guild) Level(b Building) int { return gd.Buildings[b] }
 // NextBuilding is the price of the building's next level; ok is false at the top.
 func (gd *Guild) NextBuilding(b Building) (cost int, ok bool) {
 	lvl := gd.Buildings[b]
-	return BuildingCost(lvl), lvl < BuildingMax[b]
+	return BuildingCost(b, lvl), lvl < BuildingMax[b]
 }
 
 // Build pays for the building's next level.

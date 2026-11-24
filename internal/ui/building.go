@@ -34,7 +34,7 @@ func (m Model) buildingRows() []prepRow {
 		if !ok {
 			row.text, row.style = lang.T("buildings.row_max", name, buildingValue(b, lvl)), sMuted
 		} else {
-			row.text, row.style = lang.T("buildings.row", name, buildingValue(b, lvl)+" → "+buildingValue(b, lvl+1), cost), m.buyable(cost)
+			row.text, row.style = lang.T("buildings.row", name, buildingValue(b, lvl)+" → "+buildingValue(b, lvl+1), game.Num(cost)), m.buyable(cost)
 			row.price, row.priceSt, row.enter = cost, m.goldFor(cost), func() { gd.Build(b) }
 		}
 		if m.narrow() || lipgloss.Width(row.text) > m.w-4 {

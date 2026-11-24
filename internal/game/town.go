@@ -146,7 +146,7 @@ func (g *Game) BuyPotion() {
 		return
 	}
 	g.Hero.Potions++
-	g.logf(LogInfo, "%s", lang.T("log.buy_potion", 1, price))
+	g.logf(LogInfo, "%s", lang.T("log.buy_potion", 1, Num(price)))
 }
 
 func (g *Game) buyPotions() {
@@ -162,7 +162,7 @@ func (g *Game) buyPotions() {
 	if n == 1 {
 		key = "log.buy_potion"
 	}
-	g.logf(LogInfo, "%s", lang.T(key, n, n*price))
+	g.logf(LogInfo, "%s", lang.T(key, n, Num(n*price)))
 }
 
 func (g *Game) arriveInTown() {
@@ -174,7 +174,7 @@ func (g *Game) arriveInTown() {
 		if n == 1 {
 			key = "log.sell_potion"
 		}
-		g.logf(LogInfo, "%s", lang.T(key, n, n*PotionSellPrice))
+		g.logf(LogInfo, "%s", lang.T(key, n, Num(n*PotionSellPrice)))
 	}
 	g.refreshShop()
 }
@@ -216,5 +216,5 @@ func (g *Game) SellStash(i int) {
 	it := g.Guild.Stash[i]
 	g.Guild.Stash = slices.Delete(g.Guild.Stash, i, i+1)
 	g.Guild.Gold = addGold(g.Guild.Gold, it.SellPrice())
-	g.logf(LogInfo, "%s", lang.T("log.sell_item", it.Title(), it.SellPrice()))
+	g.logf(LogInfo, "%s", lang.T("log.sell_item", it.Title(), Num(it.SellPrice())))
 }

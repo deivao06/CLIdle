@@ -32,10 +32,10 @@ func (gd *Guild) rollRecruits() {
 
 // RerollRecruits replaces the recruits on offer for a price.
 func (gd *Guild) RerollRecruits() bool {
-	if gd.Gold < RecruitReroll {
+	if gd.Gold < gd.RerollPrice() {
 		return false
 	}
-	gd.Gold -= RecruitReroll
+	gd.Gold -= gd.RerollPrice()
 	gd.rollRecruits()
 	return true
 }
@@ -43,6 +43,8 @@ func (gd *Guild) RerollRecruits() bool {
 func (gd *Guild) Beds() int { return GuildBeds + gd.Buildings[Lodging] }
 
 func (gd *Guild) HirePrice() int { return HireCost(len(gd.Heroes)) }
+
+func (gd *Guild) RerollPrice() int { return RerollCost(len(gd.Heroes)) }
 
 var (
 	ErrNoBed  = errors.New("no bed")

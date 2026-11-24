@@ -280,14 +280,14 @@ func (g *Game) returnToTown() {
 	g.Guild.Gold = addGold(g.Guild.Gold, g.LastGold)
 	g.Returns++
 	if len(e.Bag) == kept {
-		g.logf(LogGood, "%s", lang.T("log.return", e.Num, e.RetreatWhy, e.Gold))
+		g.logf(LogGood, "%s", lang.T("log.return", e.Num, e.RetreatWhy, Num(e.Gold)))
 	} else {
-		g.logf(LogGood, "%s", lang.T("log.return_sold", e.Num, e.RetreatWhy, addGold(e.Gold, sold), e.Gold, len(e.Bag)-kept, sold))
+		g.logf(LogGood, "%s", lang.T("log.return_sold", e.Num, e.RetreatWhy, Num(addGold(e.Gold, sold)), Num(e.Gold), len(e.Bag)-kept, Num(sold)))
 	}
 	if kept > 0 {
 		g.logf(LogLoot, "%s", lang.T("log.chest_kept", kept))
 	}
-	g.note(LogGood, lang.T("guild.log.return", addGold(e.Gold, sold), e.RetreatWhy, g.DungeonName()))
+	g.note(LogGood, lang.T("guild.log.return", Num(addGold(e.Gold, sold)), e.RetreatWhy, g.DungeonName()))
 	g.endExpedition()
 }
 
@@ -349,7 +349,7 @@ func (g *Game) pickup(r *round) {
 	case f.Gold > 0:
 		gold := boosted(f.Gold, h.Effect(GoldFind))
 		e.Gold = addGold(e.Gold, gold)
-		add(LogLoot, "log.pick_gold", gold)
+		add(LogLoot, "log.pick_gold", Num(gold))
 	case f.Potion:
 		h.Potions++
 		add(LogLoot, "log.pick_potion")
@@ -512,7 +512,7 @@ func (g *Game) hurt(m *Monster, d int, r *round) bool {
 	xp := boosted(m.XP, h.Effect(XPBoost))
 	e.Gold = addGold(e.Gold, gold)
 	g.Kills++
-	r.after = append(r.after, LogEntry{Text: lang.T("log.kill", name, xp, gold), Kind: LogGood})
+	r.after = append(r.after, LogEntry{Text: lang.T("log.kill", name, xp, Num(gold)), Kind: LogGood})
 	if m.Boss {
 		g.killBoss(m, r)
 	}
@@ -671,7 +671,7 @@ func (g *Game) monsterAttack(m *Monster, r *round) {
 	if h.HP <= 0 {
 		h.HP = 0
 		r.after = append(r.after, LogEntry{Text: lang.T("log.death",
-			mr.name, g.Floor(e.Level.Depth), e.Gold-e.deathKeep(), len(e.Bag), e.deathKeep()), Kind: LogBad})
+			mr.name, g.Floor(e.Level.Depth), Num(e.Gold-e.deathKeep()), len(e.Bag), Num(e.deathKeep())), Kind: LogBad})
 		g.note(LogBad, lang.T("guild.log.death", mr.name, g.Floor(e.Level.Depth), g.DungeonName()))
 		g.die(m)
 	}

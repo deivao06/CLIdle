@@ -385,8 +385,9 @@ const (
 	GuildBeds        = 3
 	RecruitCount     = 3
 	RecruitRefreshMs = int64(time.Hour / time.Millisecond)
-	RecruitReroll    = 100
-	HireBase         = 200
+	RecruitRerollPct = 5
+	HireBase         = 2000
+	HireGrowth       = 3
 	MissionSlots     = 2
 )
 
@@ -394,17 +395,30 @@ const (
 var (
 	BuildingMax      = [NumBuildings]int{Lodging: 5, MissionTable: 2, Smithy: 5, TrainingYard: 5, Market: 3, Apothecary: 5}
 	BuildingDiscount = [NumBuildings]int{Smithy: 5, TrainingYard: 5, Apothecary: 10}
+	BuildingBase     = [NumBuildings]int{Lodging: 20000, MissionTable: 100000, Smithy: 50000, TrainingYard: 50000, Market: 30000, Apothecary: 10000}
 )
 
 const (
-	BuildingBase = 500
-	MarketItems  = 1
+	BuildingGrowth = 4
+	MarketItems    = 1
 )
 
-// BuildingCost is the price of a building's next level when it is at level.
-func BuildingCost(level int) int { return BuildingBase * (level + 1) * (level + 1) }
+// BuildingCost is the price of the building's next level when it is at level.
+func BuildingCost(b Building, level int) int { return BuildingBase[b] * growth(BuildingGrowth, level) }
 
 // HireCost is the price of the next hero when the guild already has n.
-func HireCost(n int) int { return HireBase * n }
+func HireCost(n int) int { return HireBase * growth(HireGrowth, n-1) }
+
+// RerollCost is the price of new recruits: a share of the next hero's price.
+func RerollCost(n int) int { return HireCost(n) * RecruitRerollPct / 100 }
+
+// growth is ratio to the power n (1 when n is zero or less).
+func growth(ratio, n int) int {
+	x := 1
+	for range n {
+		x *= ratio
+	}
+	return x
+}
 
 const MaxGold = math.MaxInt64

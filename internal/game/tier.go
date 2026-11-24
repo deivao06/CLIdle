@@ -41,7 +41,7 @@ func (g *Game) completeDungeon(r *round) {
 	gold := goldOf(GoldPerPile(e.Level.Depth) * DungeonGoldPiles)
 	g.Guild.Gold = addGold(g.Guild.Gold, gold)
 	g.Hero.Bonus += DungeonAttrBonus
-	r.after = append(r.after, LogEntry{Text: lang.T("log.dungeon_done", g.DungeonName(), it.Title(), gold, DungeonAttrBonus), Kind: LogEpic})
+	r.after = append(r.after, LogEntry{Text: lang.T("log.dungeon_done", g.DungeonName(), it.Title(), Num(gold), DungeonAttrBonus), Kind: LogEpic})
 	if !e.Retreating {
 		g.startRetreat(lang.T("retreat.dungeon_done"))
 	}

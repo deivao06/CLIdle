@@ -813,7 +813,7 @@ func (m Model) heroPanel(w, maxH int, tab bool) string {
 		avail := maxH - strings.Count(b.String(), "\n") - strings.Count(bottom, "\n")
 		shown, used := 0, 0
 		for i, it := range e.Bag {
-			text := glueGold(lang.T("hero.bag_item", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.SellPrice()), it.SellPrice())
+			text := glueGold(lang.T("hero.bag_item", it.Slot.Glyph(), it.Title(), it.StatLabel(), game.Num(it.SellPrice())), it.SellPrice())
 			lines := strings.Split(lipgloss.NewStyle().Width(w).Render(text), "\n")
 			for j, l := range lines {
 				lines[j] = withGold(l, rarityStyle(it.Rarity), it.SellPrice(), sGold)

@@ -59,7 +59,7 @@ func TestRecruitsChangeEveryHour(t *testing.T) {
 	if same == len(first) {
 		t.Fatal("recruits did not change after an hour")
 	}
-	gd.Gold = RecruitReroll
+	gd.Gold = gd.RerollPrice()
 	before := append([]Recruit(nil), gd.Recruits...)
 	if !gd.RerollRecruits() || gd.Gold != 0 || gd.Recruits[0] == before[0] && gd.Recruits[1] == before[1] && gd.Recruits[2] == before[2] {
 		t.Fatal("paying did not reroll the recruits")

@@ -164,7 +164,7 @@ func (m Model) townRows() []prepRow {
 		next.Upgrade++
 		next.Forged += it.UpgradeStep()
 		cost := g.UpgradeCost(s)
-		text := lang.T("prep.smith_row", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade)+it.ILvl(), next.StatLabel(), cost)
+		text := lang.T("prep.smith_row", s.Glyph(), it.Label()+fmt.Sprintf(" +%d", it.Upgrade)+it.ILvl(), next.StatLabel(), game.Num(cost))
 		rows = append(rows, prepRow{section: lang.T("prep.section.smith"), text: text, style: m.priced(rarityStyle(it.Rarity), cost),
 			price: cost, priceSt: m.goldFor(cost), enter: func() { g.Upgrade(s) }, desc: lang.T("town.smith.desc")})
 	}
@@ -172,14 +172,14 @@ func (m Model) townRows() []prepRow {
 	for t := range game.NumTraits {
 		lvl := g.Hero.Training[t]
 		cost := g.TrainPrice(t)
-		text := lang.T("prep.train_row", t.Name(), lvl, t.Effect(), cost)
+		text := lang.T("prep.train_row", t.Name(), lvl, t.Effect(), game.Num(cost))
 		rows = append(rows, prepRow{section: lang.T("prep.section.training"), text: text, style: m.buyable(cost),
 			price: cost, priceSt: m.goldFor(cost), enter: func() { g.Train(t) }, desc: m.trainDesc(t)})
 	}
 
 	for i, it := range g.Shop {
 		price := game.ShopPrice(it)
-		text := lang.T("prep.shop_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), price, m.compare(it))
+		text := lang.T("prep.shop_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), game.Num(price), m.compare(it))
 		st := m.priced(rarityStyle(it.Rarity), price)
 		if !g.Hero.Class.CanUse(it) {
 			text += lang.T("prep.other_class")
@@ -196,10 +196,10 @@ func (m Model) townRows() []prepRow {
 	if g.Hero.Potions >= game.MaxPotions {
 		potion, potionGold = sMuted, sGold.Faint(true)
 	}
-	rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.potion_row", g.Hero.Potions, game.MaxPotions, potionPrice),
+	rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.potion_row", g.Hero.Potions, game.MaxPotions, game.Num(potionPrice)),
 		style: potion, price: potionPrice, priceSt: potionGold, enter: g.BuyPotion, desc: lang.T("town.potion.desc", game.MaxPotions)})
 	if size, cost, ok := g.NextBag(); ok {
-		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, cost)
+		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, game.Num(cost))
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.buyable(cost),
 			price: cost, priceSt: m.goldFor(cost), enter: g.UpgradeBag, desc: lang.T("town.bag.desc")})
 	} else {
@@ -219,16 +219,16 @@ func (m Model) townRows() []prepRow {
 
 	chest := lang.T("prep.section.chest", len(g.Guild.Stash))
 	for i, it := range g.Guild.Stash {
-		text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), it.SellPrice(), m.compare(it))
+		text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), game.Num(it.SellPrice()), m.compare(it))
 		st := rarityStyle(it.Rarity)
 		if !g.Hero.Class.CanUse(it) {
 			text += lang.T("prep.other_class")
 			st = sMuted
 		}
 		row := prepRow{section: chest, text: text, style: st, price: it.SellPrice(), priceSt: sGold,
-			enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }, desc: m.itemDesc(it) + " " + lang.T("chest.desc", it.SellPrice())}
+			enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }, desc: m.itemDesc(it) + " " + lang.T("chest.desc", game.Num(it.SellPrice()))}
 		if it.Rarity == game.Legendary {
-			row.sellAsk = lang.T("confirm.sell_legendary", it.Title(), it.SellPrice())
+			row.sellAsk = lang.T("confirm.sell_legendary", it.Title(), game.Num(it.SellPrice()))
 		}
 		rows = append(rows, row)
 	}
@@ -286,7 +286,7 @@ func (m Model) goldFor(cost int) lipgloss.Style {
 	return sGold
 }
 
-func goldText(price int) string { return fmt.Sprintf("%d %s", price, lang.T("help.gold")) }
+func goldText(price int) string { return game.Num(price) + " " + lang.T("help.gold") }
 
 // glueGold keeps "N gold" on one line when text wraps; withGold turns it back into a normal space.
 func glueGold(text string, price int) string {

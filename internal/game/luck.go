@@ -44,6 +44,9 @@ func (s Streak) Odds() string {
 	return lang.T("luck.odds", Group(int64(math.Round(1/s.Chance))), p)
 }
 
+// Num is Group for an int.
+func Num(n int) string { return Group(int64(n)) }
+
 // Group writes n with the language's thousands separator.
 func Group(n int64) string {
 	s := strconv.FormatInt(n, 10)

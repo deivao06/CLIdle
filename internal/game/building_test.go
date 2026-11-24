@@ -10,7 +10,7 @@ func TestBuildingsCostGoldAndStopAtTheTop(t *testing.T) {
 	gd.Gold = 1 << 40
 	for lvl := range BuildingMax[Market] {
 		before := gd.Gold
-		if !gd.Build(Market) || before-gd.Gold != BuildingCost(lvl) {
+		if !gd.Build(Market) || before-gd.Gold != BuildingCost(Market, lvl) {
 			t.Fatalf("level %d cost %d", lvl+1, before-gd.Gold)
 		}
 	}

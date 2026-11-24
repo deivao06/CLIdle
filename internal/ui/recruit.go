@@ -41,7 +41,7 @@ func (m Model) hireBlock() string {
 	case errors.Is(err, game.ErrNoBed):
 		return lang.T("recruit.no_bed", m.g.Guild.Beds())
 	case errors.Is(err, game.ErrNoGold):
-		return lang.T("recruit.no_gold", m.g.Guild.HirePrice())
+		return lang.T("recruit.no_gold", game.Num(m.g.Guild.HirePrice()))
 	}
 	return ""
 }
@@ -57,7 +57,7 @@ func (m Model) recruitRows() []prepRow {
 	}
 	var rows []prepRow
 	for i, r := range gd.Recruits {
-		row := prepRow{section: sec, text: lang.T("recruit.row", r.Name, r.Class.Name(), price), style: style,
+		row := prepRow{section: sec, text: lang.T("recruit.row", r.Name, r.Class.Name(), game.Num(price)), style: style,
 			price: price, priceSt: m.goldFor(price), desc: r.Class.Desc() + " " + next}
 		name := sTitle
 		if block != "" {
@@ -65,7 +65,7 @@ func (m Model) recruitRows() []prepRow {
 		}
 		row.card = func(w int) []string {
 			who := name.Render(fmt.Sprintf("%-12s", r.Name)) + " " + sMuted.Render(r.Class.Name())
-			return []string{ends(who, row.priceSt.Render(goldText(price)), min(w, lipgloss.Width(lang.T("recruit.make", price))))}
+			return []string{ends(who, row.priceSt.Render(goldText(price)), min(w, lipgloss.Width(lang.T("recruit.make", game.Num(price)))))}
 		}
 		if block != "" {
 			row.desc = block
@@ -74,7 +74,7 @@ func (m Model) recruitRows() []prepRow {
 		}
 		rows = append(rows, row)
 	}
-	own := prepRow{section: sec, text: lang.T("recruit.make", price), style: style, price: price, priceSt: m.goldFor(price),
+	own := prepRow{section: sec, text: lang.T("recruit.make", game.Num(price)), style: style, price: price, priceSt: m.goldFor(price),
 		desc: lang.T("recruit.make.desc")}
 	if block != "" {
 		own.desc = block
@@ -84,8 +84,9 @@ func (m Model) recruitRows() []prepRow {
 			Typing(true)
 		}
 	}
-	reroll := prepRow{section: sec, text: lang.T("recruit.reroll", game.RecruitReroll), style: m.buyable(game.RecruitReroll),
-		price: game.RecruitReroll, priceSt: m.goldFor(game.RecruitReroll), desc: lang.T("recruit.reroll.desc") + " " + next,
+	rp := gd.RerollPrice()
+	reroll := prepRow{section: sec, text: lang.T("recruit.reroll", game.Num(rp)), style: m.buyable(rp),
+		price: rp, priceSt: m.goldFor(rp), desc: lang.T("recruit.reroll.desc") + " " + next,
 		enter: func() { gd.RerollRecruits() }}
 	return append(rows, own, reroll)
 }
@@ -123,7 +124,7 @@ func (m Model) allocRows() []prepRow {
 		done.text = lang.T("alloc.confirm")
 	default:
 		price := m.g.Guild.HirePrice()
-		done.text, done.price, done.priceSt = lang.T("alloc.hire", price), price, m.goldFor(price)
+		done.text, done.price, done.priceSt = lang.T("alloc.hire", game.Num(price)), price, m.goldFor(price)
 	}
 	if left == 0 {
 		done.style, done.desc, done.act = sTitle, "", (*Model).finishAlloc

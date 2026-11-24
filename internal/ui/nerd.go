@@ -45,12 +45,12 @@ func (m Model) nerdRows() []prepRow {
 	add("guild_beds", fmt.Sprint(game.GuildBeds))
 	add("recruits", fmt.Sprint(game.RecruitCount))
 	add("recruit_refresh", fmt.Sprintf("%d min", game.RecruitRefreshMs/60000))
-	add("recruit_reroll", fmt.Sprint(game.RecruitReroll))
-	add("hire_cost", lang.T("nerd.hire_cost.value", game.HireCost(1)))
+	add("recruit_reroll", lang.T("nerd.recruit_reroll.value", game.RecruitRerollPct))
+	add("hire_cost", lang.T("nerd.hire_cost.value", fmt.Sprint(game.HireCost(1)), game.HireCost(2)/game.HireCost(1)))
 	add("mission_slots", fmt.Sprint(game.MissionSlots))
-	add("building_cost", lang.T("nerd.quad.value", fmt.Sprint(game.BuildingCost(0)), fmt.Sprint(game.BuildingCost(1)-game.BuildingCost(0))))
+	add("building_cost", lang.T("nerd.building_cost.value", game.BuildingCost(0, 1)/game.BuildingCost(0, 0)))
 	for b := range game.NumBuildings {
-		rows = append(rows, nerdRow(sec, b.Name(), lang.T("nerd.building.value", game.BuildingMax[b], buildingValue(b, 1)), b.Desc()))
+		rows = append(rows, nerdRow(sec, b.Name(), lang.T("nerd.building.value", game.BuildingMax[b], buildingValue(b, 1), game.BuildingCost(b, 0)), b.Desc()))
 	}
 
 	sec = lang.T("nerd.section.combat")
