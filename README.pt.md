@@ -24,6 +24,8 @@ Você equipa Espada Curta (raro, Atq +8).
 
 ## Como funciona
 
+- **Guilda de Aventureiros:** o jogo abre na taverna da sua guilda. Contrate recrutas ou crie seus heróis, distribua os pontos de atributo e mande vários em expedição ao mesmo tempo; eles dividem o ouro e o baú.
+- **Prédios da guilda:** Alojamento, Mesa de missões, Ferreiro, Campo de treino, Mercado e Boticário, melhorados com ouro para bônus permanentes.
 - **Classes:** guerreiro, mago, ladino ou clérigo, escolhida no começo. Cada uma usa armas e armaduras próprias e libera habilidades e magias por nível.
 - **Expedições:** o herói sai da cidade, desce andar por andar e volta com o que achou.
 - **Sair ou morrer:** se voltar, guarda o ouro e vende a mochila. Se morrer, perde o loot da expedição, mas mantém nível, poções e o equipamento com que saiu.
@@ -31,7 +33,8 @@ Você equipa Espada Curta (raro, Atq +8).
 - **Retirada automática:** você define quando ele volta (HP baixo sem poções, mochila cheia, último andar).
 - **Cidade:** loja, ferreiro e treino permanente, pagos com o ouro das expedições.
 - **Baú:** com "Vender loot na volta" desligado, o que ele acha vai para o baú e você escolhe o que equipar ou vender. Com auto-equipar desligado, ele não troca de equipamento sozinho.
-- **Chefes a cada 10 andares:** guardam a escada, deixam cair um item épico e liberam um atalho (começar no andar 11, 21...).
+- **Chefes a cada 10 andares:** guardam a escada, deixam cair um item raro, épico ou lendário e liberam um atalho (começar no andar 11, 21...).
+- **Dungeons e prestígio:** cada dungeon tem 100 andares e um tier; concluir uma abre outra mais difícil. O prestígio recomeça um herói em troca de pontos de atributo para sempre.
 - **Progresso offline:** ao reabrir, o jogo simula o tempo em que ficou fechado (até 12h) e mostra um resumo.
 - **Layout adaptável:** funciona de 40×10 até telas grandes; a câmera segue o `@` quando o mapa não cabe.
 
@@ -79,18 +82,32 @@ Builds locais mostram a versão `dev` e não procuram atualizações.
 
 ## Controles
 
+Na **guilda** (onde o jogo abre):
+
 | Tecla | Ação |
 |---|---|
-| `1` | Tela principal (dungeon; na cidade: fogueira, ferreiro, treino, loja e baú) |
+| `1` | Guilda (taverna, heróis, registro da guilda) |
+| `2` | Prédios (melhorar a guilda com ouro) |
+| `3` | Recrutar (contratar um recruta ou criar um herói) |
+| `4` | Config (bip, efeito CRT, coisas de nerd, idioma, resetar save, versão) |
+| `enter` | Abrir o herói escolhido |
+
+Cada herói da lista mostra o que está fazendo ao lado do nome: `.@.` andando em expedição (para a esquerda quando volta), `.@†` lutando, `π@` em casa, `@+` esperando a Mesa de missões. Embaixo: andar, dungeon e tier, e o ouro achado.
+
+Num **herói**:
+
+| Tecla | Ação |
+|---|---|
+| `1` | Tela principal (dungeon; na cidade: taverna, ferreiro, treino, loja e baú) |
 | `2` | Preparação (config da próxima expedição) |
 | `3` | Herói (atributos, equipamento, mochila, recordes, última morte) |
-| `4` | Config (bip, efeito CRT, idioma, resetar save, versão) |
+| `4` | Nerd (todos os números de balanceamento; ligue "Coisas de nerd" na Config) |
+| `esc` | Voltar para a guilda |
 | `e` | Partir para a expedição (na cidade) |
 | `r` | Mandar o herói voltar (na dungeon) |
 | `a` | Ligar/desligar a auto-expedição |
-| `u` | Atualizar (quando há versão nova) |
-| `?` | Legenda dos símbolos |
-| `q` | Salvar e sair |
+
+Em qualquer tela: `u` atualiza (quando há versão nova), `?` abre a legenda e a ajuda, `q` salva e sai.
 
 Na **Preparação**: `↑↓` ou `j/k` escolhem, `←→` ou `h/l` ajustam, `enter` alterna.
 
@@ -122,8 +139,8 @@ Cor do item = raridade: branco comum, verde mágico, azul raro, roxo épico, lar
 
 - Fica em `~/.local/share/clidle/save.json` (ou `$XDG_DATA_HOME/clidle/save.json`). No navegador, fica no armazenamento do site.
 - Salva a cada 30 segundos e ao sair.
-- Para recomeçar do zero, use **Resetar save** na tela Config (`4`).
-- O jogo abre em inglês; o idioma muda na tela Config (`4`).
+- Para recomeçar do zero, use **Resetar save** na aba Config da guilda (`4`).
+- O jogo abre em inglês; o idioma muda na aba Config da guilda (`4`).
 
 ## Playground
 

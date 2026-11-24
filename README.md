@@ -24,6 +24,8 @@ You equip Short Sword (rare, Atk +8).
 
 ## How it works
 
+- **Adventurers' Guild:** the game opens in your guild's tavern. Hire recruits or make your own heroes, spend their attribute points and send several of them on expeditions at once; they share the gold and the chest.
+- **Guild buildings:** Lodging, Mission table, Smithy, Training yard, Market and Apothecary, upgraded with gold for lasting bonuses.
 - **Classes:** warrior, mage, rogue or cleric, chosen at the start. Each one uses its own weapons and armor and unlocks abilities and spells by level.
 - **Expeditions:** the hero leaves town, goes down floor by floor and comes back with what he found.
 - **Return or die:** if he comes back, he keeps the gold and sells the bag. If he dies, he loses the expedition's loot but keeps his level, potions and the gear he left with.
@@ -31,7 +33,8 @@ You equip Short Sword (rare, Atk +8).
 - **Automatic retreat:** you decide when he comes back (low HP with no potions, full bag, last floor).
 - **Town:** shop, blacksmith and permanent training, paid with the gold from expeditions.
 - **Chest:** with "Sell loot on return" off, what he finds goes to the chest and you choose what to equip or sell. With auto-equip off, he never swaps gear on his own.
-- **Bosses every 10 floors:** they guard the stairs, drop an epic item and unlock a shortcut (start on floor 11, 21...).
+- **Bosses every 10 floors:** they guard the stairs, drop a rare, epic or legendary item and unlock a shortcut (start on floor 11, 21...).
+- **Dungeons and prestige:** each dungeon has 100 floors and a tier; finishing one opens a harder one. Prestige restarts a hero for attribute points that last forever.
 - **Offline progress:** when you reopen it, the game simulates the time it was closed (up to 12h) and shows a summary.
 - **Adaptive layout:** works from 40×10 up to large screens; the camera follows the `@` when the map does not fit.
 
@@ -79,18 +82,32 @@ Local builds show the version `dev` and do not look for updates.
 
 ## Controls
 
+In the **guild** (where the game opens):
+
 | Key | Action |
 |---|---|
-| `1` | Main screen (dungeon; in town: campfire, blacksmith, training, shop and chest) |
+| `1` | Guild (tavern, heroes, guild log) |
+| `2` | Buildings (upgrade the guild with gold) |
+| `3` | Recruit (hire a recruit or make a hero) |
+| `4` | Settings (beep, CRT effect, nerd stuff, language, reset save, version) |
+| `enter` | Open the selected hero |
+
+Each hero in the list shows what they are doing next to the name: `.@.` walking on an expedition (left when coming back), `.@†` fighting, `π@` at home, `@+` waiting for the mission table. Below: floor, dungeon and tier, and the gold found.
+
+In a **hero**:
+
+| Key | Action |
+|---|---|
+| `1` | Main screen (dungeon; in town: tavern, blacksmith, training, shop and chest) |
 | `2` | Preparation (settings for the next expedition) |
 | `3` | Hero (attributes, gear, bag, records, last death) |
-| `4` | Settings (beep, CRT effect, language, reset save, version) |
+| `4` | Nerd (every balance number; turn on "Nerd stuff" in Settings) |
+| `esc` | Back to the guild |
 | `e` | Set out on the expedition (in town) |
 | `r` | Call the hero back (in the dungeon) |
 | `a` | Turn auto-expedition on/off |
-| `u` | Update (when there is a new version) |
-| `?` | Symbol legend and help |
-| `q` | Save and quit |
+
+Anywhere: `u` updates (when there is a new version), `?` opens the symbol legend and help, `q` saves and quits.
 
 In **Preparation**: `↑↓` or `j/k` choose, `←→` or `h/l` adjust, `enter` toggles.
 
@@ -122,8 +139,8 @@ Item color = rarity: white common, green magic, blue rare, purple epic, orange l
 
 - It lives in `~/.local/share/clidle/save.json` (or `$XDG_DATA_HOME/clidle/save.json`). In the browser, it lives in the site's storage.
 - It saves every 30 seconds and when you quit.
-- To start over, use **Reset save** on the Settings screen (`4`).
-- The game opens in English; the language can be changed on the Settings screen (`4`).
+- To start over, use **Reset save** in the guild's Settings tab (`4`).
+- The game opens in English; the language can be changed in the guild's Settings tab (`4`).
 
 ## Playground
 
