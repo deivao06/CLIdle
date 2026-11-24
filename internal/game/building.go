@@ -53,4 +53,4 @@ func (g *Game) TrainPrice(t Trait) int {
 
 func (g *Game) PotionCost() int { return g.Guild.discounted(PotionPrice, Apothecary) }
 
-func (g *Game) shopSize() int { return ShopSize + g.Guild.Buildings[Market]*MarketItems }
+func (g *Game) shopSize() int { return ShopSize + MarketItemsAt(g.Guild.Buildings[Market]) }

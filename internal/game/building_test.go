@@ -56,3 +56,24 @@ func TestApothecaryHealsFirstThenDiscounts(t *testing.T) {
 		}
 	}
 }
+
+func TestMarketAddsItemsFirstThenRarity(t *testing.T) {
+	r := MarketRarityPct
+	for lvl, want := range [][2]int{{0, 0}, {MarketItems, 0}, {2 * MarketItems, 0}, {2 * MarketItems, r}, {2 * MarketItems, 2 * r}, {2 * MarketItems, 3 * r}} {
+		if got := [2]int{MarketItemsAt(lvl), MarketRarity(lvl)}; got != want {
+			t.Fatalf("level %d: items and rarity %v, want %v", lvl, got, want)
+		}
+	}
+	rare := func(boost int) int {
+		rng, n := NewRNG(27182818), 0
+		for range 20000 {
+			if rollRarity(rng, Epic, boost) > Common {
+				n++
+			}
+		}
+		return n
+	}
+	if base, top := rare(0), rare(MarketRarity(BuildingMax[Market])); top < base*2 {
+		t.Fatalf("the Market's top level gives %d non-common items against %d", top, base)
+	}
+}

@@ -178,15 +178,20 @@ func (f *FloorItem) Glyph() rune {
 	return f.Item.Slot.Glyph()
 }
 
-func newItem(rng *RNG, depth int) *Item { return newItemOf(rng, depth, rollRarity(rng, Legendary)) }
+func newItem(rng *RNG, depth int) *Item { return newItemOf(rng, depth, rollRarity(rng, Legendary, 0)) }
 
-func rollRarity(rng *RNG, top Rarity) Rarity {
+// rollRarity picks a rarity up to top, with every chance above common raised by boost percent.
+func rollRarity(rng *RNG, top Rarity, boost int) Rarity {
 	roll := rng.Float()
 	for r := top; r > Common; r-- {
-		if roll < RarityChance[r] {
+		chance := RarityChance[r]
+		if boost != 0 {
+			chance *= 1 + float64(boost)/100
+		}
+		if roll < chance {
 			return r
 		}
-		roll -= RarityChance[r]
+		roll -= chance
 	}
 	return Common
 }

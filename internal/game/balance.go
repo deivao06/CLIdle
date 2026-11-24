@@ -393,7 +393,7 @@ const (
 
 // Buildings: the most levels of each, what a level takes off a price (percent), and what each level costs.
 var (
-	BuildingMax      = [NumBuildings]int{Lodging: 5, MissionTable: 2, Smithy: 5, TrainingYard: 5, Market: 3, Apothecary: 5}
+	BuildingMax      = [NumBuildings]int{Lodging: 5, MissionTable: 2, Smithy: 5, TrainingYard: 5, Market: 5, Apothecary: 5}
 	BuildingDiscount = [NumBuildings]int{Smithy: 8, TrainingYard: 5, Apothecary: 5}
 	BuildingBase     = [NumBuildings]int{Lodging: 20000, MissionTable: 100000, Smithy: 50000, TrainingYard: 50000, Market: 30000, Apothecary: 10000}
 )
@@ -401,6 +401,9 @@ var (
 const (
 	BuildingGrowth = 4
 	MarketItems    = 1
+	// The Market's first levels add items to the shop; the rest raise the shop's rarity chances (percent).
+	MarketItemLevels = 2
+	MarketRarityPct  = 50
 	// The Apothecary's first levels add to the potion's healing (percent of max HP); the rest take off its price.
 	ApothecaryHealLevels = 3
 	ApothecaryHealPct    = 5
@@ -408,6 +411,12 @@ const (
 
 // ApothecaryHeal is the potion healing the Apothecary adds at level.
 func ApothecaryHeal(level int) int { return min(level, ApothecaryHealLevels) * ApothecaryHealPct }
+
+// MarketItemsAt is how many items the Market adds to the shop at level.
+func MarketItemsAt(level int) int { return min(level, MarketItemLevels) * MarketItems }
+
+// MarketRarity is how much the Market raises the shop's rarity chances at level (percent).
+func MarketRarity(level int) int { return max(0, level-MarketItemLevels) * MarketRarityPct }
 
 // BuildingDiscountAt is what the building takes off its price at level (percent).
 func BuildingDiscountAt(b Building, level int) int {

@@ -9,7 +9,7 @@ import (
 )
 
 // economyRun plays one hero for SIM_HOURS simulated hours (72 when unset), through every dungeon it clears,
-// and records how much gold it earns and where the gold goes.
+// and records how much gold it earns and where the gold goes. SIM_MARKET starts the guild with that Market level.
 // The idle profile is a hero on auto-expedition that never buys anything for itself: all its gold is left
 // for the guild.
 func economyRun(rec *simRecorder, c Class, label string, seed uint64) string {
@@ -23,6 +23,10 @@ func economyRun(rec *simRecorder, c Class, label string, seed uint64) string {
 		r = NewRunner(c, p, seed)
 		r.Endless = true
 		g = r.Game
+	}
+	if lvl, _ := strconv.Atoi(os.Getenv("SIM_MARKET")); lvl > 0 {
+		g.Guild.Buildings[Market] = lvl
+		g.refreshShop()
 	}
 	ser := rec.series(c, label, seed)
 	if r != nil {
