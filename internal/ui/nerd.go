@@ -155,8 +155,7 @@ func (m Model) nerdRows() []prepRow {
 		hp := game.ClassHP[c]
 		rows = append(rows, nerdRow(sec, c.Name(), lang.T("nerd.class.value", hp.Base, hp.PerLevel)+classStats(c), lang.T("nerd.class.desc")))
 		if game.ClassMana[c] > 0 {
-			rows = append(rows, nerdRow(sec, lang.T("nerd.mana", c.Name()), lang.T("nerd.mana.value", game.ClassMana[c], game.ClassManaPerInt[c],
-				num(float64(game.ClassManaRegenPerInt[c])/game.ManaRegenDiv)), lang.T("nerd.mana.desc")))
+			rows = append(rows, nerdRow(sec, lang.T("nerd.mana", c.Name()), lang.T("nerd.mana.value", game.ClassMana[c], game.ClassManaPerInt[c]), lang.T("nerd.mana.desc")))
 		}
 	}
 	add("mana_regen", num(float64(game.ManaRegenPerStep)/game.ManaRegenDiv))

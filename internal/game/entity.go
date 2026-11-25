@@ -212,7 +212,7 @@ func (h *Hero) ManaPerStep() float64 {
 	if h.MaxMP() == 0 {
 		return 0
 	}
-	return float64(ManaRegenPerStep+h.Attr(Int)*ClassManaRegenPerInt[h.Class]) / ManaRegenDiv
+	return float64(ManaRegenPerStep) / ManaRegenDiv
 }
 
 func (h *Hero) bonus(s Slot) int {

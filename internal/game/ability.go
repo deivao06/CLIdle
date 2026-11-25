@@ -51,7 +51,7 @@ func (g *Game) regenMana() {
 	if h.MaxMP() == 0 {
 		return
 	}
-	e.ManaAcc += ManaRegenPerStep + h.Attr(Int)*ClassManaRegenPerInt[h.Class]
+	e.ManaAcc += ManaRegenPerStep
 	for e.ManaAcc >= ManaRegenDiv {
 		e.ManaAcc -= ManaRegenDiv
 		h.MP = min(h.MaxMP(), h.MP+1)

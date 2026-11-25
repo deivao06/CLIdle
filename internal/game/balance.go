@@ -249,14 +249,14 @@ var AbilityInfo = [NumAbilities]abilityInfo{
 	SneakAttack:  {Rogue, 1, 0, "ability.sneak_attack"},
 	Dodge:        {Rogue, 12, 0, "ability.dodge"},
 	TreasureNose: {Rogue, 25, 0, "ability.treasure_nose"},
-	MagicMissile: {Mage, 1, 2, "spell.magic_missile"},
-	Sleep:        {Mage, 8, 3, "spell.sleep"},
-	Fireball:     {Mage, 15, 5, "spell.fireball"},
-	Blink:        {Mage, 22, 4, "spell.blink"},
-	FrostRay:     {Mage, 30, 4, "spell.frost_ray"},
-	Heal:         {Cleric, 1, 4, "spell.heal"},
+	MagicMissile: {Mage, 1, 4, "spell.magic_missile"},
+	Sleep:        {Mage, 8, 6, "spell.sleep"},
+	Fireball:     {Mage, 15, 10, "spell.fireball"},
+	Blink:        {Mage, 22, 8, "spell.blink"},
+	FrostRay:     {Mage, 30, 8, "spell.frost_ray"},
+	Heal:         {Cleric, 1, 8, "spell.heal"},
 	Aura:         {Cleric, 12, 0, "spell.aura"},
-	HolyLight:    {Cleric, 25, 3, "spell.holy_light"},
+	HolyLight:    {Cleric, 25, 6, "spell.holy_light"},
 }
 
 const (
@@ -341,14 +341,11 @@ type classHP struct{ Base, PerLevel int }
 
 var ClassMana = [NumClasses]int{Mage: 10, Cleric: 8}
 
-// ClassManaPerInt and ClassManaRegenPerInt are the max mana and the mana regen each INT point gives.
-var (
-	ClassManaPerInt      = [NumClasses]int{Mage: 3, Cleric: 2}
-	ClassManaRegenPerInt = [NumClasses]int{Mage: 6, Cleric: 4}
-)
+// ClassManaPerInt is the max mana each INT point gives.
+var ClassManaPerInt = [NumClasses]int{Mage: 3, Cleric: 2}
 
 const (
-	ManaRegenPerStep = 25
+	ManaRegenPerStep = 50
 	ManaRegenDiv     = 100
 )
 

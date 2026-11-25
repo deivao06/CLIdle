@@ -103,7 +103,7 @@ func TestDexSetsMissAndCritForEveryone(t *testing.T) {
 	}
 }
 
-func TestIntSpeedsUpManaRegen(t *testing.T) {
+func TestIntDoesNotSpeedUpManaRegen(t *testing.T) {
 	regen := func(n int) int {
 		g := departed(1)
 		g.Hero.Class = Mage
@@ -114,7 +114,7 @@ func TestIntSpeedsUpManaRegen(t *testing.T) {
 		}
 		return g.Hero.MP
 	}
-	if regen(20) <= regen(0) {
-		t.Fatal("int does not speed up mana")
+	if regen(20) != regen(0) {
+		t.Fatal("int should not speed up mana")
 	}
 }
