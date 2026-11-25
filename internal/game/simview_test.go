@@ -29,6 +29,10 @@ type simPoint struct {
 	Heroes  int `json:"heroes,omitempty"`
 	Built   int `json:"built,omitempty"`
 	Mission int `json:"mission,omitempty"`
+	// Dry is the % of expedition time in the last sample with less mana than the class's first spell costs.
+	// Mana is the average mana in % of the max over the same time.
+	Dry  int `json:"dry,omitempty"`
+	Mana int `json:"mana,omitempty"`
 }
 
 type simSeries struct {

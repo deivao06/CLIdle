@@ -37,11 +37,23 @@ func economyRun(rec *simRecorder, c Class, label string, seed uint64) string {
 	for ms := int64(0); ms < capMs; {
 		step := min(sampleMs, capMs-ms)
 		var on [NumSpends]int
+		inExp, dry, mana := 0, 0, 0
+		for done := int64(0); done < step; done += 1000 {
+			if r != nil {
+				r.Advance(1000)
+			} else {
+				g.Advance(1000)
+			}
+			if g.Exp != nil && g.Hero.MaxMP() > 0 {
+				inExp++
+				mana += g.Hero.MP * 100 / g.Hero.MaxMP()
+				if g.Hero.MP < firstSpellCost(c) {
+					dry++
+				}
+			}
+		}
 		if r != nil {
-			r.Advance(step)
 			ser.spent, on = r.Spent, r.SpentOn
-		} else {
-			g.Advance(step)
 		}
 		ms += step
 		e := g.Guild.Gold - start + ser.spent
@@ -53,6 +65,9 @@ func economyRun(rec *simRecorder, c Class, label string, seed uint64) string {
 		rec.add(ser, ms, g)
 		pt := &ser.Points[len(ser.Points)-1]
 		pt.Earned, pt.Rate = e, rate
+		if inExp > 0 {
+			pt.Dry, pt.Mana = dry*100/inExp, mana/inExp
+		}
 		pt.Smith, pt.TrainGold, pt.Bag, pt.Shop, pt.Potions = on[SpendSmith], on[SpendTrain], on[SpendBag], on[SpendShop], on[SpendPotions]
 	}
 	rec.done(ser)
@@ -79,4 +94,13 @@ func TestSimEconomy(t *testing.T) {
 			fmt.Println("RESULT " + economyRun(rec, Class(ci), l, seed))
 		}
 	}
+}
+
+func firstSpellCost(c Class) int {
+	for _, a := range AbilityInfo {
+		if a.Class == c && a.Level == 1 && a.Mana > 0 {
+			return a.Mana
+		}
+	}
+	return 0
 }

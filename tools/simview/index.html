@@ -226,7 +226,7 @@
   const CLASSES = ["Warrior", "Mage", "Rogue", "Cleric"];
   const CLASS_PT = { Warrior: "Guerreiro", Mage: "Mago", Rogue: "Ladino", Cleric: "Clérigo" };
   const METRIC_GROUPS = [
-    ["Progresso", [["floor", "Andar"], ["level", "Nível"], ["deaths", "Mortes"]]],
+    ["Progresso", [["floor", "Andar"], ["level", "Nível"], ["deaths", "Mortes"], ["mana", "Mana %"], ["dry", "Sem mana %"]]],
     ["Ouro", [["gold", "Saldo"], ["earned", "Ganho"], ["rate", "Ganho/hora"], ["spent", "Gasto"]]],
     ["Onde gasta", [["train", "Treino"], ["smith", "Ferreiro $"], ["trainGold", "Treino $"], ["potions", "Poções $"], ["shop", "Loja $"], ["bag", "Mochila $"]]],
     ["Guilda", [["heroes", "Heróis"], ["built", "Níveis de prédio"], ["mission", "Mesa de missões"]]],
@@ -247,6 +247,8 @@
     floor: "Andar: o andar mais fundo que o herói já alcançou.",
     level: "Nível: o nível do herói.",
     deaths: "Mortes: total de mortes até ali.",
+    mana: "Mana %: a mana média do herói em expedição, em % da máxima, nos últimos 15 min.",
+    dry: "Sem mana %: parte do tempo em expedição em que o herói não tinha mana para a primeira magia da classe (míssil 2, cura 4), nos últimos 15 min.",
     gold: "Saldo: o ouro no bolso naquele momento. Cai quando o jogador gasta na cidade.",
     spent: "Gasto: todo o ouro gasto na cidade até ali (ferreiro, treino, loja, mochila e poções).",
     train: "Treino: a soma dos níveis comprados no treino, nos 4 atributos.",
