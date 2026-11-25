@@ -294,7 +294,7 @@ func TestNewsOpensOnceAfterAnUpdate(t *testing.T) {
 	}
 }
 
-func TestScrollMovesTheListNotTheCursor(t *testing.T) {
+func TestScrollMovesTheCursorInLists(t *testing.T) {
 	m := New(game.New(1, game.Warrior))
 	m.g.Hero.FreePoints = 0
 	m.w, m.h = 45, 20
@@ -304,17 +304,13 @@ func TestScrollMovesTheListNotTheCursor(t *testing.T) {
 	view := m.View()
 	next, _ := m.Update(ScrollMsg(6))
 	m = next.(Model)
-	if m.cursor != 0 || m.View() == view || m.shown.top != 6 {
-		t.Fatalf("cursor %d top %d", m.cursor, m.shown.top)
+	if m.cursor != 6 || m.View() == view {
+		t.Fatalf("cursor %d after scrolling 6 lines", m.cursor)
 	}
 	next, _ = m.Update(ScrollMsg(-100))
 	m = next.(Model)
-	if m.View(); m.shown.top != 0 {
-		t.Fatalf("top %d after scrolling past the start", m.shown.top)
-	}
-	m = press(m, "down")
-	if m.listFree || m.cursor != 1 {
-		t.Fatal("arrow keys should follow the cursor again")
+	if m.View(); m.cursor != 0 || m.shown.top != 0 {
+		t.Fatalf("cursor %d top %d after scrolling past the start", m.cursor, m.shown.top)
 	}
 }
 

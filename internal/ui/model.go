@@ -50,8 +50,6 @@ type Model struct {
 	draftBase  []game.Gambit
 	draftLevel int
 	heroTop    int
-	listTop    int
-	listFree   bool
 	shown      *scrolled
 	lastTick   time.Time
 	rule       int
@@ -280,9 +278,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		}
-		if k := msg.String(); len(k) == 1 && k >= "1" && k <= "5" || k == "esc" {
-			m.listFree = false
-		}
 		switch msg.String() {
 		case "q", "ctrl+c":
 			if !m.choosing {
@@ -388,17 +383,11 @@ func (m *Model) prepKey(key string) {
 	rows := m.rows()
 	m.cursor = clamp(m.cursor, 0, len(rows)-1)
 	r := rows[m.cursor]
-	edit := m.edit
-	defer func() {
-		if m.edit != edit {
-			m.listFree = false
-		}
-	}()
 	switch key {
 	case "up", "k":
-		m.cursor, m.listFree = max(0, m.cursor-1), false
+		m.cursor = max(0, m.cursor-1)
 	case "down", "j":
-		m.cursor, m.listFree = min(len(rows)-1, m.cursor+1), false
+		m.cursor = min(len(rows)-1, m.cursor+1)
 	case "left", "h":
 		if r.adjust != nil {
 			r.adjust(-1)

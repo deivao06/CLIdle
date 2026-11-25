@@ -221,7 +221,7 @@ func (l *Lab) key(k string) bool {
 	case "1", "2", "3", "4", "5", "6", "7":
 		page := int(k[0] - '1')
 		l.st.inRoom = false
-		l.leave(func(m *Model) { m.tab, m.cursor, m.listFree = page, 0, false })
+		l.leave(func(m *Model) { m.tab, m.cursor = page, 0 })
 	case " ":
 		l.play()
 	case "p":
@@ -334,9 +334,9 @@ func (l *Lab) listKey(k string) {
 	}
 	switch k {
 	case "up", "k":
-		l.cursor, l.listFree = max(0, l.cursor-1), false
+		l.cursor = max(0, l.cursor-1)
 	case "down", "j":
-		l.cursor, l.listFree = min(len(rows)-1, l.cursor+1), false
+		l.cursor = min(len(rows)-1, l.cursor+1)
 	case "left", "h":
 		nudge(-1)
 	case "right", "l":

@@ -1,6 +1,6 @@
 package ui
 
-// ScrollMsg scrolls what is on screen by that many lines (positive = down) without moving the cursor.
+// ScrollMsg scrolls by that many lines (positive = down); in lists it moves the cursor and the list follows it.
 type ScrollMsg int
 
 // scrolled is where the last View left the scrollable part: its first line and the last first line it can take.
@@ -17,6 +17,6 @@ func (m *Model) scroll(n int) {
 	case m.tab == tabHero:
 		m.heroTop = top
 	case m.listShown():
-		m.listTop, m.listFree = top, true
+		m.cursor = clamp(m.cursor+n, 0, len(m.rows())-1)
 	}
 }

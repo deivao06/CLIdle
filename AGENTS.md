@@ -66,7 +66,7 @@ internal/ui/            Bubble Tea
   news.go               página Novidades da ajuda: notas das releases do GitHub (`update.Notes`); abre sozinha uma vez por versão (`Game.SeenNews`, jogo novo não abre)
   nerd.go               aba 5 Nerd (opção "Coisas de nerd" na Config, Game.Nerd, zero = desligada): lê os números de balance.go ao vivo, um texto por linha em lang
   lab.go, lab_rows.go   UI do playground (Lab embute Model para mapa, painel e editor de táticas; Model.tab é a página; só desktop: mapa sempre à direita)
-  touch.go              mouse/toque (bubblezone: zonas `tab:`, `row:i.j`, `val`, `btn:`, `key:`, `help:`, `class:` viram teclas) e layout estreito (< 60 colunas): status no topo, ações + abas embaixo; arrasto no celular e rodinha do mouse mandam `ScrollMsg` (scroll.go), que rola o conteúdo sem mover o cursor (`Model.shown` guarda onde a última View parou)
+  touch.go              mouse/toque (bubblezone: zonas `tab:`, `row:i.j`, `val`, `btn:`, `key:`, `help:`, `class:` viram teclas) e layout estreito (< 60 colunas): status no topo, ações + abas embaixo; arrasto no celular e rodinha do mouse mandam `ScrollMsg` (scroll.go), que nas listas move o cursor (a lista acompanha) e na ajuda e na aba Herói rola o texto (`Model.shown` guarda onde a última View parou)
   yield*.go             no navegador, a simulação offline pausa 1 ms por minuto simulado para a página redesenhar
   crt.go                efeito CRT: envelhece as cores ANSI da saída da View (tom verde-fósforo, desbota, scanlines, flicker dos cinzas, borda rasgada) (Game.CRT, zero = desligado)
 web/playground/         playground no navegador (main.go + index.html; build.sh gera web/dist/playground, fora do cache do sw.js)
