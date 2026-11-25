@@ -264,3 +264,21 @@ func TestSwappingWithAFullBagLogsTheLostItem(t *testing.T) {
 		t.Fatalf("no log for the lost item: %v", r.after)
 	}
 }
+
+func TestPreferredEffectWinsAutoEquip(t *testing.T) {
+	g := departed(1)
+	cur := g.Hero.Equip[Weapon]
+	weak := &Item{Slot: Weapon, Kind: cur.Kind, Base: 1, Effects: []ItemEffect{{LifeSteal, 10}}}
+	strong := &Item{Slot: Weapon, Kind: cur.Kind, Base: cur.Base + 50}
+	if g.better(weak) || !g.better(strong) {
+		t.Fatal("without a preferred effect the stronger item should win")
+	}
+	g.Config.PreferEffect = int(LifeSteal) + 1
+	if !g.better(weak) {
+		t.Fatal("the item with the preferred effect should win")
+	}
+	g.Hero.Equip[Weapon] = weak
+	if g.better(strong) {
+		t.Fatal("a stronger item without the effect should not replace it")
+	}
+}

@@ -54,6 +54,8 @@ type Config struct {
 	KeepLoot       bool
 	MinRarity      Rarity
 	AnyClass       bool
+	// PreferEffect is the effect auto-equip looks at first, plus one; zero = none.
+	PreferEffect int `json:",omitempty"`
 }
 
 func DefaultConfig() Config {
@@ -308,7 +310,18 @@ func (g *Game) better(it *Item) bool {
 		return false
 	}
 	cur := g.Hero.Equip[it.Slot]
-	return g.Hero.Class.CanUse(it) && (cur == nil || it.Bonus() > cur.Bonus())
+	if !g.Hero.Class.CanUse(it) {
+		return false
+	}
+	if cur == nil {
+		return true
+	}
+	if p := g.Config.PreferEffect; p > 0 {
+		if a, b := it.EffectValue(Effect(p-1)), cur.EffectValue(Effect(p-1)); a != b {
+			return a > b
+		}
+	}
+	return it.Bonus() > cur.Bonus()
 }
 
 func (g *Game) wantedItem(p Pos) bool {

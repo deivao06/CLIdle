@@ -57,6 +57,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Auto-expedição:** liga/desliga (desligada por padrão). Ao terminar, inicia outra com a mesma configuração.
 - Mandar o herói voltar manualmente desliga a auto-expedição; a retirada automática não.
 - **Auto-equipar:** ligado por padrão. Desligado, o herói não troca equipamento na dungeon; o jogador equipa pelo baú.
+- **Priorizar efeito (2026-11-25):** opção da Preparação. Com um efeito escolhido, o auto-equipar troca para o item com mais desse efeito, mesmo mais fraco; no empate, vence o mais forte. Sem efeito, compara só Ataque/Defesa. Mochila cheia na troca: o item antigo fica no chão e o log avisa.
 - **Vender loot na volta:** ligado por padrão, independente do auto-equipar. Desligado, a mochila vai para o **baú** (sem limite por enquanto; um limite fica para o futuro). Na lista da cidade o baú mostra só os itens guardados (não os equipados): enter equipa (o item que estava equipado vai para o baú) e `x` vende. Saves antigos com auto-equipar desligado começam com a venda desligada (passo v5).
 - **Item level:** todo item guarda o andar onde nasceu (`Item.Floor`; loja usa o andar mais fundo alcançado, chefe o andar dele) e mostra junto ao nome, `Brigandine +6 (iLvl 34)`, em todas as listas e no log. Explica por que um item de raridade menor e andar maior bate um de raridade maior e andar menor. Itens de saves antigos e a arma inicial não têm andar e aparecem sem o número.
 - **Compra na loja:** o item comprado é equipado na hora e o que estava equipado vai para o baú (qualquer raridade, nunca é vendido).
@@ -64,7 +65,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 - **Ajuda (`?`) tem 5 páginas:** Símbolos, Como funciona, Táticas, Atributos e Classes. A página Atributos explica cada efeito de item épico/lendário (com o mesmo nome que aparece no item e a faixa de valores). A página Classes é montada da tabela de habilidades (nunca fica desatualizada): armas de cada classe, atributo principal e cada habilidade com nível, MP e descrição.
 - **Ajuda (`?`) acompanha as regras:** toda regra nova que o jogador sente (combate, venda, mana, monstros) entra no manual.
 - **Filtro de loot:** "Pegar itens" (comum+ por padrão) define a raridade mínima que vai para a mochila. Item que o herói vai equipar é pego sempre.
-- **Itens de outra classe:** desligado por padrão; o herói só pega o que a classe dele usa.
+- **Itens de outra classe:** ligado por padrão para heróis novos (2026-11-25; saves antigos ficam como estavam, sem migração). Desligado, o herói só pega o que a classe dele usa.
 - **Limite de mortes:** configurável (padrão sem limite). Depois de N mortes desde que a auto-expedição foi ligada, ela desliga e o herói fica na cidade. Religar zera a contagem.
 - Herói novo começa com 5 poções. Na Loja (cidade) dá para comprar 1 por vez, até o limite de 10. Na Preparação, "Comprar automaticamente" define até quantas o herói completa sozinho antes de partir (se tiver ouro); o preço aparece só na Loja.
 - **Poções:** por padrão, bebidas abaixo de 40% de HP (regra das táticas). O herói nunca sabe se um golpe vai matá-lo: não existe regra de poção antes de golpe letal. O herói guarda no máximo 10; o que passar disso é vendido ao chegar na cidade (metade do preço).

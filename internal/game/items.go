@@ -73,6 +73,17 @@ func (f ItemEffect) Label() string {
 	return lang.T([...]string{"effect.life_steal", "effect.crit", "effect.vigor", "effect.gold_find", "effect.potion_boost", "effect.xp_boost", "effect.crit_damage"}[f.Kind], f.Value)
 }
 
+// EffectValue is how much of effect k the item has.
+func (it *Item) EffectValue(k Effect) int {
+	n := 0
+	for _, f := range it.Effects {
+		if f.Kind == k {
+			n += f.Value
+		}
+	}
+	return n
+}
+
 type Item struct {
 	ID      uint64
 	Slot    Slot

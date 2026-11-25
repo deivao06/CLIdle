@@ -142,6 +142,13 @@ func (m Model) prepRows() []prepRow {
 		c.MinRarity = (c.MinRarity + game.Rarity(d) + game.NumRarities) % game.NumRarities
 	})
 	cfg("prep.any_class", onOff(c.AnyClass), func(int) { c.AnyClass = !c.AnyClass })
+	prefer := lang.T("prep.prefer_none")
+	if c.PreferEffect > 0 {
+		prefer = lang.T("effect.name." + effectKeys[c.PreferEffect-1])
+	}
+	cfg("prep.prefer_effect", prefer, func(d int) {
+		c.PreferEffect = (c.PreferEffect + d + int(game.NumEffects) + 1) % (int(game.NumEffects) + 1)
+	})
 	return append(rows, m.tacticsRows(len(rows))...)
 }
 
