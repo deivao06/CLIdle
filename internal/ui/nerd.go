@@ -145,7 +145,7 @@ func (m Model) nerdRows() []prepRow {
 	add("upgrade", "1/"+fmt.Sprint(game.UpgradeDivisor))
 	add("upgrade_max", fmt.Sprintf("+%d", game.UpgradeMax))
 	big := &game.Item{Base: 1000}
-	add("upgrade_cost", lang.T("nerd.upgrade_cost.value", ratio(float64(game.UpgradeCost(big, 1)), float64(game.UpgradeCost(big, 0)))))
+	add("upgrade_cost", lang.T("nerd.upgrade_cost.value", game.SmithPriceMult, ratio(float64(game.UpgradeCost(big, 1)), float64(game.UpgradeCost(big, 0)))))
 	add("max_gold", fmt.Sprint(game.MaxGold))
 	add("train", lang.T("nerd.train.value", fmt.Sprint(game.TrainBase), fmt.Sprint(game.TrainQuad)))
 	add("train_str", fmt.Sprintf("+%d", game.TrainStr))

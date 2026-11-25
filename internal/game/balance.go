@@ -323,11 +323,12 @@ const (
 
 	BagSlotsPerLevel = 2
 	BagMaxLevel      = 8
+	SmithPriceMult   = 2
 )
 
 func UpgradeCost(it *Item, level int) int {
 	value := (it.ForgeBase() + level*it.UpgradeStep()) * ItemValuePerBonus * (int(it.Rarity) + 1)
-	return int(float64(value+10) * math.Pow(1.6, float64(level)))
+	return int(float64(value+10)*math.Pow(1.6, float64(level))) * SmithPriceMult
 }
 
 const (

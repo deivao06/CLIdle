@@ -862,7 +862,7 @@
   "nerd.upgrade_max": "Blacksmith limit",
   "nerd.upgrade_max.desc": "How many upgrades each item takes. Higher = old items stay useful for longer.",
   "nerd.upgrade_cost": "Blacksmith price",
-  "nerd.upgrade_cost.value": "(common base value + 10), %s each",
+  "nerd.upgrade_cost.value": "×%d (common base value + 10), %s each",
   "nerd.upgrade_cost.desc": "Price of an upgrade: value of the item's base as if it were common (multiplied by rarity, like the sell price) + 10, multiplied for each upgrade already done. Each one costs much more than the last.",
   "nerd.max_gold": "Max gold",
   "nerd.max_gold.desc": "Gold stops here instead of growing further. The largest whole number the game can store.",
