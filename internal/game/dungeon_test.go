@@ -38,6 +38,7 @@ func TestHeroExploresAndDescends(t *testing.T) {
 func TestHeroExploresCaves(t *testing.T) {
 	g := New(42, Warrior)
 	g.Noun = 0
+	g.Config.AnyClass = false
 	if !g.Cave() {
 		t.Fatal("noun 0 should be a cave")
 	}

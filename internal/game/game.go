@@ -57,7 +57,7 @@ type Config struct {
 }
 
 func DefaultConfig() Config {
-	return Config{Mode: ExploreAll, Gambits: defaultV5(), PotionsToBring: 3}
+	return Config{Mode: ExploreAll, Gambits: defaultV5(), PotionsToBring: 3, AnyClass: true}
 }
 
 type Game struct {

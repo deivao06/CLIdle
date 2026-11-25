@@ -121,9 +121,13 @@ func TestItemsCoverEveryKind(t *testing.T) {
 func TestMageStashesSword(t *testing.T) {
 	g := New(1, Mage)
 	g.StartExpedition()
+	if !g.Config.AnyClass {
+		t.Fatal("other classes' items should be on by default")
+	}
+	g.Config.AnyClass = false
 	sword := &Item{Slot: Weapon, Kind: Blade, Base: 99}
 	if g.better(sword) || g.wants(&FloorItem{Item: sword}) {
-		t.Fatal("mage should ignore a sword by default")
+		t.Fatal("mage should ignore a sword with other classes' items off")
 	}
 	g.Config.AnyClass = true
 	if !g.wants(&FloorItem{Item: sword}) {
