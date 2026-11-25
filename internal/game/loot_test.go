@@ -1,6 +1,7 @@
 package game
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -246,5 +247,20 @@ func TestBuyPotionInTownUpToTheCap(t *testing.T) {
 	g.BuyPotion()
 	if g.Hero.Potions != before || g.Guild.Gold != gold {
 		t.Fatal("bought outside town")
+	}
+}
+
+func TestSwappingWithAFullBagLogsTheLostItem(t *testing.T) {
+	g := departed(1)
+	e := g.Exp
+	for len(e.Bag) < g.BagCap() {
+		e.Bag = append(e.Bag, &Item{Slot: Boots, Base: 1})
+	}
+	old := g.Hero.Equip[Weapon]
+	e.Level.Items = append(e.Level.Items, &FloorItem{Pos: g.Hero.Pos, Item: &Item{Slot: Weapon, Kind: old.Kind, Base: old.Base + 50}})
+	r := &round{}
+	g.pickup(r)
+	if !slices.ContainsFunc(r.after, func(l LogEntry) bool { return l.Text == lang.T("log.drop_full", old.Title()) }) {
+		t.Fatalf("no log for the lost item: %v", r.after)
 	}
 }

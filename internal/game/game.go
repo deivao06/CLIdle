@@ -366,6 +366,8 @@ func (g *Game) pickup(r *round) {
 		add(it.Rarity.LogKind(), "log.equip", it.Title(), it.Rarity.Name(), it.StatLabel())
 		if old != nil && len(e.Bag) < g.BagCap() {
 			e.Bag = append(e.Bag, old)
+		} else if old != nil {
+			add(LogBad, "log.drop_full", old.Title())
 		}
 	default:
 		g.emit(Event{Kind: EventLoot, Pos: h.Pos, Value: int(f.Item.Rarity)})

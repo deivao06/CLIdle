@@ -347,6 +347,7 @@
   "log.pick_potion": "You pick up a potion.",
   "log.equip": "You equip %s (%s, %s).",
   "log.stash": "You put %s (%s) in your bag.",
+  "log.drop_full": "Your bag is full: you leave %s behind.",
   "log.kill": "You kill the %s! +%d XP, +%s gold",
   "log.level_up": "You reach level %d!",
   "log.tactic_added": "New tactic: %s",
