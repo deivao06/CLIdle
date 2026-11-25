@@ -548,7 +548,7 @@ func (g *Game) killBoss(m *Monster, r *round) {
 		return
 	}
 	drop := newItemOf(e.RNG, depth, rarity)
-	e.Level.Items = append(e.Level.Items, &FloorItem{Pos: m.Pos, Item: drop})
+	e.Level.Items = append(e.Level.Items, &FloorItem{Pos: e.Level.FreeNear(m.Pos), Item: drop})
 	text := lang.T("log.boss_dead", lang.T(m.Info().Name), drop.Title())
 	if !slices.Contains(g.ShortcutList(), depth+1) {
 		g.Shortcuts = append(g.ShortcutList(), depth+1)

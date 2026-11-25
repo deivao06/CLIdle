@@ -40,6 +40,23 @@ func TestKillingBossUnlocksShortcut(t *testing.T) {
 	}
 }
 
+func TestBossDropNeverHidesUnderAnotherItem(t *testing.T) {
+	g := departed(2)
+	g.enterLevel(10)
+	l := g.Exp.Level
+	b := l.boss()
+	b.HP, b.Def = 1, 0
+	l.Items = append(l.Items, &FloorItem{Pos: b.Pos, Gold: 1})
+	g.Hero.Pos = b.Pos.Add(Pos{-1, 0})
+	for l.boss() != nil {
+		g.heroAttack(b, &round{})
+	}
+	drop := l.Items[len(l.Items)-1]
+	if drop.Item == nil || drop.Pos == b.Pos || l.ItemAt(drop.Pos) != len(l.Items)-1 {
+		t.Fatalf("boss drop at %v, boss at %v", drop.Pos, b.Pos)
+	}
+}
+
 func TestLockedStartFloorFallsBackToFirst(t *testing.T) {
 	g := New(3, Warrior)
 	g.Config.StartFloor = 31

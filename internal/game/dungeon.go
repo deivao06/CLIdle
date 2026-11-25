@@ -206,6 +206,24 @@ func (l *Level) Reveal(from Pos) {
 
 const floorTries = 100
 
+// FreeNear is the free floor tile closest to p (p itself when it has no item), so a drop never hides under another.
+func (l *Level) FreeNear(p Pos) Pos {
+	if l.ItemAt(p) < 0 {
+		return p
+	}
+	for d := 1; d <= 3; d++ {
+		for y := p.Y - d; y <= p.Y+d; y++ {
+			for x := p.X - d; x <= p.X+d; x++ {
+				q := Pos{x, y}
+				if q.Dist(p) == d && l.At(q) == Floor && l.ItemAt(q) < 0 && l.MonsterAt(q) == nil {
+					return q
+				}
+			}
+		}
+	}
+	return p
+}
+
 // RandomFloor picks a free floor tile in the room, or the first free one in this or the next rooms when it is crowded.
 func (l *Level) RandomFloor(rng *RNG, room int) Pos {
 	free := func(p Pos) bool { return l.At(p) == Floor && l.MonsterAt(p) == nil && l.ItemAt(p) < 0 }
