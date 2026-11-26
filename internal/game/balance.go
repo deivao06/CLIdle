@@ -393,7 +393,7 @@ const (
 var (
 	BuildingMax      = [NumBuildings]int{Lodging: 5, MissionTable: 2, Smithy: 5, TrainingYard: 5, Market: MarketMaxLevel, Apothecary: 5}
 	BuildingDiscount = [NumBuildings]int{Smithy: 8, TrainingYard: 5, Apothecary: 5}
-	BuildingBase     = [NumBuildings]int{Lodging: 20000, MissionTable: 100000, Smithy: 50000, TrainingYard: 50000, Market: 30000, Apothecary: 10000}
+	BuildingBase     = [NumBuildings]int{Lodging: 20000, MissionTable: 100000, Smithy: 50000, TrainingYard: 50000, Market: 10000, Apothecary: 10000}
 )
 
 const (

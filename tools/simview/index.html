@@ -230,6 +230,7 @@
     ["Ouro", [["gold", "Saldo"], ["earned", "Ganho"], ["rate", "Ganho/hora"], ["spent", "Gasto"]]],
     ["Onde gasta", [["train", "Treino"], ["smith", "Ferreiro $"], ["trainGold", "Treino $"], ["potions", "Poções $"], ["shop", "Loja $"], ["bag", "Mochila $"]]],
     ["Guilda", [["heroes", "Heróis"], ["built", "Níveis de prédio"], ["mission", "Mesa de missões"]]],
+    ["Mercado", [["market", "Nível do Mercado"], ["shopLvl", "iLvl da loja"], ["deepest", "Mais fundo"], ["restock", "Trocar a loja $"]]],
   ];
   const METRICS = METRIC_GROUPS.flatMap(([, ms]) => ms);
   const ALWAYS = new Set(["floor", "level", "deaths"]);
@@ -262,6 +263,10 @@
     heroes: "Heróis: quantos heróis a guilda tem (o primeiro mais os contratados).",
     built: "Níveis de prédio: soma dos níveis de todos os prédios (25 = tudo no máximo).",
     mission: "Mesa de missões: nível da Mesa (2 = máximo, 4 heróis ao mesmo tempo).",
+    market: "Nível do Mercado: cada nível traz os itens da loja 10 andares mais fundo.",
+    shopLvl: "iLvl da loja: andar de onde vêm os itens da loja (o do Mercado, travado no mais fundo da guilda).",
+    deepest: "Mais fundo: andar mais fundo que um herói da guilda já alcançou (a trava do Mercado).",
+    restock: "Trocar a loja $: quanto custa trocar os itens da loja na hora, naquele momento.",
   };
   const LIVE_MS = 1000, LIST_MS = 4000, STALE_MS = 15000, PARADA_MS = 24 * 3600e3, OLD_MS = 3 * 24 * 3600e3;
   const css = getComputedStyle(document.documentElement);
@@ -980,7 +985,7 @@
     refreshChart(true);
   }
 
-  const UNITS = { floor: ["andar", "andares"], level: ["nível", "níveis"], train: ["nível", "níveis"], heroes: ["herói", "heróis"], built: ["nível", "níveis"], mission: ["nível", "níveis"] };
+  const UNITS = { floor: ["andar", "andares"], level: ["nível", "níveis"], train: ["nível", "níveis"], heroes: ["herói", "heróis"], built: ["nível", "níveis"], mission: ["nível", "níveis"], market: ["nível", "níveis"], shopLvl: ["andar", "andares"], deepest: ["andar", "andares"] };
   const signed = (d, s) => (d > 0 ? "+" : d < 0 ? "−" : "") + s;
   function fmtDelta(v, b) {
     if (v == null || b == null) return "—";

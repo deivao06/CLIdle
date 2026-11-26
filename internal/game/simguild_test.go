@@ -16,6 +16,16 @@ type priceScheme struct {
 	hire     func(heroes int) int
 }
 
+// marketPrice is scheme A with the Market at base × (level+1)².
+func marketPrice(base int) func(Building, int) int {
+	return func(b Building, l int) int {
+		if b == Market {
+			return base * (l + 1) * (l + 1)
+		}
+		return BuildingCost(b, l)
+	}
+}
+
 func pow(base, exp int) int {
 	n := 1
 	for range exp {
@@ -27,6 +37,8 @@ func pow(base, exp int) int {
 var priceSchemes = []priceScheme{
 	{"v18", func(_ Building, l int) int { return 500 * (l + 1) * (l + 1) }, func(n int) int { return 200 * n }},
 	{"A", BuildingCost, HireCost},
+	{"M30", marketPrice(30000), HireCost},
+	{"M60", marketPrice(60000), HireCost},
 	{"B", func(b Building, l int) int {
 		base := BuildingBase[b]
 		if b == MissionTable {
@@ -60,11 +72,11 @@ func guildRun(rec *simRecorder, c Class, ps priceScheme, seed uint64) string {
 	var rates []int
 	maxed := func() bool {
 		for b := range NumBuildings {
-			if gd.Buildings[b] < BuildingMax[b] {
+			if b != Market && gd.Buildings[b] < BuildingMax[b] {
 				return false
 			}
 		}
-		return len(gd.Heroes) >= gd.Slots()
+		return len(gd.Heroes) >= gd.Slots() && os.Getenv("SIM_MARKET_RUN") == ""
 	}
 	buy := func(ms int64) {
 		for {
@@ -73,7 +85,7 @@ func guildRun(rec *simRecorder, c Class, ps priceScheme, seed uint64) string {
 				best, price = int(NumBuildings), ps.hire(len(gd.Heroes))
 			}
 			for b := range NumBuildings {
-				if gd.Buildings[b] < BuildingMax[b] {
+				if gd.Buildings[b] < BuildingMax[b] && !(b == Market && gd.MarketLocked()) {
 					if p := ps.building(b, gd.Buildings[b]); best < 0 || p < price {
 						best, price = int(b), p
 					}
@@ -125,7 +137,7 @@ func guildRun(rec *simRecorder, c Class, ps priceScheme, seed uint64) string {
 			served[h] = true
 			h.Auto = true
 			gd.Gold -= fund
-			auditSpend(h, nil)
+			smartSpend(h, nil)
 			gd.Gold += fund
 			h.Config.StartFloor = h.ShortcutList()[len(h.ShortcutList())-1]
 		}
@@ -139,6 +151,7 @@ func guildRun(rec *simRecorder, c Class, ps priceScheme, seed uint64) string {
 			rec.add(ser, ms, first)
 			pt := &ser.Points[len(ser.Points)-1]
 			pt.Earned, pt.Rate, pt.Heroes, pt.Mission = earned, rate, len(gd.Heroes), gd.Buildings[MissionTable]
+			pt.Market, pt.ShopLvl, pt.Deepest, pt.Restock = gd.Buildings[Market], gd.ShopLevel(), gd.Deepest(), gd.RestockPrice()
 			for b := range NumBuildings {
 				pt.Built += gd.Buildings[b]
 			}
