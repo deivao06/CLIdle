@@ -88,7 +88,7 @@ func (m Model) rows() []prepRow {
 func (m Model) settingsRows() []prepRow {
 	g := m.g
 	sec := lang.T("prep.section.game")
-	return []prepRow{
+	rows := []prepRow{
 		cfgRow(sec, "prep.bell", onOff(g.Guild.Bell), func(int) { g.Guild.Bell = !g.Guild.Bell }),
 		cfgRow(sec, "prep.crt", crtLabel(g.Guild.CRT), func(int) { g.Guild.CRT = !g.Guild.CRT }),
 		cfgRow(sec, "prep.nerd", crtLabel(g.Guild.Nerd), func(int) { g.Guild.Nerd = !g.Guild.Nerd }),
@@ -102,6 +102,12 @@ func (m Model) settingsRows() []prepRow {
 		{section: lang.T("settings.section.save"), text: lang.T("settings.reset"), style: sWarn,
 			confirm: lang.T("confirm.reset"), do: (*Model).resetSave, desc: lang.T("settings.reset.desc")},
 	}
+	if canExport {
+		export := prepRow{section: lang.T("settings.section.save"), text: lang.T("settings.export"), style: sPlain,
+			act: (*Model).exportSave, desc: lang.T("settings.export.desc")}
+		rows = slices.Insert(rows, len(rows)-1, export)
+	}
+	return rows
 }
 
 func (m Model) prepRows() []prepRow {

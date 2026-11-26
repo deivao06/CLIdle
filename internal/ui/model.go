@@ -154,6 +154,14 @@ func (m *Model) save(now time.Time) {
 	m.lastSave = now
 }
 
+func (m *Model) exportSave() {
+	now := time.Now()
+	m.save(now)
+	if err := exportSave(m.savePath, "clidle-save-"+update.Version+"-"+now.Format("2006-01-02-1504")+".json"); err != nil {
+		m.saveErr = err
+	}
+}
+
 // resetSave erases the save and starts a fresh game at the class screen.
 func (m *Model) resetSave() {
 	if m.savePath != "" {
