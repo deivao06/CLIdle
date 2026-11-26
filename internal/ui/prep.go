@@ -13,6 +13,8 @@ import (
 	zone "github.com/lrstanley/bubblezone"
 )
 
+const chestPageSize = 20
+
 type prepRow struct {
 	section string
 	text    string
@@ -234,7 +236,19 @@ func (m Model) townRows() []prepRow {
 	}
 
 	chest := lang.T("prep.section.chest", len(g.Guild.Stash))
-	for i, it := range g.Guild.Stash {
+	pages := max(1, (len(g.Guild.Stash)+chestPageSize-1)/chestPageSize)
+	page := clamp(*m.chestPage, 0, pages-1)
+	*m.chestPage = page
+	if pages > 1 {
+		row := cfgRow(chest, "prep.chest_page", fmt.Sprintf("%d/%d", page+1, pages), func(d int) {
+			*m.chestPage = (page + d + pages) % pages
+		})
+		row.desc = lang.T("prep.chest_page.desc", chestPageSize)
+		rows = append(rows, row)
+	}
+	first := page * chestPageSize
+	for i, it := range g.Guild.Stash[first:min(len(g.Guild.Stash), first+chestPageSize)] {
+		i += first
 		if !near(len(rows), m.cursor, m.h) {
 			rows = append(rows, prepRow{section: chest, enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }})
 			continue

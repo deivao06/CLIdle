@@ -210,6 +210,8 @@
   "prep.section.shop": "Shop",
   "prep.section.smith": "Blacksmith",
   "prep.section.chest": "Chest (%d)",
+  "prep.chest_page": "Page",
+  "prep.chest_page.desc": "Turns the chest page. Each page shows %d items.",
   "prep.chest_row": "%c %-28s %-8s %6s gold%s",
   "prep.section.game": "Game",
   "prep.section.training": "Training",

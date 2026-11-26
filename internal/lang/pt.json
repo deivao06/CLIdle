@@ -210,6 +210,8 @@
   "prep.section.shop": "Loja",
   "prep.section.smith": "Ferreiro",
   "prep.section.chest": "Baú (%d)",
+  "prep.chest_page": "Página",
+  "prep.chest_page.desc": "Troca a página do baú. Cada página mostra %d itens.",
   "prep.chest_row": "%c %-28s %-8s %6s ouro%s",
   "prep.section.game": "Jogo",
   "prep.section.training": "Treino",

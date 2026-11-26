@@ -51,6 +51,7 @@ type Model struct {
 	draftLevel int
 	heroTop    int
 	shown      *scrolled
+	chestPage  *int
 	lastTick   time.Time
 	rule       int
 	ruleAt     time.Time
@@ -106,7 +107,7 @@ func (m *Model) ask(text string, do func(*Model)) {
 }
 
 func New(g *game.Game) Model {
-	return Model{g: g, guild: true, tab: tabGuild, lastTick: time.Now(), lastSave: time.Now(), progress: &atomic.Int64{}, shown: &scrolled{},
+	return Model{g: g, guild: true, tab: tabGuild, lastTick: time.Now(), lastSave: time.Now(), progress: &atomic.Int64{}, shown: &scrolled{}, chestPage: new(int),
 		lastDeaths: g.Deaths, lastBosses: g.BossKills, crt: g.Guild.CRT}
 }
 

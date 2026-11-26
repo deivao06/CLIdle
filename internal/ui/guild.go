@@ -38,6 +38,7 @@ func (m *Model) openGuild() {
 func (m *Model) openHero(h *game.Game) {
 	m.g, m.guild, m.tab, m.cursor, m.heroTop, m.help = h, false, tabDungeon, 0, 0, false
 	h.Events = h.Events[:0]
+	*m.chestPage = 0
 	m.lastDeaths, m.lastBosses = h.Deaths, h.BossKills
 	m.spendFree(h)
 }
