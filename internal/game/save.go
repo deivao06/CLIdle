@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const saveVersion = 12
+const saveVersion = 13
 
 type saveFile struct {
 	Version int

@@ -76,6 +76,9 @@ func migrate(f *saveFile, old *legacy) {
 	if f.Version < 11 {
 		migrateV11Bless(f.Game)
 	}
+	if f.Version < 13 {
+		migrateV13Bag(f.Guild)
+	}
 	f.Game = nil
 	f.Version = saveVersion
 }
@@ -191,4 +194,12 @@ func migrateV11Bless(g *Game) {
 	g.Config.Gambits = slices.DeleteFunc(g.Config.Gambits, func(gb Gambit) bool { return gb.Do == ActHolyLight })
 	g.TacticsChanged()
 	g.unlockGambits(AbilityInfo[HolyLight].Level-1, &round{})
+}
+
+// migrateV13Bag gives the guild the biggest bag any hero had; v13 moved the bag and the shop to the guild.
+func migrateV13Bag(gd *Guild) {
+	for _, h := range gd.Heroes {
+		gd.BagLevel = max(gd.BagLevel, h.BagLevel)
+		h.BagLevel, h.Shop = 0, nil
+	}
 }

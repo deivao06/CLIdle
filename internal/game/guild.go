@@ -23,6 +23,10 @@ type Guild struct {
 	Ticket int64 `json:",omitempty"`
 	// Buildings holds the level of each building.
 	Buildings [NumBuildings]int `json:",omitempty"`
+	// Shop is nil until the first stock is rolled; ShopMs counts the time since it was last replaced.
+	Shop     []*Item
+	ShopMs   int64 `json:",omitempty"`
+	BagLevel int   `json:",omitempty"`
 }
 
 // GuildTickMs is the slice of time every hero runs before the next one, so heroes that share the gold and the
@@ -46,6 +50,9 @@ func (gd *Guild) link() {
 	if len(gd.Recruits) == 0 {
 		gd.rollRecruits()
 	}
+	if gd.Shop == nil {
+		gd.refreshShop()
+	}
 }
 
 // Advance runs every hero for ms milliseconds of game time.
@@ -61,6 +68,11 @@ func (gd *Guild) Advance(ms int64) {
 	for gd.RecruitMs >= RecruitRefreshMs {
 		gd.RecruitMs -= RecruitRefreshMs
 		gd.rollRecruits()
+	}
+	gd.ShopMs += ms
+	for gd.ShopMs >= ShopRefreshMs {
+		gd.ShopMs -= ShopRefreshMs
+		gd.refreshShop()
 	}
 }
 

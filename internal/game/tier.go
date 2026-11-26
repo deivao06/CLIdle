@@ -84,11 +84,9 @@ func (g *Game) Prestige(c Class) {
 	if c != old.Class {
 		g.Config.Gambits = heroGambits(g.Hero)
 	}
-	g.BagLevel = 0
 	g.Dungeon, g.Reached, g.Shortcuts = 0, 0, nil
 	g.Config.StartFloor = 1
 	g.Prestiges++
 	g.rollDungeonName(g.RNG)
-	g.refreshShop()
 	g.logf(LogEpic, "%s", lang.T("log.prestige", g.Prestiges, gain, g.DungeonName()))
 }

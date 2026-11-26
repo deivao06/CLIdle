@@ -113,7 +113,6 @@ func New(seed uint64, c Class) *Game {
 	g.rollDungeonName(NewRNG(^seed))
 	g.Guild = &Guild{Heroes: []*Game{g}, RNG: NewRNG(seed ^ guildSeed)}
 	g.Guild.link()
-	g.refreshShop()
 	g.logf(LogInfo, "%s", lang.T("log.welcome"))
 	return g
 }

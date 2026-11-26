@@ -8,13 +8,13 @@ func TestBuildingsCostGoldAndStopAtTheTop(t *testing.T) {
 		t.Fatal("built without gold")
 	}
 	gd.Gold = 1 << 40
-	for lvl := range BuildingMax[Market] {
+	for lvl := range BuildingMax[Lodging] {
 		before := gd.Gold
-		if !gd.Build(Market) || before-gd.Gold != BuildingCost(Market, lvl) {
+		if !gd.Build(Lodging) || before-gd.Gold != BuildingCost(Lodging, lvl) {
 			t.Fatalf("level %d cost %d", lvl+1, before-gd.Gold)
 		}
 	}
-	if gd.Build(Market) || gd.Level(Market) != BuildingMax[Market] {
+	if gd.Build(Lodging) || gd.Level(Lodging) != BuildingMax[Lodging] {
 		t.Fatal("built past the top")
 	}
 }
@@ -25,11 +25,12 @@ func TestBuildingsChangeTheGuild(t *testing.T) {
 	smith, train, potion, heal := g.UpgradeCost(Weapon), g.TrainPrice(Str), g.PotionCost(), g.PotionHeal()
 	beds, slots := gd.Beds(), gd.Slots()
 	gd.Gold = 1 << 40
+	g.MaxDepth = 50
 	for b := range NumBuildings {
 		gd.Build(b)
 		gd.Build(b)
 	}
-	g.refreshShop()
+	gd.refreshShop()
 	pct := func(v int, b Building) int { return v * (100 - BuildingDiscountAt(b, 2)) / 100 }
 	switch {
 	case gd.Beds() != beds+2, gd.Slots() != slots+2:
@@ -38,8 +39,8 @@ func TestBuildingsChangeTheGuild(t *testing.T) {
 		t.Fatalf("smith %d train %d potion %d", g.UpgradeCost(Weapon), g.TrainPrice(Str), g.PotionCost())
 	case g.PotionHeal() != heal+g.Hero.MaxHP()*2*ApothecaryHealPct/100:
 		t.Fatalf("potion heals %d", g.PotionHeal())
-	case len(g.Shop) != ShopSize+2*MarketItems:
-		t.Fatalf("shop has %d items", len(g.Shop))
+	case len(gd.Shop) != ShopSize+2*MarketItems:
+		t.Fatalf("shop has %d items", len(gd.Shop))
 	}
 	gold := gd.Gold
 	g.Train(Str)
@@ -73,7 +74,7 @@ func TestMarketAddsItemsFirstThenRarity(t *testing.T) {
 		}
 		return n
 	}
-	if base, top := rare(0), rare(MarketRarity(BuildingMax[Market])); top < base*2 {
+	if base, top := rare(0), rare(MarketRarity(BuildingMax[Lodging])); top < base*2 {
 		t.Fatalf("the Market's top level gives %d non-common items against %d", top, base)
 	}
 }

@@ -26,7 +26,7 @@ func economyRun(rec *simRecorder, c Class, label string, seed uint64) string {
 	}
 	if lvl, _ := strconv.Atoi(os.Getenv("SIM_MARKET")); lvl > 0 {
 		g.Guild.Buildings[Market] = lvl
-		g.refreshShop()
+		g.Guild.refreshShop()
 	}
 	ser := rec.series(c, label, seed)
 	if r != nil {

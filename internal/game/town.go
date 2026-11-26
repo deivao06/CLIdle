@@ -1,6 +1,7 @@
 package game
 
 import (
+	"errors"
 	"slices"
 
 	"fmt"
@@ -51,11 +52,24 @@ func (g *Game) ToggleAuto() {
 	}
 }
 
-func (g *Game) refreshShop() {
-	g.Shop = g.Shop[:0]
-	for range g.shopSize() {
-		g.Shop = append(g.Shop, newItemOf(g.RNG, g.Deepest(), rollRarity(g.RNG, Epic, MarketRarity(g.Guild.Buildings[Market]))))
+func (gd *Guild) refreshShop() {
+	lvl := gd.Buildings[Market]
+	gd.Shop = make([]*Item, 0, ShopSize+MarketItemsAt(lvl))
+	for range cap(gd.Shop) {
+		gd.Shop = append(gd.Shop, newItemOf(gd.RNG, gd.ShopLevel(), rollRarity(gd.RNG, Epic, MarketRarity(lvl))))
 	}
+}
+
+func (gd *Guild) RestockPrice() int { return RestockCost(gd.Buildings[Market]) }
+
+// Restock replaces the shop's items for a price.
+func (gd *Guild) Restock() bool {
+	if gd.Gold < gd.RestockPrice() {
+		return false
+	}
+	gd.Gold -= gd.RestockPrice()
+	gd.refreshShop()
+	return true
 }
 
 func ShopPrice(it *Item) int { return pctOf(it.Value(), 100*ShopMarkup) }
@@ -69,19 +83,30 @@ func (g *Game) spend(cost int) bool {
 	return true
 }
 
+var (
+	ErrAway     = errors.New("away")
+	ErrOtherUse = errors.New("other class")
+)
+
+// Refuse says why the hero cannot take the item now, or nil.
+func (g *Game) Refuse(it *Item) error {
+	switch {
+	case !g.InTown():
+		return ErrAway
+	case !g.Hero.Class.CanUse(it):
+		return ErrOtherUse
+	}
+	return nil
+}
+
+// BuyShop buys the guild shop's i-th item for g, who equips it at once.
 func (g *Game) BuyShop(i int) {
-	if !g.InTown() || i < 0 || i >= len(g.Shop) {
+	gd := g.Guild
+	if i < 0 || i >= len(gd.Shop) || g.Refuse(gd.Shop[i]) != nil || !g.spend(ShopPrice(gd.Shop[i])) {
 		return
 	}
-	if !g.Hero.Class.CanUse(g.Shop[i]) {
-		g.logf(LogInfo, "%s", lang.T("log.cannot_use", g.Shop[i].Title()))
-		return
-	}
-	if !g.spend(ShopPrice(g.Shop[i])) {
-		return
-	}
-	it := g.Shop[i]
-	g.Shop = append(g.Shop[:i], g.Shop[i+1:]...)
+	it := gd.Shop[i]
+	gd.Shop = slices.Delete(gd.Shop, i, i+1)
 	g.equipBought(it)
 }
 
@@ -115,21 +140,25 @@ func (g *Game) Upgrade(s Slot) {
 	g.logf(LogGood, "%s", lang.T("log.smith_done", it.Title(), it.StatLabel()))
 }
 
-func (g *Game) BagCap() int { return BagSize + g.BagLevel*BagSlotsPerLevel }
+func (g *Game) BagCap() int { return g.Guild.BagCap() }
+
+func (gd *Guild) BagCap() int { return BagSize + gd.BagLevel*BagSlotsPerLevel }
 
 // NextBag is the bag size after the next upgrade and its cost; ok is false at the maximum.
-func (g *Game) NextBag() (size, cost int, ok bool) {
-	lvl := g.BagLevel
+func (gd *Guild) NextBag() (size, cost int, ok bool) {
+	lvl := gd.BagLevel
 	return BagSize + (lvl+1)*BagSlotsPerLevel, BagCost(lvl), lvl < BagMaxLevel
 }
 
-func (g *Game) UpgradeBag() {
-	_, cost, ok := g.NextBag()
-	if !g.InTown() || !ok || !g.spend(cost) {
-		return
+// UpgradeBag makes every hero's bag bigger.
+func (gd *Guild) UpgradeBag() bool {
+	_, cost, ok := gd.NextBag()
+	if !ok || gd.Gold < cost {
+		return false
 	}
-	g.BagLevel++
-	g.logf(LogGood, "%s", lang.T("log.bag_done", g.BagCap()))
+	gd.Gold -= cost
+	gd.BagLevel++
+	return true
 }
 
 func (g *Game) Train(t Trait) {
@@ -176,7 +205,6 @@ func (g *Game) arriveInTown() {
 		}
 		g.logf(LogInfo, "%s", lang.T(key, n, Num(n*PotionSellPrice)))
 	}
-	g.refreshShop()
 }
 
 func (g *Game) EquipStash(i int) {
@@ -209,12 +237,11 @@ func (g *Game) Unequip(s Slot) {
 	g.logf(LogInfo, "%s", lang.T("log.unequip", it.Title()))
 }
 
-func (g *Game) SellStash(i int) {
-	if !g.InTown() || i < 0 || i >= len(g.Guild.Stash) {
+func (gd *Guild) SellStash(i int) {
+	if i < 0 || i >= len(gd.Stash) {
 		return
 	}
-	it := g.Guild.Stash[i]
-	g.Guild.Stash = slices.Delete(g.Guild.Stash, i, i+1)
-	g.Guild.Gold = addGold(g.Guild.Gold, it.SellPrice())
-	g.logf(LogInfo, "%s", lang.T("log.sell_item", it.Title(), Num(it.SellPrice())))
+	it := gd.Stash[i]
+	gd.Stash = slices.Delete(gd.Stash, i, i+1)
+	gd.Gold = addGold(gd.Gold, it.SellPrice())
 }

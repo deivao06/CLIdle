@@ -181,7 +181,7 @@ func buyUpgrade(g *Game, best int, on *[NumSpends]int) {
 		g.Train(Trait(best - 100))
 		kind = SpendTrain
 	default:
-		g.UpgradeBag()
+		g.Guild.UpgradeBag()
 	}
 	if on != nil {
 		on[kind] += before - g.Guild.Gold
@@ -203,7 +203,7 @@ func auditCheapest(g *Game) (int, int) {
 	for _, t := range auditTraits[g.Hero.Class] {
 		try(100+int(t), TrainCost(g.Hero.Training[t]))
 	}
-	if _, c, ok := g.NextBag(); ok {
+	if _, c, ok := g.Guild.NextBag(); ok {
 		try(200, c)
 	}
 	return best, cost
@@ -214,7 +214,7 @@ func auditCheapest(g *Game) (int, int) {
 func smartSpend(g *Game, on *[NumSpends]int) {
 	for {
 		bought := false
-		for i, it := range g.Shop {
+		for i, it := range g.Guild.Shop {
 			cur := g.Hero.Equip[it.Slot]
 			if g.Hero.Class.CanUse(it) && (cur == nil || it.Bonus() > cur.Bonus()) && g.Guild.Gold-ShopPrice(it) >= 5*PotionPrice {
 				before := g.Guild.Gold
@@ -246,7 +246,7 @@ func smartSpend(g *Game, on *[NumSpends]int) {
 		for _, t := range append(slices.Clone(auditTraits[g.Hero.Class]), Con) {
 			try(100+int(t), TrainCost(g.Hero.Training[t]))
 		}
-		if _, c, ok := g.NextBag(); ok {
+		if _, c, ok := g.Guild.NextBag(); ok {
 			try(200, c)
 		}
 		if best < 0 || g.Guild.Gold-cost < reserve {

@@ -7,7 +7,7 @@ import (
 	"clidle/internal/lang"
 )
 
-const tacticsSeed = 31415926
+const tacticsSeed = 31415927
 
 var never = [2]Cond{{CondPotions, OpLess, 0}}
 

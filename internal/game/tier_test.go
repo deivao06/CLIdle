@@ -106,7 +106,7 @@ func TestV9ShallowSaveStaysInTheFirstDungeon(t *testing.T) {
 func TestPrestigeStartsOverAndKeepsTheLegacy(t *testing.T) {
 	g := New(1, Warrior)
 	g.Hero.Name, g.Hero.Level, g.Hero.Training[Str], g.Hero.Bonus = "Ana", 40, 3, 2*DungeonAttrBonus
-	g.Guild.Gold, g.BagLevel, g.Dungeon, g.Reached = 5000, 3, 2, 40
+	g.Guild.Gold, g.Guild.BagLevel, g.Dungeon, g.Reached = 5000, 3, 2, 40
 	g.Guild.Stash = []*Item{{ID: 99, Slot: Weapon, Rarity: Legendary, Base: 50}}
 	if g.PrestigeGain() != int(NumTraits)*PrestigePerTier*(1+2) {
 		t.Fatalf("gain %d", g.PrestigeGain())
@@ -116,7 +116,7 @@ func TestPrestigeStartsOverAndKeepsTheLegacy(t *testing.T) {
 	if h.Class != Mage || h.Level != 1 || h.Name != "Ana" || h.LegacyPoints != 24 || h.FreePoints != CreationPoints+24 || h.Bonus != 0 || h.Training[Str] != 0 {
 		t.Fatalf("hero %+v", h)
 	}
-	if g.Guild.Gold != 5000 || g.BagLevel != 0 || g.Dungeon != 0 || g.Reached != 0 || len(g.Guild.Stash) != 1 || g.Prestiges != 1 || g.startFloor() != 1 {
+	if g.Guild.Gold != 5000 || g.Guild.BagLevel != 3 || g.Dungeon != 0 || g.Reached != 0 || len(g.Guild.Stash) != 1 || g.Prestiges != 1 || g.startFloor() != 1 {
 		t.Fatal("prestige did not start over")
 	}
 	if h.Spend([NumTraits]int{Con: CreationPoints + 24}) != nil || h.Attr(Con) != CreationPoints+24 || g.CanPrestige() {

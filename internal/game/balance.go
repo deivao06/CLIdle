@@ -391,7 +391,7 @@ const (
 
 // Buildings: the most levels of each, what a level takes off a price (percent), and what each level costs.
 var (
-	BuildingMax      = [NumBuildings]int{Lodging: 5, MissionTable: 2, Smithy: 5, TrainingYard: 5, Market: 5, Apothecary: 5}
+	BuildingMax      = [NumBuildings]int{Lodging: 5, MissionTable: 2, Smithy: 5, TrainingYard: 5, Market: MarketMaxLevel, Apothecary: 5}
 	BuildingDiscount = [NumBuildings]int{Smithy: 8, TrainingYard: 5, Apothecary: 5}
 	BuildingBase     = [NumBuildings]int{Lodging: 20000, MissionTable: 100000, Smithy: 50000, TrainingYard: 50000, Market: 30000, Apothecary: 10000}
 )
@@ -402,6 +402,14 @@ const (
 	// The Market's first levels add items to the shop; the rest raise the shop's rarity chances (percent).
 	MarketItemLevels = 2
 	MarketRarityPct  = 50
+	// MarketBonusLevels is the last Market level that adds items or rarity; every level raises the shop's item
+	// level by MarketILvlStep floors, starting at MarketILvlStep, up to the guild's deepest floor.
+	MarketBonusLevels = 5
+	MarketILvlStep    = 10
+	MarketMaxLevel    = 100
+	ShopRefreshMs     = int64(time.Hour / time.Millisecond)
+	// RestockPct is the price of new shop items, a share of the Market's next level (percent).
+	RestockPct = 5
 	// The Apothecary's first levels add to the potion's healing (percent of max HP); the rest take off its price.
 	ApothecaryHealLevels = 3
 	ApothecaryHealPct    = 5
@@ -414,7 +422,15 @@ func ApothecaryHeal(level int) int { return min(level, ApothecaryHealLevels) * A
 func MarketItemsAt(level int) int { return min(level, MarketItemLevels) * MarketItems }
 
 // MarketRarity is how much the Market raises the shop's rarity chances at level (percent).
-func MarketRarity(level int) int { return max(0, level-MarketItemLevels) * MarketRarityPct }
+func MarketRarity(level int) int {
+	return max(0, min(level, MarketBonusLevels)-MarketItemLevels) * MarketRarityPct
+}
+
+// MarketILvl is the floor the shop's items come from at the Market's level, before the guild's deepest floor.
+func MarketILvl(level int) int { return (level + 1) * MarketILvlStep }
+
+// RestockCost is the price of new shop items at the Market's level.
+func RestockCost(level int) int { return BuildingCost(Market, level) * RestockPct / 100 }
 
 // BuildingDiscountAt is what the building takes off its price at level (percent).
 func BuildingDiscountAt(b Building, level int) int {
@@ -425,7 +441,12 @@ func BuildingDiscountAt(b Building, level int) int {
 }
 
 // BuildingCost is the price of the building's next level when it is at level.
-func BuildingCost(b Building, level int) int { return BuildingBase[b] * growth(BuildingGrowth, level) }
+func BuildingCost(b Building, level int) int {
+	if b == Market {
+		return BuildingBase[b] * (level + 1) * (level + 1)
+	}
+	return BuildingBase[b] * growth(BuildingGrowth, level)
+}
 
 // HireCost is the price of the next hero when the guild already has n.
 func HireCost(n int) int { return HireBase * growth(HireGrowth, n-1) }

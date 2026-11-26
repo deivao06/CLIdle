@@ -87,7 +87,7 @@ func TestUnequipAndSellStash(t *testing.T) {
 	if g.Hero.Equip[Armor] != nil || len(g.Guild.Stash) != 1 {
 		t.Fatalf("equip %v stash %v", g.Hero.Equip[Armor], g.Guild.Stash)
 	}
-	g.SellStash(0)
+	g.Guild.SellStash(0)
 	if len(g.Guild.Stash) != 0 || g.Guild.Gold != it.SellPrice() {
 		t.Fatalf("stash %v gold %d", g.Guild.Stash, g.Guild.Gold)
 	}

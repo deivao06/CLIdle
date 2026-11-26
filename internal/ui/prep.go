@@ -195,7 +195,7 @@ func (m Model) townRows() []prepRow {
 			price: cost, priceSt: m.goldFor(cost), enter: func() { g.Train(t) }, desc: m.trainDesc(t)})
 	}
 
-	for i, it := range g.Shop {
+	for i, it := range g.Guild.Shop {
 		price := game.ShopPrice(it)
 		text := lang.T("prep.shop_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), game.Num(price), m.compare(it))
 		st := m.priced(rarityStyle(it.Rarity), price)
@@ -206,7 +206,7 @@ func (m Model) townRows() []prepRow {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: st,
 			price: price, priceSt: m.goldFor(price), enter: func() { g.BuyShop(i) }, desc: m.itemDesc(it)})
 	}
-	if len(g.Shop) == 0 {
+	if len(g.Guild.Shop) == 0 {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.sold_out"), style: sMuted})
 	}
 	potionPrice := g.PotionCost()
@@ -216,10 +216,10 @@ func (m Model) townRows() []prepRow {
 	}
 	rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.potion_row", g.Hero.Potions, game.MaxPotions, game.Num(potionPrice)),
 		style: potion, price: potionPrice, priceSt: potionGold, enter: g.BuyPotion, desc: lang.T("town.potion.desc", game.MaxPotions)})
-	if size, cost, ok := g.NextBag(); ok {
+	if size, cost, ok := g.Guild.NextBag(); ok {
 		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, game.Num(cost))
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.buyable(cost),
-			price: cost, priceSt: m.goldFor(cost), enter: g.UpgradeBag, desc: lang.T("town.bag.desc")})
+			price: cost, priceSt: m.goldFor(cost), enter: func() { g.Guild.UpgradeBag() }, desc: lang.T("town.bag.desc")})
 	} else {
 		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.bag_max", size-game.BagSlotsPerLevel), style: sMuted})
 	}
@@ -250,7 +250,7 @@ func (m Model) townRows() []prepRow {
 	for i, it := range g.Guild.Stash[first:min(len(g.Guild.Stash), first+chestPageSize)] {
 		i += first
 		if !near(len(rows), m.cursor, m.h) {
-			rows = append(rows, prepRow{section: chest, enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }})
+			rows = append(rows, prepRow{section: chest, enter: func() { g.EquipStash(i) }, sell: func() { g.Guild.SellStash(i) }})
 			continue
 		}
 		text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), game.Num(it.SellPrice()), m.compare(it))
@@ -260,7 +260,7 @@ func (m Model) townRows() []prepRow {
 			st = sMuted
 		}
 		row := prepRow{section: chest, text: text, style: st, price: it.SellPrice(), priceSt: sGold,
-			enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }, desc: m.itemDesc(it) + " " + lang.T("chest.desc", game.Num(it.SellPrice()))}
+			enter: func() { g.EquipStash(i) }, sell: func() { g.Guild.SellStash(i) }, desc: m.itemDesc(it) + " " + lang.T("chest.desc", game.Num(it.SellPrice()))}
 		if it.Rarity == game.Legendary {
 			row.sellAsk = lang.T("confirm.sell_legendary", it.Title(), game.Num(it.SellPrice()))
 		}

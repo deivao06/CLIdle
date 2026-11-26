@@ -99,7 +99,7 @@ func TestV3QueuedPurchasesAreRefunded(t *testing.T) {
 	got, _, err := Load(path)
 	armor := g.Hero.Equip[Armor]
 	want := ShopPrice(boots) + UpgradeCost(armor, 1) + UpgradeCost(armor, 2) + UpgradeCost(boots, 0) + BagCost(0) + BagCost(1)
-	if err != nil || got.Guild.Gold != want || got.Hero.Equip[Armor].Upgrade != 1 || got.BagLevel != 0 {
+	if err != nil || got.Guild.Gold != want || got.Hero.Equip[Armor].Upgrade != 1 || got.Guild.BagLevel != 0 {
 		t.Fatalf("gold %d want %d err %v", got.Guild.Gold, want, err)
 	}
 }

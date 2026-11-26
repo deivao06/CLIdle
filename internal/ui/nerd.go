@@ -52,7 +52,11 @@ func (m Model) nerdRows() []prepRow {
 	for b := range game.NumBuildings {
 		rows = append(rows, nerdRow(sec, b.Name(), lang.T("nerd.building.value", game.BuildingMax[b], buildingValue(b, 1), game.BuildingCost(b, 0)), b.Desc()))
 	}
-	add("market", lang.T("nerd.market.value", game.MarketItems, game.MarketItemLevels, game.MarketRarityPct))
+	add("market", lang.T("nerd.market.value", game.MarketItems, game.MarketItemLevels, game.MarketRarityPct, game.MarketBonusLevels))
+	add("market_ilvl", lang.T("nerd.market_ilvl.value", game.MarketILvl(0), game.MarketILvl(1)-game.MarketILvl(0)))
+	add("market_cost", lang.T("nerd.market_cost.value", game.BuildingCost(game.Market, 1)/game.BuildingCost(game.Market, 0)))
+	add("shop_refresh", fmt.Sprintf("%d min", game.ShopRefreshMs/60000))
+	add("shop_restock", lang.T("nerd.shop_restock.value", game.RestockPct))
 	add("apothecary", lang.T("nerd.apothecary.value", game.ApothecaryHealPct, game.ApothecaryHealLevels, game.BuildingDiscount[game.Apothecary]))
 
 	sec = lang.T("nerd.section.combat")
