@@ -14,6 +14,7 @@ import (
 const (
 	// heroCardMaxW keeps a hero's HP and gold near the name on wide terminals.
 	heroCardMaxW = 60
+	guildLogMinW = 36
 	// placeMinW is the least room worth showing a cut dungeon name in.
 	placeMinW      = 6
 	corridorStepMs = 333
@@ -149,22 +150,41 @@ func (m Model) viewGuild(h int) string {
 	const logMin = 3
 	avail := h - 1
 	need := 2 + 2*len(m.g.Guild.Heroes)
+	listW := heroCardMaxW + 2
+	logW := m.w - listW - 2
+	wide := logW >= guildLogMinW
+	logBelow := logMin
+	if wide {
+		logBelow = 0
+	}
 	var scene []string
-	if art := m.tavern(nil); avail-lipgloss.Height(art)-need >= logMin {
+	if art := m.tavern(nil); avail-lipgloss.Height(art)-need >= logBelow {
 		scene = []string{lipgloss.PlaceHorizontal(m.w, lipgloss.Center, art)}
 	}
 	sceneH := 0
 	if len(scene) > 0 {
 		sceneH = lipgloss.Height(scene[0])
 	}
+	if wide {
+		bodyH := max(2, avail-sceneH)
+		list := m.viewRows(nil, m.guildRows(), listW, bodyH)
+		list = lipgloss.NewStyle().Width(listW).Height(bodyH).MaxHeight(bodyH).Render(list)
+		side := strings.Join([]string{"", sSection.Render(lang.T("guild.log.title")), m.guildLog(logW, bodyH-2)}, "\n")
+		side = lipgloss.NewStyle().MaxWidth(logW).Render(side)
+		body := lipgloss.JoinHorizontal(lipgloss.Top, list, "  ", side)
+		return strings.Join(append(scene, body), "\n")
+	}
 	listH := max(1, min(need, avail-sceneH-logMin))
 	logH := max(1, avail-sceneH-listH)
 	list := m.viewRows(nil, m.guildRows(), m.w, listH)
 	list = lipgloss.NewStyle().Height(listH).MaxHeight(listH).Render(list)
 	list = strings.Join(append(scene, list), "\n")
-	log := m.renderLog(m.g.Guild.Log, m.w-2, logH)
+	return strings.Join([]string{list, sSection.Render(lang.T("guild.log.title")), m.guildLog(m.w-2, logH)}, "\n")
+}
+
+func (m Model) guildLog(w, h int) string {
 	if len(m.g.Guild.Log) == 0 {
-		log = sMuted.Render(lang.T("guild.log.empty"))
+		return sMuted.Render(lang.T("guild.log.empty"))
 	}
-	return strings.Join([]string{list, sSection.Render(lang.T("guild.log.title")), log}, "\n")
+	return m.renderLog(m.g.Guild.Log, w, h)
 }

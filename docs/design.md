@@ -121,7 +121,7 @@ A ideia é deixar um terminal pequeno rodando e ter uma progressão satisfatóri
 
 ## Guilda
 
-- O jogo abre na **Guilda de Aventureiros** (taverna animada). Abas: Guilda (heróis, taverna, registro), Prédios, Recrutar, Config. Enter abre um herói; esc (ou o botão Guilda no celular) volta.
+- O jogo abre na **Guilda de Aventureiros** (taverna animada). Abas: Guilda (heróis, taverna, registro), Prédios, Recrutar, Config. Com espaço para o card inteiro e mais 36 colunas, o registro fica à direita dos heróis; senão, embaixo. Enter abre um herói; esc (ou o botão Guilda no celular) volta.
 - **Card do herói na guilda** (2 linhas): corredor animado (`.@.` anda para a direita explorando, para a esquerda voltando, `.@†` lutando; `π@` em casa, cinza se a auto-expedição está desligada; `@+` na fila), nome, classe, nível e HP; embaixo a situação, a dungeon com o tier e o ouro (da expedição atual, ou o que trouxe na última volta, `Game.LastGold`). Cada herói tem uma cadeira fixa na taverna e a mesma cor do `@` no card; o selecionado aparece invertido. O registro da guilda diz a dungeon de cada evento.
 - **Telas pequenas:** sem o painel lateral, a dungeon sempre mostra a linha do herói (nome e atributos) e pelo menos 3 linhas de registro; o mapa encolhe em volta do herói.
 - **Ouro e baú são da guilda.** Cada herói tem equipamento, mochila, táticas, config da expedição, dungeon, atalhos e prestígio.
