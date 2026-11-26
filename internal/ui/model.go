@@ -21,6 +21,8 @@ const (
 	tabGuild
 	tabRecruit
 	tabBuildings
+	tabShop
+	tabChest
 )
 
 const (
@@ -37,6 +39,8 @@ type Model struct {
 	g        *game.Game
 	guild    bool
 	alloc    *allocDraft
+	pick     *pickDraft
+	pickBack int
 	w, h     int
 	tab      int
 	help     bool
@@ -84,6 +88,7 @@ type Model struct {
 	cmd         tea.Cmd
 	// notice is a short message for the footer, shown for noticeShow after noticeAt.
 	notice      string
+	noticeOK    bool
 	noticeAt    time.Time
 	wasInTown   bool
 	checking    bool
@@ -293,8 +298,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.save(time.Now())
 			}
 			return m, tea.Quit
-		case "1", "2", "3", "4", "5":
-			if i, tabs := int(msg.String()[0]-'1'), m.tabs(); i < len(tabs) && m.alloc == nil {
+		case "1", "2", "3", "4", "5", "6":
+			if i, tabs := int(msg.String()[0]-'1'), m.tabs(); i < len(tabs) && m.alloc == nil && m.pick == nil {
 				m.leave(func(m *Model) {
 					if tabs[i] != tabHero {
 						m.cursor = 0
@@ -327,6 +332,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch {
 			case !m.help && m.alloc != nil:
 				m.alloc = nil
+			case !m.help && m.pick != nil:
+				m.pick, m.cursor = nil, m.pickBack
 			case !m.help && m.edit > 0:
 				m.leave(func(*Model) {})
 			case !m.help && !m.guild:
@@ -366,7 +373,7 @@ const noticeShow = 5 * time.Second
 // depart sends the open hero out, or says why the mission table cannot take it.
 func (m *Model) depart() {
 	if gd := m.g.Guild; m.g.InTown() && !m.g.Depart() {
-		m.notice, m.noticeAt = lang.T("depart.full", gd.Running(), gd.Slots()), time.Now()
+		m.say(lang.T("depart.full", gd.Running(), gd.Slots()), false)
 	}
 }
 
@@ -406,11 +413,17 @@ func (m *Model) prepKey(key string) {
 			r.adjust(1)
 		}
 	case "x":
-		switch sell := r.sell; {
-		case sell != nil && r.sellAsk != "":
-			m.ask(r.sellAsk, func(*Model) { sell() })
-		case sell != nil:
-			sell()
+		sold := func(m *Model) {
+			r.sell()
+			if r.sellMsg != "" {
+				m.say(r.sellMsg, true)
+			}
+		}
+		switch {
+		case r.sell != nil && r.sellAsk != "":
+			m.ask(r.sellAsk, sold)
+		case r.sell != nil:
+			sold(m)
 		}
 	case "enter", " ":
 		switch {

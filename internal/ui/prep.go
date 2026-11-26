@@ -27,6 +27,7 @@ type prepRow struct {
 	do      func(*Model)
 	sell    func()
 	sellAsk string
+	sellMsg string
 	confirm string
 	desc    string
 	price   int
@@ -67,7 +68,14 @@ func (m Model) rows() []prepRow {
 	if m.alloc != nil {
 		return m.allocRows()
 	}
+	if m.pick != nil {
+		return m.pickRows()
+	}
 	switch m.tab {
+	case tabShop:
+		return m.shopRows()
+	case tabChest:
+		return m.chestRows()
 	case tabSettings:
 		return m.settingsRows()
 	case tabDungeon:
@@ -164,7 +172,7 @@ func (m Model) prepRows() []prepRow {
 
 func (m Model) townRows() []prepRow {
 	g := m.g
-	rows := make([]prepRow, 0, 32+len(g.Guild.Stash))
+	rows := make([]prepRow, 0, 32)
 	rows = append(rows, prepRow{text: lang.T("prep.depart_now"), style: sTitle, do: (*Model).depart, confirm: lang.T("confirm.depart"), desc: lang.T("town.depart.desc")})
 
 	for s := range game.NumSlots {
@@ -195,35 +203,6 @@ func (m Model) townRows() []prepRow {
 			price: cost, priceSt: m.goldFor(cost), enter: func() { g.Train(t) }, desc: m.trainDesc(t)})
 	}
 
-	for i, it := range g.Guild.Shop {
-		price := game.ShopPrice(it)
-		text := lang.T("prep.shop_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), game.Num(price), m.compare(it))
-		st := m.priced(rarityStyle(it.Rarity), price)
-		if !g.Hero.Class.CanUse(it) {
-			text += lang.T("prep.other_class")
-			st = sMuted
-		}
-		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: st,
-			price: price, priceSt: m.goldFor(price), enter: func() { g.BuyShop(i) }, desc: m.itemDesc(it)})
-	}
-	if len(g.Guild.Shop) == 0 {
-		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.sold_out"), style: sMuted})
-	}
-	potionPrice := g.PotionCost()
-	potion, potionGold := m.buyable(potionPrice), m.goldFor(potionPrice)
-	if g.Hero.Potions >= game.MaxPotions {
-		potion, potionGold = sMuted, sGold.Faint(true)
-	}
-	rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.potion_row", g.Hero.Potions, game.MaxPotions, game.Num(potionPrice)),
-		style: potion, price: potionPrice, priceSt: potionGold, enter: g.BuyPotion, desc: lang.T("town.potion.desc", game.MaxPotions)})
-	if size, cost, ok := g.Guild.NextBag(); ok {
-		text := lang.T("prep.bag_row", size-game.BagSlotsPerLevel, size, game.Num(cost))
-		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: text, style: m.buyable(cost),
-			price: cost, priceSt: m.goldFor(cost), enter: func() { g.Guild.UpgradeBag() }, desc: lang.T("town.bag.desc")})
-	} else {
-		rows = append(rows, prepRow{section: lang.T("prep.section.shop"), text: lang.T("prep.bag_max", size-game.BagSlotsPerLevel), style: sMuted})
-	}
-
 	if g.Dungeon > 0 {
 		row := prepRow{section: lang.T("prep.section.prestige"), text: lang.T("prep.prestige_row", g.PrestigeGain()), style: logStyles[game.LogEpic],
 			confirm: lang.T("confirm.prestige", g.PrestigeGain()), do: func(m *Model) { m.choosing, m.prestige, m.cursor = true, true, int(m.g.Hero.Class) },
@@ -235,37 +214,6 @@ func (m Model) townRows() []prepRow {
 		rows = append(rows, row)
 	}
 
-	chest := lang.T("prep.section.chest", len(g.Guild.Stash))
-	pages := max(1, (len(g.Guild.Stash)+chestPageSize-1)/chestPageSize)
-	page := clamp(*m.chestPage, 0, pages-1)
-	*m.chestPage = page
-	if pages > 1 {
-		row := cfgRow(chest, "prep.chest_page", fmt.Sprintf("%d/%d", page+1, pages), func(d int) {
-			*m.chestPage = (page + d + pages) % pages
-		})
-		row.desc = lang.T("prep.chest_page.desc", chestPageSize)
-		rows = append(rows, row)
-	}
-	first := page * chestPageSize
-	for i, it := range g.Guild.Stash[first:min(len(g.Guild.Stash), first+chestPageSize)] {
-		i += first
-		if !near(len(rows), m.cursor, m.h) {
-			rows = append(rows, prepRow{section: chest, enter: func() { g.EquipStash(i) }, sell: func() { g.Guild.SellStash(i) }})
-			continue
-		}
-		text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), game.Num(it.SellPrice()), m.compare(it))
-		st := rarityStyle(it.Rarity)
-		if !g.Hero.Class.CanUse(it) {
-			text += lang.T("prep.other_class")
-			st = sMuted
-		}
-		row := prepRow{section: chest, text: text, style: st, price: it.SellPrice(), priceSt: sGold,
-			enter: func() { g.EquipStash(i) }, sell: func() { g.Guild.SellStash(i) }, desc: m.itemDesc(it) + " " + lang.T("chest.desc", game.Num(it.SellPrice()))}
-		if it.Rarity == game.Legendary {
-			row.sellAsk = lang.T("confirm.sell_legendary", it.Title(), game.Num(it.SellPrice()))
-		}
-		rows = append(rows, row)
-	}
 	return rows
 }
 
@@ -295,17 +243,6 @@ func (m Model) trainDesc(t game.Trait) string {
 }
 
 // itemDesc says how an item compares with what the hero has equipped in that slot.
-func (m Model) itemDesc(it *game.Item) string {
-	rarity := lang.T("item.rarity.desc", it.Rarity.Name()) + " "
-	if !m.g.Hero.Class.CanUse(it) {
-		return rarity + lang.T("item.other_class.desc")
-	}
-	if cur := m.g.Hero.Equip[it.Slot]; cur != nil && cur.ID != it.ID {
-		return rarity + lang.T("item.vs.desc", cur.Title(), cur.StatLabel())
-	}
-	return rarity + lang.T("item.vs_none.desc")
-}
-
 func (m Model) buyable(cost int) lipgloss.Style {
 	if cost > m.g.Guild.Gold {
 		return sMuted
@@ -358,19 +295,6 @@ func (m Model) priced(st lipgloss.Style, cost int) lipgloss.Style {
 		return st.Faint(true)
 	}
 	return st
-}
-
-// compare shows how a shop item changes the stat of the currently equipped one.
-func (m Model) compare(it *game.Item) string {
-	cur := m.g.Hero.Equip[it.Slot]
-	diff := it.Bonus()
-	if cur != nil {
-		diff -= cur.Bonus()
-	}
-	if diff > 0 {
-		return fmt.Sprintf("  ▲%d", diff)
-	}
-	return fmt.Sprintf("  ▼%d", -diff)
 }
 
 func (m Model) viewPrep(h int) string {

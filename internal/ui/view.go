@@ -87,6 +87,12 @@ func (m Model) view() string {
 		body = m.viewHelp(bodyH)
 	case m.alloc != nil:
 		body = m.viewRows(nil, m.allocRows(), m.w, bodyH)
+	case m.pick != nil:
+		body = m.viewRows([]string{sMuted.Render(m.keysHint("pick.keys")), "", m.pickHead()}, m.pickRows(), m.w, bodyH)
+	case m.tab == tabShop:
+		body = m.viewRows([]string{sMuted.Render(m.keysHint("shop.keys"))}, m.shopRows(), m.w, bodyH)
+	case m.tab == tabChest:
+		body = m.viewRows([]string{sMuted.Render(m.keysHint("chest.keys"))}, m.chestRows(), m.w, bodyH)
 	case m.tab == tabBuildings:
 		body = m.viewRows([]string{sMuted.Render(m.keysHint("buildings.keys"))}, m.buildingRows(), m.w, bodyH)
 	case m.tab == tabRecruit:
@@ -209,7 +215,7 @@ func (m Model) viewFooter() string {
 	keys := lang.T("footer.dungeon", tabs, auto)
 	switch {
 	case m.guild:
-		keys = lang.T("footer.guild", tabs)
+		keys = lang.T("footer.guild", tabs, lang.T(m.guildAction()))
 	case m.g.InTown():
 		keys = lang.T("footer.town", tabs, auto)
 	}
@@ -223,7 +229,7 @@ func (m Model) viewFooter() string {
 		return truncate(sWarn.Render(m.updateErr), m.w)
 	}
 	if m.notice != "" && time.Since(m.noticeAt) < noticeShow {
-		return truncate(sWarn.Render(m.notice), m.w)
+		return truncate(m.noticeStyle().Render(m.notice), m.w)
 	}
 	for lipgloss.Width(keys) > m.w && strings.Contains(keys, " · ") {
 		_, keys, _ = strings.Cut(keys, " · ")

@@ -46,7 +46,7 @@ func TestResetSaveAsksThenStartsOver(t *testing.T) {
 	var tm tea.Model = NewWithSave(g, path, 0, false)
 	tm, _ = tm.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
-	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("4")})
+	tm, _ = tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("6")})
 	m := tm.(Model)
 	m.cursor = len(m.settingsRows()) - 1
 	tm, _ = m.Update(tea.KeyMsg{Type: tea.KeyEnter})
@@ -89,22 +89,16 @@ func TestChestRowsEquipAndSell(t *testing.T) {
 	g.Hero.Equip[game.Weapon] = nil
 	g.Guild.Stash = []*game.Item{{Slot: game.Weapon, Kind: game.Blade, Base: 5}, {Slot: game.Armor, Base: 3}}
 	m := New(g)
-	m.tab = tabDungeon
-	for i, r := range m.townRows() {
-		if r.sell != nil {
-			m.cursor = i
-			break
-		}
+	m.tab, m.cursor = tabChest, 0
+	m.prepKey("enter")
+	if m.pick == nil {
+		t.Fatal("enter did not ask which hero")
 	}
 	m.prepKey("enter")
 	if g.Hero.Equip[game.Weapon] == nil || len(g.Guild.Stash) != 1 {
 		t.Fatalf("enter did not equip: stash %d", len(g.Guild.Stash))
 	}
-	for i, r := range m.townRows() {
-		if r.sell != nil {
-			m.cursor = i
-		}
-	}
+	m.cursor = 0
 	m.prepKey("x")
 	if len(g.Guild.Stash) != 0 || g.Guild.Gold == 0 {
 		t.Fatalf("x did not sell: stash %d gold %d", len(g.Guild.Stash), g.Guild.Gold)
@@ -146,12 +140,7 @@ func TestSellingLegendaryAsksFirst(t *testing.T) {
 	g := game.New(1, game.Warrior)
 	g.Guild.Stash = []*game.Item{{Slot: game.Armor, Base: 3, Rarity: game.Legendary}}
 	m := New(g)
-	m.tab = tabDungeon
-	for i, r := range m.townRows() {
-		if r.sell != nil {
-			m.cursor = i
-		}
-	}
+	m.tab, m.cursor = tabChest, 0
 	m.prepKey("x")
 	if len(g.Guild.Stash) != 1 || m.confirmDo == nil {
 		t.Fatalf("legendary sold without asking: stash %d", len(g.Guild.Stash))
@@ -414,7 +403,7 @@ func TestHireARecruitAndMakeAHero(t *testing.T) {
 	g.Hero.FreePoints, g.Guild.Gold = 0, 10000
 	m := New(g)
 	m.w, m.h = 100, 30
-	m = press(m, "3")
+	m = press(m, "5")
 	r := g.Guild.Recruits[0]
 	m = press(m, "enter")
 	if m.alloc == nil || m.alloc.name != r.Name {
@@ -430,7 +419,7 @@ func TestHireARecruitAndMakeAHero(t *testing.T) {
 		t.Fatalf("recruit not hired: %d heroes", len(gd.Heroes))
 	}
 
-	m = press(m, "3")
+	m = press(m, "5")
 	m.cursor = len(m.rows()) - 2
 	m = press(m, "enter")
 	if !m.naming {
@@ -451,8 +440,39 @@ func TestHireARecruitAndMakeAHero(t *testing.T) {
 	if len(gd.Heroes) != 3 || gd.Heroes[2].Hero.Name != "Zed" || gd.Heroes[2].Hero.Class != game.Mage {
 		t.Fatalf("hero not made: %d heroes", len(gd.Heroes))
 	}
-	m = press(m, "3")
+	m = press(m, "5")
 	if !strings.Contains(m.View(), lang.T("recruit.no_bed", gd.Beds())) && m.hireBlock() == "" {
 		t.Fatal("a full guild still lets you hire")
+	}
+}
+
+func TestShopPicksTheHeroWhoGetsTheItem(t *testing.T) {
+	g := game.New(1, game.Warrior)
+	g.Hero.FreePoints, g.Guild.Gold = 0, 1<<30
+	shield := &game.Item{ID: 7, Slot: game.Shield, Base: 3}
+	g.Guild.Shop = []*game.Item{shield}
+	m := New(g)
+	m.w, m.h = 100, 30
+	m = press(m, "2")
+	m = press(m, "enter")
+	if m.pick == nil || m.pick.item != shield {
+		t.Fatal("buying did not open the hero picker")
+	}
+	m = press(m, "enter")
+	if m.pick != nil || g.Hero.Equip[game.Shield] != shield || len(g.Guild.Shop) != 0 {
+		t.Fatal("the picked hero did not get the item")
+	}
+}
+
+func TestShopWithoutGoldNeverOpensThePicker(t *testing.T) {
+	g := game.New(1, game.Warrior)
+	g.Hero.FreePoints, g.Guild.Gold = 0, 0
+	g.Guild.Shop = []*game.Item{{ID: 7, Slot: game.Shield, Base: 3}}
+	m := New(g)
+	m.w, m.h = 100, 30
+	m = press(m, "2")
+	m = press(m, "enter")
+	if m.pick != nil || m.noticeOK || m.notice == "" {
+		t.Fatal("the picker opened without gold to pay")
 	}
 }

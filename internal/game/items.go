@@ -159,8 +159,13 @@ func (it *Item) ILvl() string {
 	return lang.T("item.ilvl", it.Floor)
 }
 
+// StatName is the short name of the stat items in the slot raise.
+func (s Slot) StatName() string {
+	return lang.T([...]string{"stat.atk", "stat.def", "stat.spd", "stat.def", "stat.def"}[s])
+}
+
 func (it *Item) StatLabel() string {
-	s := fmt.Sprintf("%s +%d", lang.T([...]string{"stat.atk", "stat.def", "stat.spd", "stat.def", "stat.def"}[it.Slot]), it.Bonus())
+	s := fmt.Sprintf("%s +%d", it.Slot.StatName(), it.Bonus())
 	if it.Upgrade > 0 {
 		s += lang.T("stat.base", it.Base)
 	}

@@ -42,10 +42,23 @@ func (m Model) barActions() []barAction {
 	if m.help {
 		return []barAction{{"?", lang.T("bar.close")}}
 	}
+	if m.pick != nil {
+		return []barAction{{"enter", lang.T("bar.give")}, {"esc", lang.T("bar.back")}, {"?", lang.T("bar.help")}}
+	}
 	if m.alloc != nil {
 		return []barAction{{"esc", lang.T("bar.back")}, {"?", lang.T("bar.help")}}
 	}
 	if m.guild {
+		switch rows := m.rows(); {
+		case m.tab == tabShop && m.cursor < len(rows) && (rows[m.cursor].act != nil || rows[m.cursor].do != nil):
+			return []barAction{{"enter", lang.T("bar.buy")}, {"?", lang.T("bar.help")}}
+		case m.tab == tabShop:
+			return []barAction{{"?", lang.T("bar.help")}}
+		case m.tab == tabBuildings:
+			return []barAction{{"enter", lang.T("bar.upgrade")}, {"?", lang.T("bar.help")}}
+		case m.tab == tabChest && m.cursor < len(rows) && rows[m.cursor].sell != nil:
+			return []barAction{{"enter", lang.T("bar.equip")}, {"x", lang.T("bar.sell")}, {"?", lang.T("bar.help")}}
+		}
 		return []barAction{{"enter", lang.T("bar.open")}, {"?", lang.T("bar.help")}}
 	}
 	var a []barAction
@@ -65,11 +78,6 @@ func (m Model) barActions() []barAction {
 		auto = lang.T("prep.on")
 	}
 	a = append(a, barAction{"a", lang.T("bar.auto", auto)})
-	if m.tab == tabDungeon && g.InTown() {
-		if rows := m.townRows(); m.cursor < len(rows) && rows[m.cursor].sell != nil {
-			a = append(a, barAction{"enter", lang.T("bar.equip")}, barAction{"x", lang.T("bar.sell")})
-		}
-	}
 	if m.release != nil {
 		a = append(a, barAction{"u", lang.T("bar.update")})
 	}
@@ -103,7 +111,7 @@ func (m Model) viewActions() string {
 	case m.updateErr != "" && time.Since(m.updateErrAt) < updateErrShow:
 		return truncate(sWarn.Render(m.updateErr), m.w)
 	case m.notice != "" && time.Since(m.noticeAt) < noticeShow:
-		return truncate(sWarn.Render(m.notice), m.w)
+		return truncate(m.noticeStyle().Render(m.notice), m.w)
 	}
 	acts := m.barActions()
 	keyed := func(withKeys bool) []string {
@@ -133,7 +141,7 @@ func (m Model) viewActions() string {
 	return b.String()
 }
 
-var tabKeys = []string{"tab.main", "tab.prep", "tab.hero", "tab.settings", "tab.nerd", "tab.guild", "tab.recruit", "tab.buildings"}
+var tabKeys = []string{"tab.main", "tab.prep", "tab.hero", "tab.settings", "tab.nerd", "tab.guild", "tab.recruit", "tab.buildings", "tab.shop", "tab.chest"}
 
 func (m Model) tabCount() int { return len(m.tabs()) }
 
@@ -319,6 +327,13 @@ func (m Model) mouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) listShown() bool {
-	return m.alloc != nil || m.tab == tabPrep || m.tab == tabSettings || m.tab == tabNerd || m.tab == tabGuild || m.tab == tabRecruit || m.tab == tabBuildings ||
+	return m.alloc != nil || m.pick != nil || m.tab == tabShop || m.tab == tabChest || m.tab == tabPrep || m.tab == tabSettings || m.tab == tabNerd || m.tab == tabGuild || m.tab == tabRecruit || m.tab == tabBuildings ||
 		m.tab == tabDungeon && m.g.InTown()
+}
+
+func (m Model) noticeStyle() lipgloss.Style {
+	if m.noticeOK {
+		return sHPGood
+	}
+	return sWarn
 }

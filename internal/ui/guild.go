@@ -23,7 +23,7 @@ const (
 // tabs lists the screens of the current view: the guild's, or the open hero's.
 func (m Model) tabs() []int {
 	if m.guild {
-		return []int{tabGuild, tabBuildings, tabRecruit, tabSettings}
+		return []int{tabGuild, tabShop, tabChest, tabBuildings, tabRecruit, tabSettings}
 	}
 	if m.g.Guild.Nerd {
 		return []int{tabDungeon, tabPrep, tabHero, tabNerd}
@@ -39,7 +39,6 @@ func (m *Model) openGuild() {
 func (m *Model) openHero(h *game.Game) {
 	m.g, m.guild, m.tab, m.cursor, m.heroTop, m.help = h, false, tabDungeon, 0, 0, false
 	h.Events = h.Events[:0]
-	*m.chestPage = 0
 	m.lastDeaths, m.lastBosses = h.Deaths, h.BossKills
 	m.spendFree(h)
 }
@@ -187,4 +186,23 @@ func (m Model) guildLog(w, h int) string {
 		return sMuted.Render(lang.T("guild.log.empty"))
 	}
 	return m.renderLog(m.g.Guild.Log, w, h)
+}
+
+// guildAction is what enter does on the open guild tab, for the footer.
+func (m Model) guildAction() string {
+	switch {
+	case m.pick != nil:
+		return "footer.act.pick"
+	case m.tab == tabShop:
+		return "footer.act.shop"
+	case m.tab == tabChest:
+		return "footer.act.chest"
+	case m.tab == tabBuildings:
+		return "footer.act.buildings"
+	case m.tab == tabRecruit:
+		return "footer.act.recruit"
+	case m.tab == tabSettings:
+		return "footer.act.settings"
+	}
+	return "footer.act.guild"
 }
