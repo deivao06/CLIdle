@@ -162,7 +162,8 @@ func (m Model) prepRows() []prepRow {
 
 func (m Model) townRows() []prepRow {
 	g := m.g
-	rows := []prepRow{{text: lang.T("prep.depart_now"), style: sTitle, do: (*Model).depart, confirm: lang.T("confirm.depart"), desc: lang.T("town.depart.desc")}}
+	rows := make([]prepRow, 0, 32+len(g.Guild.Stash))
+	rows = append(rows, prepRow{text: lang.T("prep.depart_now"), style: sTitle, do: (*Model).depart, confirm: lang.T("confirm.depart"), desc: lang.T("town.depart.desc")})
 
 	for s := range game.NumSlots {
 		it := g.Hero.Equip[s]
@@ -234,6 +235,10 @@ func (m Model) townRows() []prepRow {
 
 	chest := lang.T("prep.section.chest", len(g.Guild.Stash))
 	for i, it := range g.Guild.Stash {
+		if !near(len(rows), m.cursor, m.h) {
+			rows = append(rows, prepRow{section: chest, enter: func() { g.EquipStash(i) }, sell: func() { g.SellStash(i) }})
+			continue
+		}
 		text := lang.T("prep.chest_row", it.Slot.Glyph(), it.Title(), it.StatLabel(), game.Num(it.SellPrice()), m.compare(it))
 		st := rarityStyle(it.Rarity)
 		if !g.Hero.Class.CanUse(it) {
@@ -401,6 +406,9 @@ func (m Model) rowLines(r prepRow, selected bool, w int) []string {
 	return []string{r.style.Render(truncate(r.label, w)), "  " + val}
 }
 
+// near tells whether row i is close enough to the cursor to be on screen when n lines fit.
+func near(i, cursor, n int) bool { return i >= cursor-n && i <= cursor+n }
+
 func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {
 	var fit []string
 	for _, l := range head {
@@ -414,6 +422,7 @@ func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {
 			foot = nil
 		}
 	}
+	avail := max(1, h-len(head)-len(foot))
 	var lines []string
 	cursorLine := 0
 	section := ""
@@ -421,6 +430,10 @@ func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {
 		if r.section != section {
 			section = r.section
 			lines = append(lines, "", sSection.Render(section))
+		}
+		if !near(i, m.cursor, avail) {
+			lines = append(lines, "")
+			continue
 		}
 		prefix := "  "
 		if i == m.cursor {
@@ -436,7 +449,6 @@ func (m Model) viewRows(head []string, rows []prepRow, w, h int) string {
 			lines = append(lines, zone.Mark(fmt.Sprintf("row:%d.%d", i, j), line))
 		}
 	}
-	avail := max(1, h-len(head)-len(foot))
 	top := cursorLine - avail/2
 	top = clamp(top, 0, max(0, len(lines)-avail))
 	*m.shown = scrolled{top, max(0, len(lines)-avail)}
