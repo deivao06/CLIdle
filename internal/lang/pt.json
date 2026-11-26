@@ -435,7 +435,7 @@
   "prep.auto_sell.desc": "Sim: na volta, a mochila é vendida pelo valor dos itens (mais 20% do que foi gasto no ferreiro). Não: vai para o baú da cidade (até 20 itens; o que não couber é vendido). Lendários nunca são vendidos sozinhos: vão sempre para o baú e só saem vendidos com x e confirmação.",
   "prep.min_rarity.desc": "Raridade mínima que vai para a mochila. Item que o herói vai equipar é pego sempre.",
   "prep.any_class.desc": "Pegar também itens que a classe do herói não usa, só para vender na volta.",
-  "prep.prefer_effect": "Priorizar efeito",
+  "prep.prefer_effect": "  └ priorizar efeito",
   "prep.prefer_effect.desc": "O auto-equipar troca para o item com mais desse efeito, mesmo com Ataque ou Defesa menor. No empate, vence o item mais forte.",
   "prep.prefer_none": "nenhum",
   "effect.name.life_steal": "roubo de vida",

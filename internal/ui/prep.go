@@ -137,18 +137,20 @@ func (m Model) prepRows() []prepRow {
 		func(d int) { step(&c.PotionsToBring, d, 1, 0, game.MaxPotions) })
 	section = lang.T("prep.section.loot")
 	cfg("prep.auto_equip", onOff(!c.ManualEquip), func(int) { c.ManualEquip = !c.ManualEquip })
+	if !c.ManualEquip {
+		prefer := lang.T("prep.prefer_none")
+		if c.PreferEffect > 0 {
+			prefer = lang.T("effect.name." + effectKeys[c.PreferEffect-1])
+		}
+		cfg("prep.prefer_effect", prefer, func(d int) {
+			c.PreferEffect = (c.PreferEffect + d + int(game.NumEffects) + 1) % (int(game.NumEffects) + 1)
+		})
+	}
 	cfg("prep.auto_sell", onOff(!c.KeepLoot), func(int) { c.KeepLoot = !c.KeepLoot })
 	cfg("prep.min_rarity", lang.T("prep.min_rarity_value", c.MinRarity.Name()), func(d int) {
 		c.MinRarity = (c.MinRarity + game.Rarity(d) + game.NumRarities) % game.NumRarities
 	})
 	cfg("prep.any_class", onOff(c.AnyClass), func(int) { c.AnyClass = !c.AnyClass })
-	prefer := lang.T("prep.prefer_none")
-	if c.PreferEffect > 0 {
-		prefer = lang.T("effect.name." + effectKeys[c.PreferEffect-1])
-	}
-	cfg("prep.prefer_effect", prefer, func(d int) {
-		c.PreferEffect = (c.PreferEffect + d + int(game.NumEffects) + 1) % (int(game.NumEffects) + 1)
-	})
 	return append(rows, m.tacticsRows(len(rows))...)
 }
 
